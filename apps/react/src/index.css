@@ -28,23 +28,102 @@
   --color-warning-700: #92400e;
 }
 
+:root {
+  /* Cursor position used by the spotlight overlay below. */
+  --mx: 50vw;
+  --my: 50vh;
+}
+
 html,
 body,
 #root {
   height: 100%;
 }
 
+#root {
+  position: relative;
+  z-index: 1;
+}
+
 body {
   margin: 0;
-  background: var(--color-primary-50);
+  background-color: var(--color-primary-50);
+  /* Base dot grid: covers the full window, always lightly visible. */
+  background-image: radial-gradient(
+    circle at center,
+    color-mix(in oklab, var(--color-primary-400) 20%, transparent) 1px,
+    transparent 1.4px
+  );
+  background-size: 22px 22px;
   color: var(--color-primary-900);
   font-family: "Inter", "Segoe UI", -apple-system, ui-sans-serif, system-ui, Roboto, sans-serif;
   font-feature-settings: "cv11", "ss01";
 }
 
 .dark body {
-  background: var(--color-primary-900);
+  background-color: var(--color-primary-900);
+  background-image: radial-gradient(
+    circle at center,
+    color-mix(in oklab, var(--color-primary-600) 32%, transparent) 1px,
+    transparent 1.4px
+  );
   color: var(--color-primary-50);
+}
+
+/* Desktop-only cursor spotlight: a denser dot layer + soft dark wash,
+   masked to a 380px radial gradient anchored at the cursor. Dots feel
+   darker near the pointer and fade back to the base layer as you
+   move away. Hidden on touch/coarse pointers — no signal to follow. */
+@media (hover: hover) and (pointer: fine) {
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(
+        circle 380px at var(--mx) var(--my),
+        color-mix(in oklab, var(--color-primary-900) 5%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        circle at center,
+        color-mix(in oklab, var(--color-primary-600) 35%, transparent) 1px,
+        transparent 1.4px
+      );
+    background-size: 100% 100%, 22px 22px;
+    background-repeat: no-repeat, repeat;
+    -webkit-mask-image: radial-gradient(
+      circle 360px at var(--mx) var(--my),
+      black 0%,
+      rgba(0, 0, 0, 0.45) 55%,
+      transparent 100%
+    );
+    mask-image: radial-gradient(
+      circle 360px at var(--mx) var(--my),
+      black 0%,
+      rgba(0, 0, 0, 0.45) 55%,
+      transparent 100%
+    );
+    transition:
+      -webkit-mask-position 80ms linear,
+      mask-position 80ms linear;
+  }
+
+  .dark body::before {
+    background-image:
+      radial-gradient(
+        circle 380px at var(--mx) var(--my),
+        rgba(0, 0, 0, 0.35),
+        transparent 70%
+      ),
+      radial-gradient(
+        circle at center,
+        color-mix(in oklab, var(--color-primary-400) 40%, transparent) 1px,
+        transparent 1.4px
+      );
+  }
 }
 
 .fa5-title {
@@ -66,27 +145,10 @@ body {
   width: 100%;
   max-width: 720px;
   margin: 0 auto;
-  background-color: var(--color-primary-50);
-  /* Whisper-quiet film-strip texture: ~3% contrast vertical lines */
-  background-image: repeating-linear-gradient(
-    90deg,
-    color-mix(in oklab, var(--color-primary-300) 22%, transparent) 0,
-    color-mix(in oklab, var(--color-primary-300) 22%, transparent) 1px,
-    transparent 1px,
-    transparent 28px
-  );
+  /* Transparent so the window-wide dot grid on `body` shows through,
+     both inside the centered viewport and in the side margins. */
+  background: transparent;
   position: relative;
-}
-
-.dark .app-viewport {
-  background-color: var(--color-primary-900);
-  background-image: repeating-linear-gradient(
-    90deg,
-    color-mix(in oklab, var(--color-primary-700) 35%, transparent) 0,
-    color-mix(in oklab, var(--color-primary-700) 35%, transparent) 1px,
-    transparent 1px,
-    transparent 28px
-  );
 }
 
 .grid-cell-size {
