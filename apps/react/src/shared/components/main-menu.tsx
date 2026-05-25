@@ -2,56 +2,70 @@ import clsx from "clsx"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { formatLongDate } from "@/shared/lib/date"
-import { AboutOverlay } from "./about-overlay"
+import { AboutContent } from "./about-overlay"
 import { FilmIcon } from "./film-icon"
 import { GameModeButton } from "./game-mode-button"
-import { HowToPlayOverlay } from "./how-to-play-overlay"
-import { SettingsOverlay } from "./settings-overlay"
+import { HowToPlayContent } from "./how-to-play-overlay"
+import { InlinePanel } from "./inline-panel"
+import { SettingsContent } from "./settings-overlay"
 
-type OverlayKey = "settings" | "about" | "how-to-play" | null
+type Panel = "settings" | "about" | "how-to-play" | null
 
 export function MainMenu() {
   const navigate = useNavigate()
-  const [overlay, setOverlay] = useState<OverlayKey>(null)
-  const close = () => setOverlay(null)
+  const [panel, setPanel] = useState<Panel>(null)
+  const close = () => setPanel(null)
 
   return (
-    <div className="flex flex-col items-center flex-1 w-full px-4 pt-10 pb-6">
+    <div className="flex w-full flex-1 flex-col items-center px-4 pt-10 pb-6">
       <div className="text-center">
         <FilmIcon
-          className="mx-auto mb-3 w-14 h-14 text-primary-800 dark:text-primary-100"
+          className="mx-auto mb-3 h-14 w-14 text-primary-800 dark:text-primary-100"
           title="Filmdle"
         />
         <h1 className="fa5-title text-5xl text-primary-900 dark:text-primary-50">FILMDLE</h1>
-        <p className="text-sm sm:text-base font-bold text-primary-700 dark:text-primary-200 mt-2">
+        <p className="mt-2 text-sm font-bold text-primary-700 sm:text-base dark:text-primary-200">
           Can you guess the actor or film in 5 tries?
         </p>
       </div>
 
-      <div className="flex-1" />
+      <div className="relative mt-6 w-full flex-1 overflow-hidden">
+        <div
+          className={clsx(
+            "crossfade-panel flex h-full flex-col",
+            panel === null ? "crossfade-active" : "crossfade-inactive",
+          )}
+        >
+          <div className="flex flex-1 flex-col items-center justify-end pb-4">
+            <div className="flex w-full max-w-xs flex-col gap-3">
+              <GameModeButton label="Actordle" onClick={() => navigate("/actordle")} />
+              <GameModeButton label="Filmdle" onClick={() => navigate("/filmdle")} />
+            </div>
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <CircleIcon
+                label="How to play"
+                onClick={() => setPanel("how-to-play")}
+                svg={<QuestionSvg />}
+              />
+              <CircleIcon label="About" onClick={() => setPanel("about")} svg={<InfoSvg />} />
+              <CircleIcon label="Settings" onClick={() => setPanel("settings")} svg={<GearSvg />} />
+            </div>
+          </div>
+          <p className="pb-2 text-center text-sm font-semibold text-primary-700 dark:text-primary-300">
+            {formatLongDate()}
+          </p>
+        </div>
 
-      <div className="w-full max-w-xs flex flex-col gap-3">
-        <GameModeButton label="Actordle" onClick={() => navigate("/actordle")} />
-        <GameModeButton label="Filmdle" onClick={() => navigate("/filmdle")} />
+        <InlinePanel open={panel === "how-to-play"} title="How to Play" onClose={close}>
+          <HowToPlayContent />
+        </InlinePanel>
+        <InlinePanel open={panel === "about"} title="About" onClose={close}>
+          <AboutContent />
+        </InlinePanel>
+        <InlinePanel open={panel === "settings"} title="Settings" onClose={close}>
+          <SettingsContent />
+        </InlinePanel>
       </div>
-
-      <div className="mt-6 flex items-center justify-center gap-3">
-        <CircleIcon
-          label="How to play"
-          onClick={() => setOverlay("how-to-play")}
-          svg={<QuestionSvg />}
-        />
-        <CircleIcon label="About" onClick={() => setOverlay("about")} svg={<InfoSvg />} />
-        <CircleIcon label="Settings" onClick={() => setOverlay("settings")} svg={<GearSvg />} />
-      </div>
-
-      <p className="text-sm text-primary-700 dark:text-primary-300 text-center mt-5 font-semibold">
-        {formatLongDate()}
-      </p>
-
-      <SettingsOverlay open={overlay === "settings"} onClose={close} />
-      <AboutOverlay open={overlay === "about"} onClose={close} />
-      <HowToPlayOverlay open={overlay === "how-to-play"} onClose={close} />
     </div>
   )
 }
@@ -72,10 +86,10 @@ function CircleIcon({
       aria-label={label}
       title={label}
       className={clsx(
-        "w-11 h-11 rounded-full flex items-center justify-center cursor-pointer",
+        "flex h-11 w-11 cursor-pointer items-center justify-center rounded-full",
         "bg-primary-200/80 dark:bg-primary-800/70",
         "text-primary-700 dark:text-primary-200",
-        "hover:bg-primary-300 dark:hover:bg-primary-700 transition-colors",
+        "transition-colors hover:bg-primary-300 dark:hover:bg-primary-700",
       )}
     >
       {svg}
@@ -87,7 +101,7 @@ function GearSvg() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="w-5 h-5"
+      className="h-5 w-5"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -103,7 +117,7 @@ function GearSvg() {
 
 function InfoSvg() {
   return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
       <circle cx="12" cy="12" r="10" />
       <line
         x1="12"
@@ -123,7 +137,7 @@ function QuestionSvg() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="w-5 h-5"
+      className="h-5 w-5"
       fill="none"
       stroke="currentColor"
       strokeWidth="2.2"

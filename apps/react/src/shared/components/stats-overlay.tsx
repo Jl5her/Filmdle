@@ -1,7 +1,6 @@
 import clsx from "clsx"
 import { useEffect, useMemo, useState } from "react"
 import { computeStatsSummary, loadStats } from "@/shared/lib/stats"
-import { BottomSheet } from "./bottom-sheet"
 
 const GAMES = [
   { id: "actordle", label: "Actordle" },
@@ -12,10 +11,9 @@ type GameId = (typeof GAMES)[number]["id"]
 
 interface Props {
   open: boolean
-  onClose: () => void
 }
 
-export function StatsOverlay({ open, onClose }: Props) {
+export function StatsContent({ open }: Props) {
   const [activeGame, setActiveGame] = useState<GameId>("actordle")
   const [version, setVersion] = useState(0)
 
@@ -33,7 +31,7 @@ export function StatsOverlay({ open, onClose }: Props) {
   const maxBar = Math.max(1, ...summary.distribution)
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="Stats">
+    <>
       <div className="mb-5 grid grid-cols-2 gap-1 rounded-md bg-primary-100 p-1 dark:bg-primary-900">
         {GAMES.map((g) => (
           <button
@@ -77,7 +75,7 @@ export function StatsOverlay({ open, onClose }: Props) {
           </section>
         </>
       )}
-    </BottomSheet>
+    </>
   )
 }
 

@@ -1,11 +1,4 @@
-import { BottomSheet } from "./bottom-sheet"
-
-interface Props {
-  open: boolean
-  onClose: () => void
-}
-
-export function AboutOverlay({ open, onClose }: Props) {
+export function AboutContent() {
   const buildDate = new Date(__APP_BUILD_DATE__).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
@@ -13,7 +6,7 @@ export function AboutOverlay({ open, onClose }: Props) {
   })
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="About">
+    <>
       <p className="text-sm leading-relaxed text-primary-700 dark:text-primary-200">
         Filmdle is a daily film-trivia guessing game. Two modes, one round each per day: guess the
         actor or guess the movie in five tries.
@@ -42,6 +35,6 @@ export function AboutOverlay({ open, onClose }: Props) {
         </dt>
         <dd className="text-primary-900 dark:text-primary-100">{buildDate}</dd>
       </dl>
-    </BottomSheet>
+    </>
   )
 }
