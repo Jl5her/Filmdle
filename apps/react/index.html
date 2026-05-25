@@ -18,13 +18,13 @@
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap"
     />
     <script>
-      (function () {
+      (() => {
         try {
           var stored = localStorage.getItem("stardle-theme")
           var preferDark = window.matchMedia("(prefers-color-scheme: dark)").matches
           var dark = stored === "dark" || (stored !== "light" && preferDark)
           if (dark) document.documentElement.classList.add("dark")
-        } catch (e) {}
+        } catch (_e) {}
       })()
     </script>
   </head>

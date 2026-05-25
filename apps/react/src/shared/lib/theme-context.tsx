@@ -1,12 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import type { ReactNode } from "react"
-import {
-  applyResolvedTheme,
-  loadTheme,
-  resolveTheme,
-  saveTheme,
-  type Theme,
-} from "./theme"
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { applyResolvedTheme, loadTheme, resolveTheme, saveTheme, type Theme } from "./theme"
 
 interface ThemeContextValue {
   theme: Theme

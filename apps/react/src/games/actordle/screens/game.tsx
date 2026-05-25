@@ -3,12 +3,15 @@ import type { Actor } from "@stardle/types"
 import { useCallback, useMemo } from "react"
 import type { Suggestion } from "@/games/_common/components/guess-input"
 import { GameScreen } from "@/games/_common/screens/game-screen"
-import { enrichCuratedActor, resolvePerson } from "@/lib/tmdb-adapters"
 import { searchPerson } from "@/lib/tmdb"
+import { enrichCuratedActor, resolvePerson } from "@/lib/tmdb-adapters"
 import { buildActordleColumns } from "../columns"
 import type { ActorGuess } from "../types"
 
-const searchCache = new Map<number, { tmdb: import("@/lib/tmdb").TmdbPersonSearch; resolved?: ActorGuess }>()
+const searchCache = new Map<
+  number,
+  { tmdb: import("@/lib/tmdb").TmdbPersonSearch; resolved?: ActorGuess }
+>()
 
 export default function ActordleGame() {
   const columns = useMemo(() => buildActordleColumns(), [])

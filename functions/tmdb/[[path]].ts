@@ -8,9 +8,7 @@ interface PagesContext<E> {
   params: Record<string, string | string[]>
 }
 
-export const onRequest = async (
-  context: PagesContext<Env>,
-): Promise<Response> => {
+export const onRequest = async (context: PagesContext<Env>): Promise<Response> => {
   const { request, env, params } = context
 
   if (!env.TMDB_BEARER) {

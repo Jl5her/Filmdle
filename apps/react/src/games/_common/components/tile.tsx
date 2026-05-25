@@ -1,6 +1,6 @@
+import type { EvaluatedCell } from "@stardle/types"
 import clsx from "clsx"
 import { useEffect, useState } from "react"
-import type { EvaluatedCell } from "@stardle/types"
 
 interface Props {
   cell: EvaluatedCell

@@ -7,8 +7,8 @@
 // Reads the v4 bearer token from apps/react/.env.local (TMDB_BEARER=...).
 
 import { readFileSync, writeFileSync } from "node:fs"
-import { fileURLToPath } from "node:url"
 import { dirname, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(__dirname, "..")
@@ -68,7 +68,8 @@ async function main() {
       }
       const credits = await tmdb(`/person/${match.id}/movie_credits`, bearer)
       const filmIds = (credits.cast ?? []).map((c) => String(c.id))
-      const same = actor.tmdbId === match.id && JSON.stringify(actor.filmIds) === JSON.stringify(filmIds)
+      const same =
+        actor.tmdbId === match.id && JSON.stringify(actor.filmIds) === JSON.stringify(filmIds)
       actor.tmdbId = match.id
       actor.filmIds = filmIds
       if (same) {

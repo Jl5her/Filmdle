@@ -3,17 +3,10 @@ import type { Actor, Gender, MpaaRating } from "@stardle/types"
 import type { ActorGuess } from "@/games/actordle/types"
 import type { FilmGuess } from "@/games/filmdle/types"
 import type { TmdbMovieSearch, TmdbPersonSearch, TmdbReleaseDates } from "./tmdb"
-import {
-  getMovieDetails,
-  getPersonDetails,
-  getPersonMovieCredits,
-  searchPerson,
-} from "./tmdb"
+import { getMovieDetails, getPersonDetails, getPersonMovieCredits, searchPerson } from "./tmdb"
 
 const actorsByName = new Map(actors.map((a) => [a.name.toLowerCase(), a]))
-const filmsByTitleYear = new Map(
-  films.map((f) => [`${f.title.toLowerCase()}|${f.releaseYear}`, f]),
-)
+const filmsByTitleYear = new Map(films.map((f) => [`${f.title.toLowerCase()}|${f.releaseYear}`, f]))
 const oscarWinnerSet = new Set(oscarWinners.map((n) => n.toLowerCase()))
 
 function oscarWinnerForName(name: string): boolean | null {
@@ -93,9 +86,7 @@ export async function enrichCuratedActor(actor: Actor): Promise<ActorGuess> {
   }
   try {
     const results = await searchPerson(actor.name)
-    const exact = results.find(
-      (p) => p.name.toLowerCase() === actor.name.toLowerCase(),
-    )
+    const exact = results.find((p) => p.name.toLowerCase() === actor.name.toLowerCase())
     const match = exact ?? results[0]
     if (!match) return { ...actor, filmIds: null }
     const filmIds = await fetchFilmIds(match.id)
@@ -105,13 +96,7 @@ export async function enrichCuratedActor(actor: Actor): Promise<ActorGuess> {
   }
 }
 
-const VALID_MPAA: ReadonlySet<MpaaRating> = new Set([
-  "G",
-  "PG",
-  "PG-13",
-  "R",
-  "NC-17",
-])
+const VALID_MPAA: ReadonlySet<MpaaRating> = new Set(["G", "PG", "PG-13", "R", "NC-17"])
 
 function extractMpaa(releaseDates: TmdbReleaseDates | undefined): MpaaRating | null {
   if (!releaseDates) return null
@@ -129,8 +114,7 @@ export async function resolveFilm(m: TmdbMovieSearch): Promise<FilmGuess> {
   const curated = filmsByTitleYear.get(`${m.title.toLowerCase()}|${releaseYear}`)
   if (curated) return curated
   const details = await getMovieDetails(m.id)
-  const director =
-    details.credits.crew.find((c) => c.job === "Director")?.name ?? "Unknown"
+  const director = details.credits.crew.find((c) => c.job === "Director")?.name ?? "Unknown"
   return {
     id: `tmdb:movie:${m.id}`,
     title: m.title,

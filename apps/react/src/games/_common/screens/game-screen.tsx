@@ -1,12 +1,15 @@
+import clsx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
-import type { GameColumn } from "../columns"
-import { GuessGrid } from "../components/guess-grid"
-import { GuessInput, type Suggestion } from "../components/guess-input"
-import { GameHeader } from "../components/header"
+import { InlinePanel } from "@/shared/components/inline-panel"
+import { StatsContent } from "@/shared/components/stats-overlay"
 import { todayKey } from "@/shared/lib/date"
 import { loadGuesses, saveGuesses } from "@/shared/lib/game-state"
 import { minHashPick } from "@/shared/lib/hash"
 import { appendResult } from "@/shared/lib/stats"
+import type { GameColumn } from "../columns"
+import { GuessGrid } from "../components/guess-grid"
+import { GuessInput, type Suggestion } from "../components/guess-input"
+import { GameHeader } from "../components/header"
 
 const MAX_GUESSES = 5
 
@@ -58,11 +61,10 @@ export function GameScreen<T>({
     }
   }, [baseAnswer, enrichAnswer])
 
-  const [guesses, setGuesses] = useState<T[]>(() =>
-    loadGuesses<T>(gameKey, dateKey),
-  )
+  const [guesses, setGuesses] = useState<T[]>(() => loadGuesses<T>(gameKey, dateKey))
   const [latestIndex, setLatestIndex] = useState(-1)
   const [resolving, setResolving] = useState(false)
+  const [statsOpen, setStatsOpen] = useState(false)
 
   const guessedKeys = useMemo(() => new Set(guesses.map(idOf)), [guesses, idOf])
   const won = guesses.some((g) => idOf(g) === idOf(answer))
@@ -103,38 +105,48 @@ export function GameScreen<T>({
 
   return (
     <div className="app-viewport flex flex-col">
-      <GameHeader title={title} />
-      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-        {gameOver && (
-          <div
-            className={
-              won
-                ? "mx-4 mt-3 rounded-md border border-success-500 bg-success-500/20 dark:bg-success-600/30 px-3 py-2 text-sm text-success-600 dark:text-success-500 text-center font-semibold"
-                : "mx-4 mt-3 rounded-md border border-primary-300 dark:border-primary-600 bg-primary-100 dark:bg-primary-800 px-3 py-2 text-sm text-primary-700 dark:text-primary-100 text-center font-semibold"
-            }
-          >
-            {won
-              ? `Got it in ${guesses.length} ${guesses.length === 1 ? "try" : "tries"} — ${nameOf(answer)}`
-              : `Out of guesses. The answer was ${nameOf(answer)}.`}
+      <GameHeader title={title} onOpenStats={() => setStatsOpen((v) => !v)} />
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-3">
+        <div
+          className={clsx(
+            "crossfade-panel flex flex-1 flex-col overflow-hidden",
+            statsOpen ? "crossfade-inactive" : "crossfade-active",
+          )}
+        >
+          {gameOver && (
+            <div
+              className={
+                won
+                  ? "mb-3 rounded-md border border-success-500 bg-success-500/20 px-3 py-2 text-center text-sm font-semibold text-success-600 dark:bg-success-600/30 dark:text-success-500"
+                  : "mb-3 rounded-md border border-primary-300 bg-primary-100 px-3 py-2 text-center text-sm font-semibold text-primary-700 dark:border-primary-600 dark:bg-primary-800 dark:text-primary-100"
+              }
+            >
+              {won
+                ? `Got it in ${guesses.length} ${guesses.length === 1 ? "try" : "tries"} — ${nameOf(answer)}`
+                : `Out of guesses. The answer was ${nameOf(answer)}.`}
+            </div>
+          )}
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+            <GuessGrid
+              guesses={guesses}
+              answer={answer}
+              maxGuesses={MAX_GUESSES}
+              latestIndex={latestIndex}
+              columns={columns}
+              nameOf={nameOf}
+            />
           </div>
-        )}
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-          <GuessGrid
-            guesses={guesses}
-            answer={answer}
-            maxGuesses={MAX_GUESSES}
-            latestIndex={latestIndex}
-            columns={columns}
-            nameOf={nameOf}
+          <GuessInput
+            disabled={gameOver || resolving}
+            guessedKeys={guessedKeys}
+            placeholder={searchPlaceholder}
+            fetchSuggestions={fetchSuggestions}
+            onPick={handlePick}
           />
         </div>
-        <GuessInput
-          disabled={gameOver || resolving}
-          guessedKeys={guessedKeys}
-          placeholder={searchPlaceholder}
-          fetchSuggestions={fetchSuggestions}
-          onPick={handlePick}
-        />
+        <InlinePanel open={statsOpen} title="Stats" onClose={() => setStatsOpen(false)}>
+          <StatsContent open={statsOpen} />
+        </InlinePanel>
       </div>
     </div>
   )

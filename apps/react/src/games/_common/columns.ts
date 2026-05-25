@@ -20,11 +20,7 @@ export interface GameColumn<T> {
   evaluator: ColumnEvaluator<T>
 }
 
-export function evaluateColumn<T>(
-  guess: T,
-  answer: T,
-  column: GameColumn<T>,
-): EvaluatedCell {
+export function evaluateColumn<T>(guess: T, answer: T, column: GameColumn<T>): EvaluatedCell {
   const ev = column.evaluator
   if (ev.type === "match") {
     const g = ev.get(guess)
