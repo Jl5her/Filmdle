@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import type { GameColumn } from "../columns"
-import { GuessGrid } from "../components/guess-grid"
-import { GuessInput, type Suggestion } from "../components/guess-input"
-import { GameHeader } from "../components/header"
 import { todayKey } from "@/shared/lib/date"
 import { loadGuesses, saveGuesses } from "@/shared/lib/game-state"
 import { minHashPick } from "@/shared/lib/hash"
 import { appendResult } from "@/shared/lib/stats"
+import type { GameColumn } from "../columns"
+import { GuessGrid } from "../components/guess-grid"
+import { GuessInput, type Suggestion } from "../components/guess-input"
+import { GameHeader } from "../components/header"
 
 const MAX_GUESSES = 5
 
@@ -58,9 +58,7 @@ export function GameScreen<T>({
     }
   }, [baseAnswer, enrichAnswer])
 
-  const [guesses, setGuesses] = useState<T[]>(() =>
-    loadGuesses<T>(gameKey, dateKey),
-  )
+  const [guesses, setGuesses] = useState<T[]>(() => loadGuesses<T>(gameKey, dateKey))
   const [latestIndex, setLatestIndex] = useState(-1)
   const [resolving, setResolving] = useState(false)
 

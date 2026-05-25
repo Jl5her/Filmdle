@@ -2,12 +2,15 @@ import { filmAnswerPool, films } from "@stardle/data"
 import { useCallback, useMemo } from "react"
 import type { Suggestion } from "@/games/_common/components/guess-input"
 import { GameScreen } from "@/games/_common/screens/game-screen"
-import { resolveFilm } from "@/lib/tmdb-adapters"
 import { searchMovie } from "@/lib/tmdb"
+import { resolveFilm } from "@/lib/tmdb-adapters"
 import { buildFilmdleColumns } from "../columns"
 import type { FilmGuess } from "../types"
 
-const searchCache = new Map<number, { tmdb: import("@/lib/tmdb").TmdbMovieSearch; resolved?: FilmGuess }>()
+const searchCache = new Map<
+  number,
+  { tmdb: import("@/lib/tmdb").TmdbMovieSearch; resolved?: FilmGuess }
+>()
 
 export default function FilmdleGame() {
   const columns = useMemo(() => buildFilmdleColumns(), [])
@@ -21,9 +24,7 @@ export default function FilmdleGame() {
       return results.map((r) => ({
         key: String(r.id),
         label: r.title,
-        imageUrl: r.poster_path
-          ? `https://image.tmdb.org/t/p/w92${r.poster_path}`
-          : "",
+        imageUrl: r.poster_path ? `https://image.tmdb.org/t/p/w92${r.poster_path}` : "",
       }))
     },
     [],

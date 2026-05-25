@@ -8,8 +8,7 @@ export function todayKey(now = new Date()): string {
 export function computeAge(dob: string, now = new Date()): number {
   const [y, m, d] = dob.split("-").map(Number) as [number, number, number]
   let age = now.getFullYear() - y
-  const beforeBirthday =
-    now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)
+  const beforeBirthday = now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)
   if (beforeBirthday) age -= 1
   return age
 }

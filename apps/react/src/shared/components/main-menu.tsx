@@ -36,7 +36,11 @@ export function MainMenu() {
       </div>
 
       <div className="mt-6 flex items-center justify-center gap-3">
-        <CircleIcon label="How to play" onClick={() => setOverlay("how-to-play")} svg={<QuestionSvg />} />
+        <CircleIcon
+          label="How to play"
+          onClick={() => setOverlay("how-to-play")}
+          svg={<QuestionSvg />}
+        />
         <CircleIcon label="About" onClick={() => setOverlay("about")} svg={<InfoSvg />} />
         <CircleIcon label="Settings" onClick={() => setOverlay("settings")} svg={<GearSvg />} />
       </div>
@@ -99,14 +103,17 @@ function GearSvg() {
 
 function InfoSvg() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="w-5 h-5"
-      fill="currentColor"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden="true">
       <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="11" x2="12" y2="17" stroke="var(--color-primary-50)" strokeWidth="2" strokeLinecap="round" />
+      <line
+        x1="12"
+        y1="11"
+        x2="12"
+        y2="17"
+        stroke="var(--color-primary-50)"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
       <circle cx="12" cy="7.5" r="1.2" fill="var(--color-primary-50)" />
     </svg>
   )

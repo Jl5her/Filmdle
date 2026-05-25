@@ -121,21 +121,11 @@ function Stat({ value, label }: { value: number | string; label: string }) {
   )
 }
 
-function DistributionBar({
-  guess,
-  count,
-  max,
-}: {
-  guess: number
-  count: number
-  max: number
-}) {
+function DistributionBar({ guess, count, max }: { guess: number; count: number; max: number }) {
   const widthPct = count > 0 ? Math.max(8, (count / max) * 100) : 8
   return (
     <div className="flex items-center gap-2">
-      <span className="w-3 text-xs font-bold text-primary-600 dark:text-primary-300">
-        {guess}
-      </span>
+      <span className="w-3 text-xs font-bold text-primary-600 dark:text-primary-300">{guess}</span>
       <div className="flex-1 bg-primary-100 dark:bg-primary-900 rounded overflow-hidden">
         <div
           style={{ width: `${widthPct}%` }}
