@@ -9,8 +9,8 @@ export function HowToPlayContent() {
         Tile colors:
         <div className="mt-2 flex flex-wrap gap-2">
           <Swatch className="bg-success-500" label="Correct" />
-          <Swatch className="bg-secondary-500" label="Close" />
-          <Swatch className="bg-primary-300 dark:bg-primary-600" label="Wrong" />
+          <Swatch className="bg-warning-500" label="Close" />
+          <Swatch className="bg-danger-500" label="Wrong" />
         </div>
       </li>
       <li>Arrows on number tiles point toward the answer (↑ higher, ↓ lower).</li>

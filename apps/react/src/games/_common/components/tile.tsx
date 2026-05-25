@@ -36,8 +36,8 @@ export function Tile({ cell, animate, delayIndex = 0 }: Props) {
     textClass = "text-primary-500 dark:text-primary-400"
     borderClass = "border-dashed border-primary-300 dark:border-primary-700"
   } else {
-    bgClass = "bg-primary-300 dark:bg-primary-800"
-    textClass = "text-primary-700 dark:text-primary-100"
+    bgClass = "bg-danger-500 dark:bg-danger-600"
+    textClass = "text-primary-50"
   }
 
   const delayClass = `tile-delay-${Math.min(delayIndex, 5)}`
