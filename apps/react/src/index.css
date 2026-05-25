@@ -72,8 +72,9 @@ body {
 
 /* Desktop-only cursor spotlight: a denser dot layer masked to a radial
    gradient anchored at the cursor. The dots near the pointer read
-   darker; everything else stays at the base layer's color. No bg wash —
-   only the dot color changes. Hidden on touch/coarse pointers. */
+   darker (close to #333); everything else stays at the base layer's
+   color. No bg wash — only the dot color changes. Hidden on touch
+   and coarse pointers. */
 @media (hover: hover) and (pointer: fine) {
   body::before {
     content: "";
@@ -83,21 +84,23 @@ body {
     pointer-events: none;
     background-image: radial-gradient(
       circle at center,
-      color-mix(in oklab, var(--color-primary-600) 35%, transparent) 1px,
+      color-mix(in oklab, #333 78%, transparent) 1px,
       transparent 1.4px
     );
     background-size: 22px 22px;
     background-repeat: repeat;
     -webkit-mask-image: radial-gradient(
-      circle 360px at var(--mx) var(--my),
+      circle 460px at var(--mx) var(--my),
       black 0%,
-      rgba(0, 0, 0, 0.45) 55%,
+      rgba(0, 0, 0, 0.85) 30%,
+      rgba(0, 0, 0, 0.35) 65%,
       transparent 100%
     );
     mask-image: radial-gradient(
-      circle 360px at var(--mx) var(--my),
+      circle 460px at var(--mx) var(--my),
       black 0%,
-      rgba(0, 0, 0, 0.45) 55%,
+      rgba(0, 0, 0, 0.85) 30%,
+      rgba(0, 0, 0, 0.35) 65%,
       transparent 100%
     );
   }
@@ -105,7 +108,7 @@ body {
   .dark body::before {
     background-image: radial-gradient(
       circle at center,
-      color-mix(in oklab, var(--color-primary-400) 40%, transparent) 1px,
+      color-mix(in oklab, var(--color-primary-100) 55%, transparent) 1px,
       transparent 1.4px
     );
   }
