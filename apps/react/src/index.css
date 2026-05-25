@@ -67,25 +67,23 @@ body {
   max-width: 720px;
   margin: 0 auto;
   background-color: var(--color-primary-50);
-  /* Whisper-quiet film-strip texture: ~3% contrast vertical lines */
-  background-image: repeating-linear-gradient(
-    90deg,
-    color-mix(in oklab, var(--color-primary-300) 22%, transparent) 0,
-    color-mix(in oklab, var(--color-primary-300) 22%, transparent) 1px,
-    transparent 1px,
-    transparent 28px
+  /* Soft halftone/screen-print dot grid — barely-there texture. */
+  background-image: radial-gradient(
+    circle at center,
+    color-mix(in oklab, var(--color-primary-400) 28%, transparent) 1px,
+    transparent 1.4px
   );
+  background-size: 22px 22px;
+  background-position: 0 0;
   position: relative;
 }
 
 .dark .app-viewport {
   background-color: var(--color-primary-900);
-  background-image: repeating-linear-gradient(
-    90deg,
-    color-mix(in oklab, var(--color-primary-700) 35%, transparent) 0,
-    color-mix(in oklab, var(--color-primary-700) 35%, transparent) 1px,
-    transparent 1px,
-    transparent 28px
+  background-image: radial-gradient(
+    circle at center,
+    color-mix(in oklab, var(--color-primary-600) 45%, transparent) 1px,
+    transparent 1.4px
   );
 }
 
