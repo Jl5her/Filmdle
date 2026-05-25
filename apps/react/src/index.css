@@ -61,7 +61,7 @@ body {
   );
   background-size: 22px 22px;
   color: var(--color-primary-900);
-  font-family: "Inter", "Segoe UI", -apple-system, ui-sans-serif, system-ui, Roboto, sans-serif;
+  font-family: "Outfit", "Segoe UI", -apple-system, ui-sans-serif, system-ui, Roboto, sans-serif;
   font-feature-settings: "cv11", "ss01";
 }
 
@@ -118,13 +118,13 @@ body {
 }
 
 .fa5-title {
-  font-family: "Bebas Neue", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Anton", "Outfit", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   letter-spacing: 0.08em;
   font-weight: 400;
 }
 
 .marquee {
-  font-family: "Bebas Neue", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Anton", "Outfit", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   letter-spacing: 0.1em;
   font-weight: 400;
 }
