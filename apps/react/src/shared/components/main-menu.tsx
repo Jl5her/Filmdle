@@ -87,9 +87,9 @@ function CircleIcon({
       title={label}
       className={clsx(
         "flex h-11 w-11 cursor-pointer items-center justify-center rounded-full",
-        "bg-primary-200/80 dark:bg-primary-800/70",
-        "text-primary-700 dark:text-primary-200",
-        "transition-colors hover:bg-primary-300 dark:hover:bg-primary-700",
+        "bg-primary-500/20 dark:bg-primary-500/30",
+        "text-primary-700 dark:text-primary-100",
+        "transition-colors hover:bg-primary-500/30 dark:hover:bg-primary-500/45",
       )}
     >
       {svg}
@@ -140,13 +140,13 @@ function QuestionSvg() {
       className="h-5 w-5"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2.2"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="M9.2 9a3 3 0 0 1 5.6 1c0 2-2.8 2.5-2.8 4" />
-      <line x1="12" y1="17" x2="12.01" y2="17" />
+      <path d="M9.879 7.519c1.171-1.025 3.071-1.025 4.243 0 1.171 1.025 1.171 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.452.999-1.452 1.827V14.5" />
+      <circle cx="12" cy="17.5" r="0.75" fill="currentColor" stroke="none" />
     </svg>
   )
 }

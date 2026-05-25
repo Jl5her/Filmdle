@@ -48,10 +48,11 @@ body,
 body {
   margin: 0;
   background-color: var(--color-primary-50);
-  /* Base dot grid: covers the full window, always lightly visible. */
+  /* Base dot grid: covers the full window, always lightly visible.
+     Uses the same primary-500 hue as the pill buttons + icon chips. */
   background-image: radial-gradient(
     circle at center,
-    color-mix(in oklab, var(--color-primary-400) 20%, transparent) 1px,
+    color-mix(in oklab, var(--color-primary-500) 22%, transparent) 1px,
     transparent 1.4px
   );
   background-size: 22px 22px;
@@ -64,7 +65,7 @@ body {
   background-color: var(--color-primary-900);
   background-image: radial-gradient(
     circle at center,
-    color-mix(in oklab, var(--color-primary-600) 32%, transparent) 1px,
+    color-mix(in oklab, var(--color-primary-500) 38%, transparent) 1px,
     transparent 1.4px
   );
   color: var(--color-primary-50);
@@ -84,7 +85,7 @@ body {
     pointer-events: none;
     background-image: radial-gradient(
       circle at center,
-      color-mix(in oklab, #333 78%, transparent) 1px,
+      color-mix(in oklab, var(--color-primary-800) 92%, transparent) 1px,
       transparent 1.4px
     );
     background-size: 22px 22px;
@@ -106,7 +107,7 @@ body {
   .dark body::before {
     background-image: radial-gradient(
       circle at center,
-      color-mix(in oklab, var(--color-primary-100) 55%, transparent) 1px,
+      color-mix(in oklab, var(--color-primary-200) 90%, transparent) 1px,
       transparent 1.4px
     );
   }
