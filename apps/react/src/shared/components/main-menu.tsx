@@ -16,31 +16,32 @@ export function MainMenu() {
   const close = () => setOverlay(null)
 
   return (
-    <div className="flex flex-col items-center flex-1 w-full px-4 pt-12 pb-6">
+    <div className="flex flex-col items-center flex-1 w-full px-4 pt-10 pb-6">
       <div className="text-center">
-        <FilmIcon className="mx-auto mb-4 w-20 h-20 text-secondary-500" title="Filmdle" />
-        <h1 className="fa5-title text-6xl text-primary-900 dark:text-primary-50">FILMDLE</h1>
-        <p className="text-base sm:text-lg font-semibold text-primary-600 dark:text-primary-300 mt-2">
-          A daily film-trivia guessing game.
+        <FilmIcon
+          className="mx-auto mb-3 w-14 h-14 text-primary-800 dark:text-primary-100"
+          title="Filmdle"
+        />
+        <h1 className="fa5-title text-5xl text-primary-900 dark:text-primary-50">FILMDLE</h1>
+        <p className="text-sm sm:text-base font-bold text-primary-700 dark:text-primary-200 mt-2">
+          Can you guess the actor or film in 5 tries?
         </p>
       </div>
 
-      <div className="w-full max-w-xs mt-12 flex flex-col gap-3">
+      <div className="flex-1" />
+
+      <div className="w-full max-w-xs flex flex-col gap-3">
         <GameModeButton label="Actordle" onClick={() => navigate("/actordle")} />
         <GameModeButton label="Filmdle" onClick={() => navigate("/filmdle")} />
       </div>
 
-      <div className="mt-8 flex items-center justify-center gap-5">
-        <CircleIcon label="Settings" onClick={() => setOverlay("settings")} svg={<GearSvg />} />
+      <div className="mt-6 flex items-center justify-center gap-3">
+        <CircleIcon label="How to play" onClick={() => setOverlay("how-to-play")} svg={<QuestionSvg />} />
         <CircleIcon label="About" onClick={() => setOverlay("about")} svg={<InfoSvg />} />
-        <CircleIcon
-          label="How to play"
-          onClick={() => setOverlay("how-to-play")}
-          svg={<QuestionSvg />}
-        />
+        <CircleIcon label="Settings" onClick={() => setOverlay("settings")} svg={<GearSvg />} />
       </div>
 
-      <p className="text-xs text-primary-500 dark:text-primary-400 text-center mt-auto pt-8">
+      <p className="text-sm text-primary-700 dark:text-primary-300 text-center mt-5 font-semibold">
         {formatLongDate()}
       </p>
 
@@ -67,11 +68,10 @@ function CircleIcon({
       aria-label={label}
       title={label}
       className={clsx(
-        "w-12 h-12 rounded-full flex items-center justify-center cursor-pointer",
-        "border-2 border-primary-300 dark:border-primary-700",
-        "bg-primary-100 dark:bg-primary-800",
+        "w-11 h-11 rounded-full flex items-center justify-center cursor-pointer",
+        "bg-primary-200/80 dark:bg-primary-800/70",
         "text-primary-700 dark:text-primary-200",
-        "hover:border-secondary-500 hover:text-secondary-500 transition-colors",
+        "hover:bg-primary-300 dark:hover:bg-primary-700 transition-colors",
       )}
     >
       {svg}
@@ -102,16 +102,12 @@ function InfoSvg() {
     <svg
       viewBox="0 0 24 24"
       className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fill="currentColor"
       aria-hidden="true"
     >
       <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="11" x2="12" y2="17" />
-      <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
+      <line x1="12" y1="11" x2="12" y2="17" stroke="var(--color-primary-50)" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="12" cy="7.5" r="1.2" fill="var(--color-primary-50)" />
     </svg>
   )
 }
@@ -123,13 +119,12 @@ function QuestionSvg() {
       className="w-5 h-5"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="2.2"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M9.1 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <path d="M9.2 9a3 3 0 0 1 5.6 1c0 2-2.8 2.5-2.8 4" />
       <line x1="12" y1="17" x2="12.01" y2="17" />
     </svg>
   )

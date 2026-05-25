@@ -85,12 +85,27 @@ body {
   width: 100%;
   max-width: 720px;
   margin: 0 auto;
-  background: var(--color-primary-50);
+  background-color: var(--color-primary-50);
+  /* Whisper-quiet film-strip texture: ~3% contrast vertical lines */
+  background-image: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-primary-300) 22%, transparent) 0,
+    color-mix(in oklab, var(--color-primary-300) 22%, transparent) 1px,
+    transparent 1px,
+    transparent 28px
+  );
   position: relative;
 }
 
 .dark .app-viewport {
-  background: var(--color-primary-900);
+  background-color: var(--color-primary-900);
+  background-image: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-primary-700) 35%, transparent) 0,
+    color-mix(in oklab, var(--color-primary-700) 35%, transparent) 1px,
+    transparent 1px,
+    transparent 28px
+  );
 }
 
 .grid-cell-size {
