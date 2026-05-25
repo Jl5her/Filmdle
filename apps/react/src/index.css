@@ -90,18 +90,16 @@ body {
     background-size: 22px 22px;
     background-repeat: repeat;
     -webkit-mask-image: radial-gradient(
-      circle 460px at var(--mx) var(--my),
+      circle 260px at var(--mx) var(--my),
       black 0%,
-      rgba(0, 0, 0, 0.85) 30%,
-      rgba(0, 0, 0, 0.35) 65%,
-      transparent 100%
+      rgba(0, 0, 0, 0.6) 25%,
+      transparent 75%
     );
     mask-image: radial-gradient(
-      circle 460px at var(--mx) var(--my),
+      circle 260px at var(--mx) var(--my),
       black 0%,
-      rgba(0, 0, 0, 0.85) 30%,
-      rgba(0, 0, 0, 0.35) 65%,
-      transparent 100%
+      rgba(0, 0, 0, 0.6) 25%,
+      transparent 75%
     );
   }
 
