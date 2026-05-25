@@ -1,0 +1,143 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary-50: #f8fafc;
+  --color-primary-100: #f1f5f9;
+  --color-primary-200: #e2e8f0;
+  --color-primary-300: #cbd5e1;
+  --color-primary-400: #94a3b8;
+  --color-primary-500: #64748b;
+  --color-primary-600: #475569;
+  --color-primary-700: #334155;
+  --color-primary-800: #1e293b;
+  --color-primary-900: #0f172a;
+
+  --color-secondary-50: #fef9c3;
+  --color-secondary-100: #fef08a;
+  --color-secondary-500: #eab308;
+  --color-secondary-900: #1c1917;
+
+  --color-success-500: #16a34a;
+  --color-success-600: #15803d;
+  --color-success-700: #166534;
+
+  --color-warning-500: #d97706;
+  --color-warning-600: #b45309;
+  --color-warning-700: #92400e;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-primary-50);
+  color: var(--color-primary-900);
+  font-family:
+    "Inter",
+    "Segoe UI",
+    -apple-system,
+    ui-sans-serif,
+    system-ui,
+    Roboto,
+    sans-serif;
+  font-feature-settings: "cv11", "ss01";
+}
+
+.dark body {
+  background: var(--color-primary-900);
+  color: var(--color-primary-50);
+}
+
+.fa5-title {
+  font-family:
+    "Bebas Neue",
+    "Inter",
+    "Segoe UI",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  letter-spacing: 0.08em;
+  font-weight: 400;
+}
+
+.marquee {
+  font-family:
+    "Bebas Neue",
+    "Inter",
+    "Segoe UI",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  letter-spacing: 0.1em;
+  font-weight: 400;
+}
+
+.app-viewport {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--color-primary-50);
+  position: relative;
+}
+
+.dark .app-viewport {
+  background: var(--color-primary-900);
+}
+
+.grid-cell-size {
+  width: clamp(48px, 14vw, 72px);
+  height: clamp(48px, 14vw, 72px);
+}
+
+.grid-cell-width {
+  width: clamp(48px, 14vw, 72px);
+}
+
+.grid-cell-text {
+  font-size: clamp(10px, 2.6vw, 13px);
+  line-height: 1.1;
+}
+
+@keyframes cell-flip {
+  0% {
+    transform: rotateX(0);
+  }
+  50% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0);
+  }
+}
+
+.animate-cell-flip {
+  animation: cell-flip 0.45s ease both;
+}
+
+.tile-delay-0 {
+  animation-delay: 0ms;
+}
+.tile-delay-1 {
+  animation-delay: 70ms;
+}
+.tile-delay-2 {
+  animation-delay: 140ms;
+}
+.tile-delay-3 {
+  animation-delay: 210ms;
+}
+.tile-delay-4 {
+  animation-delay: 280ms;
+}
+.tile-delay-5 {
+  animation-delay: 350ms;
+}

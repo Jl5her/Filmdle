@@ -1,0 +1,7 @@
+name = "filmdle"
+pages_build_output_dir = "apps/react/dist"
+compatibility_date = "2024-12-30"
+
+# TMDB bearer token is provided as a Pages secret:
+#   pnpm wrangler pages secret put TMDB_BEARER --project-name filmdle
+# For local `wrangler pages dev`, add it to apps/react/.dev.vars (gitignored).
