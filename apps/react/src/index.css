@@ -23,9 +23,13 @@
   --color-success-600: #15803d;
   --color-success-700: #166534;
 
-  --color-warning-500: #d97706;
-  --color-warning-600: #b45309;
-  --color-warning-700: #92400e;
+  --color-warning-500: #eab308;
+  --color-warning-600: #ca8a04;
+  --color-warning-700: #a16207;
+
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
 }
 
 :root {
@@ -57,7 +61,7 @@ body {
   );
   background-size: 22px 22px;
   color: var(--color-primary-900);
-  font-family: "Inter", "Segoe UI", -apple-system, ui-sans-serif, system-ui, Roboto, sans-serif;
+  font-family: "Outfit", "Segoe UI", -apple-system, ui-sans-serif, system-ui, Roboto, sans-serif;
   font-feature-settings: "cv11", "ss01";
 }
 
@@ -114,13 +118,13 @@ body {
 }
 
 .fa5-title {
-  font-family: "Bebas Neue", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Anton", "Outfit", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   letter-spacing: 0.08em;
   font-weight: 400;
 }
 
 .marquee {
-  font-family: "Bebas Neue", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Anton", "Outfit", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   letter-spacing: 0.1em;
   font-weight: 400;
 }

@@ -28,7 +28,7 @@ export function buildFilmdleColumns(): GameColumn<FilmGuess>[] {
       evaluator: {
         type: "comparison",
         get: (f) => (f.releaseYear > 0 ? f.releaseYear : null),
-        closeWithin: 7,
+        closeWithin: 5,
       },
     },
     {
@@ -62,7 +62,7 @@ export function buildFilmdleColumns(): GameColumn<FilmGuess>[] {
       evaluator: {
         type: "comparison",
         get: (f) => (f.boxOfficeM > 0 ? f.boxOfficeM : null),
-        closeWithin: 100,
+        closeWithin: 10,
         format: formatBoxOffice,
       },
     },
