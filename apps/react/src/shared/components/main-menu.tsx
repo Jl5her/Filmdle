@@ -12,6 +12,8 @@ import { SettingsContent } from "./settings-overlay"
 
 type Panel = "settings" | "about" | "how-to-play" | null
 
+const showDebug = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEBUG === "true"
+
 export function MainMenu() {
   const navigate = useNavigate()
   const [panel, setPanel] = useState<Panel>(null)
@@ -79,7 +81,7 @@ export function MainMenu() {
           />
           <CircleIcon label="About" onClick={() => setPanel("about")} svg={<InfoSvg />} />
           <CircleIcon label="Settings" onClick={() => setPanel("settings")} svg={<GearSvg />} />
-          {import.meta.env.DEV && (
+          {showDebug && (
             <CircleIcon
               label="Debug: answer calendar"
               onClick={() => navigate("/debug/calendar")}

@@ -6,6 +6,10 @@ const ActordleGame = lazy(() => import("./games/actordle/screens/game"))
 const FilmdleGame = lazy(() => import("./games/filmdle/screens/game"))
 const DebugCalendar = lazy(() => import("./shared/components/debug-calendar"))
 
+// Debug routes are visible in `vite dev` and in any deploy that sets
+// VITE_SHOW_DEBUG=true (e.g. Cloudflare Pages preview environments).
+const showDebug = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEBUG === "true"
+
 function MenuShell() {
   return (
     <div className="app-viewport">
@@ -22,7 +26,7 @@ export function App() {
           <Route path="/" element={<MenuShell />} />
           <Route path="/actordle" element={<ActordleGame />} />
           <Route path="/filmdle" element={<FilmdleGame />} />
-          {import.meta.env.DEV && <Route path="/debug/calendar" element={<DebugCalendar />} />}
+          {showDebug && <Route path="/debug/calendar" element={<DebugCalendar />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
