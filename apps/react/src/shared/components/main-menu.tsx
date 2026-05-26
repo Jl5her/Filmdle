@@ -22,26 +22,26 @@ export function MainMenu() {
   const filmdleDone = hasPlayedToday("filmdle", today)
 
   return (
-    <div className="flex w-full flex-1 flex-col items-center px-4 pt-10 pb-[var(--tear-height)]">
-      <div className="text-center">
-        <FilmIcon
-          className="mx-auto mb-3 h-14 w-14 text-primary-800 dark:text-primary-100"
-          title="Filmdle"
-        />
-        <h1 className="fa5-title text-5xl text-danger-600 dark:text-primary-50">FILMDLE</h1>
-        <p className="mt-2 text-sm font-bold text-primary-700 sm:text-base dark:text-primary-200">
-          Can you guess the actor or film in 5 tries?
-        </p>
-      </div>
+    <>
+      <div className="flex w-full flex-1 flex-col items-center px-4 pt-10 pb-[var(--tear-height)]">
+        <div className="text-center">
+          <FilmIcon
+            className="mx-auto mb-3 h-14 w-14 text-primary-800 dark:text-primary-100"
+            title="Filmdle"
+          />
+          <h1 className="fa5-title text-5xl text-danger-600 dark:text-primary-50">FILMDLE</h1>
+          <p className="mt-2 text-sm font-bold text-primary-700 sm:text-base dark:text-primary-200">
+            Can you guess the actor or film in 5 tries?
+          </p>
+        </div>
 
-      <div className="relative mt-6 w-full flex-1 overflow-hidden">
-        <div
-          className={clsx(
-            "crossfade-panel flex h-full flex-col",
-            panel === null ? "crossfade-active" : "crossfade-inactive",
-          )}
-        >
-          <div className="flex flex-1 flex-col items-center justify-end pb-4">
+        <div className="relative mt-6 w-full flex-1 overflow-hidden">
+          <div
+            className={clsx(
+              "crossfade-panel flex h-full flex-col items-center justify-end pb-4",
+              panel === null ? "crossfade-active" : "crossfade-inactive",
+            )}
+          >
             <div className="flex w-full max-w-xs flex-col gap-3">
               <GameModeButton
                 label="Actordle"
@@ -54,39 +54,44 @@ export function MainMenu() {
                 onClick={() => navigate("/filmdle")}
               />
             </div>
-            <div className="mt-6 flex items-center justify-center gap-3">
-              <CircleIcon
-                label="How to play"
-                onClick={() => setPanel("how-to-play")}
-                svg={<QuestionSvg />}
-              />
-              <CircleIcon label="About" onClick={() => setPanel("about")} svg={<InfoSvg />} />
-              <CircleIcon label="Settings" onClick={() => setPanel("settings")} svg={<GearSvg />} />
-              {import.meta.env.DEV && (
-                <CircleIcon
-                  label="Debug: answer calendar"
-                  onClick={() => navigate("/debug/calendar")}
-                  svg={<CalendarSvg />}
-                />
-              )}
-            </div>
           </div>
-          <p className="pb-2 text-center text-sm font-semibold text-primary-700 dark:text-primary-300">
-            {formatLongDate()}
-          </p>
-        </div>
 
-        <InlinePanel open={panel === "how-to-play"} title="How to Play" onClose={close}>
-          <HowToPlayContent />
-        </InlinePanel>
-        <InlinePanel open={panel === "about"} title="About" onClose={close}>
-          <AboutContent />
-        </InlinePanel>
-        <InlinePanel open={panel === "settings"} title="Settings" onClose={close}>
-          <SettingsContent />
-        </InlinePanel>
+          <InlinePanel open={panel === "how-to-play"} title="How to Play" onClose={close}>
+            <HowToPlayContent />
+          </InlinePanel>
+          <InlinePanel open={panel === "about"} title="About" onClose={close}>
+            <AboutContent />
+          </InlinePanel>
+          <InlinePanel open={panel === "settings"} title="Settings" onClose={close}>
+            <SettingsContent />
+          </InlinePanel>
+        </div>
       </div>
-    </div>
+
+      {/* Tear-away footer: icons + date sit in the bottom stub of the
+          ticket, just below the "Admit one" cursive label. */}
+      <div className="absolute inset-x-0 bottom-2 flex flex-col items-center gap-1.5 px-4">
+        <div className="flex items-center justify-center gap-3">
+          <CircleIcon
+            label="How to play"
+            onClick={() => setPanel("how-to-play")}
+            svg={<QuestionSvg />}
+          />
+          <CircleIcon label="About" onClick={() => setPanel("about")} svg={<InfoSvg />} />
+          <CircleIcon label="Settings" onClick={() => setPanel("settings")} svg={<GearSvg />} />
+          {import.meta.env.DEV && (
+            <CircleIcon
+              label="Debug: answer calendar"
+              onClick={() => navigate("/debug/calendar")}
+              svg={<CalendarSvg />}
+            />
+          )}
+        </div>
+        <p className="text-xs font-semibold text-primary-700 dark:text-primary-300">
+          {formatLongDate()}
+        </p>
+      </div>
+    </>
   )
 }
 
@@ -106,10 +111,10 @@ function CircleIcon({
       aria-label={label}
       title={label}
       className={clsx(
-        "flex h-11 w-11 cursor-pointer items-center justify-center rounded-full",
-        "bg-primary-500/20 dark:bg-primary-500/30",
-        "text-primary-700 dark:text-primary-100",
-        "transition-colors hover:bg-primary-500/30 dark:hover:bg-primary-500/45",
+        "flex h-10 w-10 cursor-pointer items-center justify-center rounded-full",
+        "border border-danger-600/40 bg-primary-50 dark:border-primary-300/30 dark:bg-primary-800/60",
+        "text-danger-700 dark:text-primary-100",
+        "transition-colors hover:bg-danger-600/10 dark:hover:bg-primary-700",
       )}
     >
       {svg}
@@ -137,18 +142,19 @@ function GearSvg() {
 
 function InfoSvg() {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <circle cx="12" cy="12" r="10" />
-      <line
-        x1="12"
-        y1="11"
-        x2="12"
-        y2="17"
-        stroke="var(--color-primary-50)"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <circle cx="12" cy="7.5" r="1.2" fill="var(--color-primary-50)" />
+      <line x1="12" y1="11" x2="12" y2="16" />
+      <circle cx="12" cy="7.75" r="0.6" fill="currentColor" stroke="none" />
     </svg>
   )
 }

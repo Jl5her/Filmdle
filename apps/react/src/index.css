@@ -224,27 +224,30 @@ body {
 }
 
 /* "Admit one" cursive label tucked into the tear-away stub, sitting
-   just below the perforation and above the input field. */
+   just below the perforation. */
 .app-viewport::after {
   content: "Admit one";
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(var(--tear-height) - 30px);
+  bottom: calc(var(--tear-height) - 24px);
   text-align: center;
   color: color-mix(in srgb, var(--ticket-red) 75%, transparent);
   font-family: "Pacifico", "Brush Script MT", cursive;
-  font-size: clamp(14px, 3.2vw, 18px);
+  font-size: clamp(13px, 2.8vw, 16px);
   letter-spacing: 0.02em;
   pointer-events: none;
   z-index: 0;
 }
 
 /* Children render above the ::before inner rule and ::after tear-away
-   label without needing their own z-index. */
-.app-viewport > * {
-  position: relative;
-  z-index: 1;
+   label without needing their own z-index. Layered so utilities like
+   `absolute` can still override `position`. */
+@layer base {
+  .app-viewport > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 /* On very narrow screens, draw the inset rule closer to the scallops
