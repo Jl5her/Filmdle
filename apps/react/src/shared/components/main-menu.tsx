@@ -1,7 +1,8 @@
 import clsx from "clsx"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { formatLongDate } from "@/shared/lib/date"
+import { formatLongDate, todayKey } from "@/shared/lib/date"
+import { hasPlayedToday } from "@/shared/lib/stats"
 import { AboutContent } from "./about-overlay"
 import { FilmIcon } from "./film-icon"
 import { GameModeButton } from "./game-mode-button"
@@ -15,6 +16,10 @@ export function MainMenu() {
   const navigate = useNavigate()
   const [panel, setPanel] = useState<Panel>(null)
   const close = () => setPanel(null)
+
+  const today = useMemo(() => todayKey(), [])
+  const actordleDone = hasPlayedToday("actordle", today)
+  const filmdleDone = hasPlayedToday("filmdle", today)
 
   return (
     <div className="flex w-full flex-1 flex-col items-center px-4 pt-10 pb-6">
@@ -38,8 +43,16 @@ export function MainMenu() {
         >
           <div className="flex flex-1 flex-col items-center justify-end pb-4">
             <div className="flex w-full max-w-xs flex-col gap-3">
-              <GameModeButton label="Actordle" onClick={() => navigate("/actordle")} />
-              <GameModeButton label="Filmdle" onClick={() => navigate("/filmdle")} />
+              <GameModeButton
+                label="Actordle"
+                played={actordleDone}
+                onClick={() => navigate("/actordle")}
+              />
+              <GameModeButton
+                label="Filmdle"
+                played={filmdleDone}
+                onClick={() => navigate("/filmdle")}
+              />
             </div>
             <div className="mt-6 flex items-center justify-center gap-3">
               <CircleIcon
