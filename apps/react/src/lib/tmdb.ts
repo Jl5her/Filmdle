@@ -1,31 +1,50 @@
+import { type IDBPDatabase, openDB } from "idb"
+
 const BASE = "/tmdb"
 
-const CACHE_PREFIX = "filmdle-tmdb-cache:v1"
+const DB_NAME = "filmdle-tmdb-cache"
+const DB_VERSION = 1
+const STORE = "responses"
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000
 
 interface CacheEntry {
+  path: string
   ts: number
-  body: string
+  body: unknown
 }
 
-function readCache(path: string): unknown | null {
+let dbPromise: Promise<IDBPDatabase> | null = null
+
+function getDb(): Promise<IDBPDatabase> {
+  if (!dbPromise) {
+    dbPromise = openDB(DB_NAME, DB_VERSION, {
+      upgrade(db) {
+        db.createObjectStore(STORE, { keyPath: "path" })
+      },
+    })
+  }
+  return dbPromise
+}
+
+async function readCache(path: string): Promise<unknown | null> {
   try {
-    const raw = localStorage.getItem(`${CACHE_PREFIX}:${path}`)
-    if (!raw) return null
-    const entry = JSON.parse(raw) as CacheEntry
-    if (Date.now() - entry.ts > CACHE_TTL_MS) return null
-    return JSON.parse(entry.body)
+    const db = await getDb()
+    const entry = (await db.get(STORE, path)) as CacheEntry | undefined
+    if (!entry) return null
+    if (Date.now() - entry.ts > CACHE_TTL_MS) {
+      await db.delete(STORE, path).catch(() => {})
+      return null
+    }
+    return entry.body
   } catch {
     return null
   }
 }
 
-function writeCache(path: string, body: string): void {
+async function writeCache(path: string, body: unknown): Promise<void> {
   try {
-    localStorage.setItem(
-      `${CACHE_PREFIX}:${path}`,
-      JSON.stringify({ ts: Date.now(), body } satisfies CacheEntry),
-    )
+    const db = await getDb()
+    await db.put(STORE, { path, ts: Date.now(), body } satisfies CacheEntry)
   } catch {
     // quota exceeded or storage disabled — best-effort only
   }
@@ -109,13 +128,13 @@ function rankScore(query: string, name: string, popularity: number): number {
 }
 
 async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const cached = readCache(path)
+  const cached = await readCache(path)
   if (cached !== null) return cached as T
   const res = await fetch(`${BASE}${path}`, { signal })
   if (!res.ok) throw new Error(`TMDB ${res.status} on ${path}`)
-  const body = await res.text()
-  writeCache(path, body)
-  return JSON.parse(body) as T
+  const body = (await res.json()) as T
+  await writeCache(path, body)
+  return body
 }
 
 export async function searchPerson(
