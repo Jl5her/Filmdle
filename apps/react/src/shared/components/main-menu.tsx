@@ -28,7 +28,7 @@ export function MainMenu() {
           className="mx-auto mb-3 h-14 w-14 text-primary-800 dark:text-primary-100"
           title="Filmdle"
         />
-        <h1 className="fa5-title text-5xl text-primary-900 dark:text-primary-50">FILMDLE</h1>
+        <h1 className="fa5-title text-5xl text-danger-600 dark:text-primary-50">FILMDLE</h1>
         <p className="mt-2 text-sm font-bold text-primary-700 sm:text-base dark:text-primary-200">
           Can you guess the actor or film in 5 tries?
         </p>
