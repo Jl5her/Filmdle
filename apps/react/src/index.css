@@ -43,6 +43,13 @@
 
   --theater-bg: #2e1f10;
   --theater-bg-dim: #221608;
+  --theater-glow: #5a3d1c;
+
+  /* Mode-aware red accents — opaque values so they read the same on
+     either paper color (color-mix with `transparent` over a dark
+     background swallows the red, so we set explicit shades). */
+  --ticket-rule: color-mix(in srgb, var(--ticket-red) 65%, transparent);
+  --admit-one-color: color-mix(in srgb, var(--ticket-red) 80%, transparent);
 
   /* Height of the tear-away stub at the bottom of the ticket. The
      guess input lives inside this strip, with the "Admit one" label
@@ -57,12 +64,24 @@
 }
 
 .dark {
-  --ticket-paper: #3a2a1d;
-  --ticket-paper-edge: #2a1c12;
-  --ticket-ink: #faf3e0;
+  /* Warmer, slightly brighter sepia paper so the cream text, red rule
+     and "Admit one" cursive all stay legible. */
+  --ticket-paper: #44321f;
+  --ticket-paper-edge: #2c1e0f;
+  --ticket-ink: #f7e8c4;
+  /* Bolder ticket-red against the dark paper. */
+  --ticket-red: #d44434;
+  --ticket-red-dark: #a32a1f;
 
-  --theater-bg: #160e07;
-  --theater-bg-dim: #0a0604;
+  /* Theater backdrop with a redder, more saturated stage glow. */
+  --theater-bg: #1c0d07;
+  --theater-bg-dim: #08030a;
+  --theater-glow: #6a1f12;
+
+  /* Opaque accents in dark mode so the red rule + cursive don't dim
+     to invisibility against the warm paper. */
+  --ticket-rule: #d44434;
+  --admit-one-color: #ec6a55;
 }
 
 @media (min-width: 600px) {
@@ -95,7 +114,7 @@ body {
   background-image:
     radial-gradient(
       ellipse 70% 60% at 50% 40%,
-      color-mix(in srgb, var(--theater-bg) 70%, #5a3d1c) 0%,
+      color-mix(in srgb, var(--theater-bg) 55%, var(--theater-glow)) 0%,
       var(--theater-bg) 55%,
       var(--theater-bg-dim) 100%
     );
@@ -217,7 +236,7 @@ body {
   left: 12px;
   right: 12px;
   bottom: calc(var(--tear-height) + 10px);
-  border: 1px solid color-mix(in srgb, var(--ticket-red) 65%, transparent);
+  border: 1px solid var(--ticket-rule);
   border-radius: 14px;
   pointer-events: none;
   z-index: 0;
@@ -232,7 +251,7 @@ body {
   right: 0;
   bottom: calc(var(--tear-height) - 24px);
   text-align: center;
-  color: color-mix(in srgb, var(--ticket-red) 75%, transparent);
+  color: var(--admit-one-color);
   font-family: "Pacifico", "Brush Script MT", cursive;
   font-size: clamp(13px, 2.8vw, 16px);
   letter-spacing: 0.02em;
@@ -262,7 +281,7 @@ body {
 /* Header bar inside the ticket — a thin red rule beneath, like the
    horizontal lines that segment a printed ticket. */
 .ticket-header-rule {
-  border-bottom: 1px solid color-mix(in srgb, var(--ticket-red) 50%, transparent);
+  border-bottom: 1px solid var(--ticket-rule);
 }
 
 /* Small barcode/serial decoration in the header, rendered with CSS

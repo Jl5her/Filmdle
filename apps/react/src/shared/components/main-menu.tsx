@@ -38,7 +38,7 @@ export function MainMenu() {
         <div className="relative mt-6 w-full flex-1 overflow-hidden">
           <div
             className={clsx(
-              "crossfade-panel flex h-full flex-col items-center justify-end pb-4",
+              "crossfade-panel flex h-full flex-col items-center justify-end pb-16",
               panel === null ? "crossfade-active" : "crossfade-inactive",
             )}
           >

@@ -14,8 +14,10 @@ export function GameModeButton({ label, sublabel, played, onClick }: Props) {
       onClick={onClick}
       className={clsx(
         "w-full px-6 py-3.5 rounded-full transition-all cursor-pointer",
-        "bg-primary-500 dark:bg-primary-600 text-primary-50",
-        "hover:bg-primary-600 dark:hover:bg-primary-500",
+        "bg-primary-500 text-primary-50",
+        "hover:bg-primary-600",
+        "dark:bg-danger-700 dark:hover:bg-danger-600",
+        "dark:shadow-md dark:shadow-black/40",
         "active:translate-y-px",
         "flex items-center justify-center gap-2",
         "shadow-sm",
