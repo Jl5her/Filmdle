@@ -34,7 +34,7 @@ export function GuessGrid<T>({
           <div
             key={column.id}
             title={column.description}
-            className={`marquee grid-cell-width text-center text-xs uppercase leading-tight [overflow-wrap:anywhere] text-primary-700 dark:text-primary-50${
+            className={`column-header grid-cell-width text-center text-xs uppercase leading-tight [overflow-wrap:anywhere] text-primary-700 dark:text-primary-50${
               column.description ? " cursor-help" : ""
             }`}
           >
@@ -66,6 +66,12 @@ export function GuessGrid<T>({
               rowRefs.current[i] = el
             }}
           >
+            {/* Placeholder for the guess-name label — keeps the empty
+                row's vertical footprint identical to a filled row so
+                the grid doesn't reflow when a guess is added. */}
+            <div className="marquee px-2 py-1 text-sm text-center uppercase leading-none">
+              &nbsp;
+            </div>
             <div className="flex gap-1 justify-center">
               {columns.map((column) => (
                 <div

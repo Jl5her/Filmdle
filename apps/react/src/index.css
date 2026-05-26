@@ -130,6 +130,14 @@ body {
   font-weight: 400;
 }
 
+/* Column header labels — a lighter condensed sans so the headers
+   read as small printed ticket text rather than display marquee. */
+.column-header {
+  font-family: "Oswald", "Geist", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+
 .ticket-script {
   font-family: "Pacifico", "Brush Script MT", cursive;
   letter-spacing: 0.02em;
