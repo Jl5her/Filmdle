@@ -13,6 +13,8 @@ import { GameHeader } from "../components/header"
 
 const MAX_GUESSES = 5
 
+type Mode = "daily" | "arcade"
+
 interface Props<T> {
   title: string
   curatedItems: T[]
@@ -41,12 +43,24 @@ export function GameScreen<T>({
   enrichAnswer,
 }: Props<T>) {
   const dateKey = useMemo(() => todayKey(), [])
+  const [mode, setMode] = useState<Mode>("daily")
+  const [arcadeSeed, setArcadeSeed] = useState(0)
+
+  const candidates = useMemo(
+    () =>
+      answerPool
+        .map((id) => curatedItems.find((it) => idOf(it) === id))
+        .filter((it): it is T => Boolean(it)),
+    [answerPool, curatedItems, idOf],
+  )
+
   const baseAnswer = useMemo(() => {
-    const candidates = answerPool
-      .map((id) => curatedItems.find((it) => idOf(it) === id))
-      .filter((it): it is T => Boolean(it))
-    return minHashPick(candidates, idOf, `${gameKey}:${dateKey}`)
-  }, [curatedItems, answerPool, idOf, dateKey, gameKey])
+    if (mode === "daily") {
+      return minHashPick(candidates, idOf, `${gameKey}:${dateKey}`)
+    }
+    const idx = Math.floor(Math.random() * candidates.length)
+    return candidates[idx] as T
+  }, [candidates, idOf, dateKey, gameKey, mode, arcadeSeed])
 
   const [answer, setAnswer] = useState<T>(baseAnswer)
   useEffect(() => {
@@ -73,6 +87,7 @@ export function GameScreen<T>({
 
   const recordedRef = useRef(false)
   useEffect(() => {
+    if (mode !== "daily") return
     if (!gameOver || recordedRef.current) return
     recordedRef.current = true
     appendResult(gameKey, {
@@ -82,7 +97,7 @@ export function GameScreen<T>({
       outcome: won ? "win" : "loss",
       guessCount: guesses.length,
     })
-  }, [gameOver, gameKey, dateKey, answer, guesses, won, idOf])
+  }, [gameOver, gameKey, dateKey, answer, guesses, won, idOf, mode])
 
   async function handlePick(key: string) {
     if (gameOver || guessedKeys.has(key) || resolving) return
@@ -92,7 +107,7 @@ export function GameScreen<T>({
       if (guessedKeys.has(idOf(item))) return
       setGuesses((prev) => {
         const next = [...prev, item]
-        saveGuesses(gameKey, dateKey, next)
+        if (mode === "daily") saveGuesses(gameKey, dateKey, next)
         setLatestIndex(next.length - 1)
         return next
       })
@@ -103,9 +118,19 @@ export function GameScreen<T>({
     }
   }
 
+  function startNextPuzzle() {
+    setGuesses([])
+    setLatestIndex(-1)
+    recordedRef.current = false
+    if (mode === "daily") setMode("arcade")
+    else setArcadeSeed((s) => s + 1)
+  }
+
+  const nextPuzzleLabel = mode === "daily" ? "Play Again" : "Next Puzzle"
+
   return (
     <div className="app-viewport flex flex-col">
-      <GameHeader title={title} onOpenStats={() => setStatsOpen((v) => !v)} />
+      <GameHeader title={title} mode={mode} onOpenStats={() => setStatsOpen((v) => !v)} />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-3">
         <div
           className={clsx(
@@ -115,15 +140,29 @@ export function GameScreen<T>({
         >
           {gameOver && (
             <div
-              className={
+              className={clsx(
+                "mb-3 rounded-md border px-3 py-2 text-center text-sm font-semibold",
                 won
-                  ? "mb-3 rounded-md border border-success-500 bg-success-500/20 px-3 py-2 text-center text-sm font-semibold text-success-600 dark:bg-success-600/30 dark:text-success-500"
-                  : "mb-3 rounded-md border border-primary-300 bg-primary-100 px-3 py-2 text-center text-sm font-semibold text-primary-700 dark:border-primary-600 dark:bg-primary-800 dark:text-primary-100"
-              }
+                  ? "border-success-500 bg-success-500/20 text-success-600 dark:bg-success-600/30 dark:text-success-500"
+                  : "border-primary-300 bg-primary-100 text-primary-700 dark:border-primary-600 dark:bg-primary-800 dark:text-primary-100",
+              )}
             >
-              {won
-                ? `Got it in ${guesses.length} ${guesses.length === 1 ? "try" : "tries"} — ${nameOf(answer)}`
-                : `Out of guesses. The answer was ${nameOf(answer)}.`}
+              <div>
+                {won
+                  ? `Got it in ${guesses.length} ${guesses.length === 1 ? "try" : "tries"} — ${nameOf(answer)}`
+                  : `Out of guesses. The answer was ${nameOf(answer)}.`}
+              </div>
+              <button
+                type="button"
+                onClick={startNextPuzzle}
+                className={clsx(
+                  "mt-2 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer",
+                  "bg-primary-500 text-primary-50 hover:bg-primary-600",
+                  "dark:bg-primary-600 dark:hover:bg-primary-500",
+                )}
+              >
+                {nextPuzzleLabel}
+              </button>
             </div>
           )}
           <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">

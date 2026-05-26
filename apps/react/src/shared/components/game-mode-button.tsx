@@ -27,7 +27,7 @@ export function GameModeButton({ label, sublabel, played, onClick }: Props) {
       )}
       {played && (
         <span className="text-[10px] uppercase tracking-wider font-bold bg-primary-50/20 px-2 py-0.5 rounded-full">
-          Played
+          Completed
         </span>
       )}
     </button>
