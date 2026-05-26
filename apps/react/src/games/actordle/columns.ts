@@ -37,9 +37,9 @@ export function buildActordleColumns(now = new Date()): GameColumn<ActorGuess>[]
       evaluator: { type: "shared", getIds: (a) => a.filmIds },
     },
     {
-      id: "franchise",
-      label: "Franchise",
-      evaluator: { type: "match", get: (a) => yesNo(a.franchise) },
+      id: "played-real-person",
+      label: "Real Person",
+      evaluator: { type: "match", get: (a) => yesNo(a.playedRealPerson) },
     },
   ]
 }
