@@ -14,7 +14,7 @@ export function GameHeader({ title, onOpenStats, mode = "daily" }: Props) {
         to="/"
         aria-label="Back to menu"
         title="Back"
-        className="absolute left-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-2xl leading-none text-danger-600 transition-colors hover:bg-primary-200/60 dark:text-primary-50 dark:hover:bg-primary-700/60"
+        className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-2xl leading-none text-danger-600 transition-colors hover:bg-primary-200/60 dark:text-primary-50 dark:hover:bg-primary-700/60"
       >
         ‹
       </Link>
@@ -38,7 +38,7 @@ export function GameHeader({ title, onOpenStats, mode = "daily" }: Props) {
         onClick={onOpenStats}
         aria-label="Stats"
         title="Stats"
-        className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-danger-600 transition-colors hover:bg-primary-200/60 dark:text-primary-50 dark:hover:bg-primary-700/60"
+        className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-danger-600 transition-colors hover:bg-primary-200/60 dark:text-primary-50 dark:hover:bg-primary-700/60"
       >
         <svg
           viewBox="0 0 24 24"

@@ -22,7 +22,7 @@ export function MainMenu() {
   const filmdleDone = hasPlayedToday("filmdle", today)
 
   return (
-    <div className="flex w-full flex-1 flex-col items-center px-4 pt-10 pb-6">
+    <div className="flex w-full flex-1 flex-col items-center px-4 pt-10 pb-[var(--tear-height)]">
       <div className="text-center">
         <FilmIcon
           className="mx-auto mb-3 h-14 w-14 text-primary-800 dark:text-primary-100"

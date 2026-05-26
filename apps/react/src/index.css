@@ -44,7 +44,16 @@
   --theater-bg: #2e1f10;
   --theater-bg-dim: #221608;
 
-  --stub-width: 64px;
+  /* Height of the tear-away stub at the bottom of the ticket. The
+     guess input lives inside this strip, with the "Admit one" label
+     just above it. */
+  --tear-height: 108px;
+  /* Radius of the large circle inlays that bite into the left + right
+     edges at the perforation line. */
+  --tear-inlay: 16px;
+  /* Radius of the small scallop notches along the outer edges. */
+  --scallop: 6px;
+  --scallop-step: 24px;
 }
 
 .dark {
@@ -59,7 +68,8 @@
 @media (min-width: 600px) {
   :root,
   .dark {
-    --stub-width: 84px;
+    --tear-height: 124px;
+    --tear-inlay: 20px;
   }
 }
 
@@ -110,6 +120,11 @@ body {
 
 /* --- The ticket --- */
 
+/* Two-section layout: the top ~80% is the main body (header + grid),
+   the bottom strip is the tear-away (the guess input lives here). A
+   horizontal perforation separates them, with two large circle inlays
+   biting into the left + right edges where the rip would start. Small
+   scallop notches run along all four outer edges. */
 .app-viewport {
   display: flex;
   flex-direction: column;
@@ -121,108 +136,123 @@ body {
   isolation: isolate;
   color: var(--ticket-ink);
 
-  /* The cream "paper" with scallop notches cut into the top + bottom
-     edges and the red ADMIT-ONE stub running down the left side. The
-     scallops are drawn as circles in the theater colour so they read
-     as cut-outs against the dark backdrop. */
   background-color: var(--ticket-paper);
   background-image:
-    /* top scallop notches */
+    /* large circle inlay — left side of the perforation */
     radial-gradient(
-      circle 7px at 13px 0,
-      var(--theater-bg) 7px,
-      transparent 7.5px
+      circle var(--tear-inlay) at 0 calc(100% - var(--tear-height)),
+      var(--theater-bg) var(--tear-inlay),
+      transparent calc(var(--tear-inlay) + 0.5px)
     ),
-    /* bottom scallop notches */
+    /* large circle inlay — right side of the perforation */
     radial-gradient(
-      circle 7px at 13px 100%,
-      var(--theater-bg) 7px,
-      transparent 7.5px
+      circle var(--tear-inlay) at 100% calc(100% - var(--tear-height)),
+      var(--theater-bg) var(--tear-inlay),
+      transparent calc(var(--tear-inlay) + 0.5px)
     ),
-    /* dashed perforation line between the stub and the main body */
+    /* horizontal dashed perforation between main body + tear-away */
     linear-gradient(
-      to bottom,
+      to right,
       var(--ticket-paper-edge) 0 6px,
       transparent 6px 12px
     ),
-    /* red ADMIT-ONE stub on the left */
-    linear-gradient(
-      to right,
-      var(--ticket-red) 0 var(--stub-width),
-      transparent var(--stub-width)
+    /* small scallop notches along the top outer edge */
+    radial-gradient(
+      circle var(--scallop) at calc(var(--scallop-step) / 2) 0,
+      var(--theater-bg) var(--scallop),
+      transparent calc(var(--scallop) + 0.5px)
+    ),
+    /* small scallop notches along the bottom outer edge */
+    radial-gradient(
+      circle var(--scallop) at calc(var(--scallop-step) / 2) 100%,
+      var(--theater-bg) var(--scallop),
+      transparent calc(var(--scallop) + 0.5px)
+    ),
+    /* small scallop notches along the left outer edge */
+    radial-gradient(
+      circle var(--scallop) at 0 calc(var(--scallop-step) / 2),
+      var(--theater-bg) var(--scallop),
+      transparent calc(var(--scallop) + 0.5px)
+    ),
+    /* small scallop notches along the right outer edge */
+    radial-gradient(
+      circle var(--scallop) at 100% calc(var(--scallop-step) / 2),
+      var(--theater-bg) var(--scallop),
+      transparent calc(var(--scallop) + 0.5px)
     );
   background-position:
     0 0,
+    0 0,
+    0 calc(100% - var(--tear-height)),
+    0 0,
     0 100%,
-    calc(var(--stub-width) - 1px) 0,
-    0 0;
+    0 0,
+    100% 0;
   background-size:
-    26px 14px,
-    26px 14px,
-    2px 12px,
-    100% 100%;
+    100% 100%,
+    100% 100%,
+    12px 2px,
+    var(--scallop-step) calc(var(--scallop) * 2),
+    var(--scallop-step) calc(var(--scallop) * 2),
+    calc(var(--scallop) * 2) var(--scallop-step),
+    calc(var(--scallop) * 2) var(--scallop-step);
   background-repeat:
+    no-repeat,
+    no-repeat,
+    repeat-x,
     repeat-x,
     repeat-x,
     repeat-y,
-    no-repeat;
-
-  /* Push all content past the stub so the children sit on the cream
-     paper, not over the red stub. */
-  padding-left: var(--stub-width);
+    repeat-y;
 }
 
-/* Inner red rule — a vintage double-border effect inset from the
-   notched edge. Drawn as a thin solid line just inside the paper. */
+/* Inset red rule traced around the main body section only. Its bottom
+   edge sits just above the tear-away perforation, framing the rip-off
+   stub with rounded corners (inward-curving relative to the body's
+   outer edges). */
 .app-viewport::before {
   content: "";
   position: absolute;
   top: 12px;
-  bottom: 12px;
-  left: calc(var(--stub-width) + 8px);
-  right: 8px;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--tear-height) + 10px);
   border: 1px solid color-mix(in srgb, var(--ticket-red) 65%, transparent);
+  border-radius: 14px;
   pointer-events: none;
   z-index: 0;
 }
 
-/* "Admit one" cursive lettering, rotated to read vertically on the
-   red stub. Sits above the stub gradient and below the ticket body
-   content. */
+/* "Admit one" cursive label tucked into the tear-away stub, sitting
+   just below the perforation and above the input field. */
 .app-viewport::after {
   content: "Admit one";
   position: absolute;
-  top: 0;
-  bottom: 0;
   left: 0;
-  width: var(--stub-width);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ticket-stub-text);
+  right: 0;
+  bottom: calc(var(--tear-height) - 30px);
+  text-align: center;
+  color: color-mix(in srgb, var(--ticket-red) 75%, transparent);
   font-family: "Pacifico", "Brush Script MT", cursive;
-  font-size: clamp(20px, 4.5vw, 30px);
+  font-size: clamp(14px, 3.2vw, 18px);
   letter-spacing: 0.02em;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
   pointer-events: none;
   z-index: 0;
 }
 
-/* Children render above the ::before inner rule and ::after stub
-   text without needing their own z-index. */
+/* Children render above the ::before inner rule and ::after tear-away
+   label without needing their own z-index. */
 .app-viewport > * {
   position: relative;
   z-index: 1;
 }
 
-/* On very narrow screens, drop the inner red rule's right inset to
-   give the tile grid more breathing room. */
+/* On very narrow screens, draw the inset rule closer to the scallops
+   so the tile grid has more breathing room. */
 @media (max-width: 480px) {
   .app-viewport::before {
-    left: calc(var(--stub-width) + 4px);
-    right: 4px;
+    left: 8px;
+    right: 8px;
   }
 }
 
