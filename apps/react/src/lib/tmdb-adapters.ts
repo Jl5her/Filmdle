@@ -2,7 +2,12 @@ import { actors, films, oscarWinners } from "@stardle/data"
 import type { Actor, Gender, MpaaRating } from "@stardle/types"
 import type { ActorGuess } from "@/games/actordle/types"
 import type { FilmGuess } from "@/games/filmdle/types"
-import type { TmdbMovieSearch, TmdbPersonSearch, TmdbReleaseDates } from "./tmdb"
+import type {
+  TmdbMovieSearch,
+  TmdbPersonMovieCredits,
+  TmdbPersonSearch,
+  TmdbReleaseDates,
+} from "./tmdb"
 import { getMovieDetails, getPersonDetails, getPersonMovieCredits, searchPerson } from "./tmdb"
 
 const actorsByName = new Map(actors.map((a) => [a.name.toLowerCase(), a]))
@@ -53,9 +58,39 @@ function pickGenre(genres: { name: string }[]): string {
   return genres[0]?.name ?? "Unknown"
 }
 
-async function fetchFilmIds(tmdbId: number): Promise<string[]> {
-  const credits = await getPersonMovieCredits(tmdbId)
-  return credits.cast.map((c) => String(c.id))
+const COUNTRY_ALIASES: Record<string, string> = {
+  "United States of America": "USA",
+  "United States": "USA",
+  "U.S.": "USA",
+  "U.S.A.": "USA",
+  "United Kingdom": "UK",
+  "U.K.": "UK",
+}
+
+function nationalityFromPlaceOfBirth(place: string | null): string | null {
+  if (!place) return null
+  const parts = place
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+  const last = parts[parts.length - 1]
+  if (!last) return null
+  return COUNTRY_ALIASES[last] ?? last
+}
+
+function debutYearFromCredits(credits: TmdbPersonMovieCredits): number | null {
+  let earliest: number | null = null
+  for (const c of credits.cast) {
+    if (!c.release_date) continue
+    const year = Number(c.release_date.slice(0, 4))
+    if (!year || year < 1900) continue
+    if (earliest === null || year < earliest) earliest = year
+  }
+  return earliest
+}
+
+async function fetchCredits(tmdbId: number): Promise<TmdbPersonMovieCredits> {
+  return getPersonMovieCredits(tmdbId)
 }
 
 export async function resolvePerson(p: TmdbPersonSearch): Promise<ActorGuess> {
@@ -64,19 +99,21 @@ export async function resolvePerson(p: TmdbPersonSearch): Promise<ActorGuess> {
     if (curated.filmIds && curated.filmIds.length > 0) {
       return { ...curated, filmIds: curated.filmIds }
     }
-    const filmIds = await fetchFilmIds(p.id)
-    return { ...curated, filmIds }
+    const credits = await fetchCredits(p.id)
+    return { ...curated, filmIds: credits.cast.map((c) => String(c.id)) }
   }
-  const [details, filmIds] = await Promise.all([getPersonDetails(p.id), fetchFilmIds(p.id)])
+  const [details, credits] = await Promise.all([getPersonDetails(p.id), fetchCredits(p.id)])
   return {
     id: `tmdb:person:${p.id}`,
     name: p.name,
     dob: details.birthday ?? "",
     gender: genderFromTmdb(p.gender),
+    nationality: nationalityFromPlaceOfBirth(details.place_of_birth),
+    debutYear: debutYearFromCredits(credits),
     oscarWinner: oscarWinnerForName(p.name),
     playedRealPerson: null,
     franchise: null,
-    filmIds,
+    filmIds: credits.cast.map((c) => String(c.id)),
   }
 }
 
@@ -89,8 +126,8 @@ export async function enrichCuratedActor(actor: Actor): Promise<ActorGuess> {
     const exact = results.find((p) => p.name.toLowerCase() === actor.name.toLowerCase())
     const match = exact ?? results[0]
     if (!match) return { ...actor, filmIds: null }
-    const filmIds = await fetchFilmIds(match.id)
-    return { ...actor, filmIds }
+    const credits = await fetchCredits(match.id)
+    return { ...actor, filmIds: credits.cast.map((c) => String(c.id)) }
   } catch {
     return { ...actor, filmIds: null }
   }

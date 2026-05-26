@@ -5,6 +5,8 @@ export interface Actor {
   name: string
   dob: string
   gender: Gender
+  nationality: string
+  debutYear: number
   oscarWinner: boolean
   playedRealPerson: boolean
   franchise: boolean

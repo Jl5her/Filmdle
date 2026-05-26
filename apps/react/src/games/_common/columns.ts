@@ -17,6 +17,7 @@ export type ColumnEvaluator<T> =
 export interface GameColumn<T> {
   id: string
   label: string
+  description?: string
   evaluator: ColumnEvaluator<T>
 }
 

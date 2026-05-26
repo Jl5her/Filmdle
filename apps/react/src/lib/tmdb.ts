@@ -79,6 +79,7 @@ export interface TmdbPersonDetails extends TmdbPersonSearch {
   birthday: string | null
   deathday: string | null
   biography: string
+  place_of_birth: string | null
 }
 
 export interface TmdbMovieDetails extends TmdbMovieSearch {
@@ -174,7 +175,7 @@ export async function getPersonDetails(
 }
 
 export interface TmdbPersonMovieCredits {
-  cast: { id: number; title: string }[]
+  cast: { id: number; title: string; release_date?: string }[]
 }
 
 export async function getPersonMovieCredits(

@@ -33,7 +33,10 @@ export function GuessGrid<T>({
         {columns.map((column) => (
           <div
             key={column.id}
-            className="marquee grid-cell-width text-center text-sm uppercase text-primary-700 dark:text-primary-50"
+            title={column.description}
+            className={`marquee grid-cell-width text-center text-sm uppercase text-primary-700 dark:text-primary-50${
+              column.description ? " cursor-help" : ""
+            }`}
           >
             {column.label}
           </div>
