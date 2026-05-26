@@ -70,9 +70,9 @@ export function MainMenu() {
         </div>
       </div>
 
-      {/* Tear-away footer: icons + date sit in the bottom stub of the
-          ticket, with breathing room below the date. */}
-      <div className="absolute inset-x-0 bottom-5 flex flex-col items-center gap-2 px-4">
+      {/* Tear-away footer: icons + date are vertically centered inside
+          the bottom stub of the ticket. */}
+      <div className="absolute inset-x-0 bottom-0 h-[var(--tear-height)] flex flex-col items-center justify-center gap-2 px-4">
         <div className="flex items-center justify-center gap-3">
           <CircleIcon
             label="How to play"

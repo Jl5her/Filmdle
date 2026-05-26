@@ -172,13 +172,15 @@ export function GameScreen<T>({
               nameOf={nameOf}
             />
           </div>
-          <GuessInput
-            disabled={gameOver || resolving}
-            guessedKeys={guessedKeys}
-            placeholder={searchPlaceholder}
-            fetchSuggestions={fetchSuggestions}
-            onPick={handlePick}
-          />
+          <div className="shrink-0 flex flex-col justify-center h-[var(--tear-height)]">
+            <GuessInput
+              disabled={gameOver || resolving}
+              guessedKeys={guessedKeys}
+              placeholder={searchPlaceholder}
+              fetchSuggestions={fetchSuggestions}
+              onPick={handlePick}
+            />
+          </div>
         </div>
         <InlinePanel open={statsOpen} title="Stats" onClose={() => setStatsOpen(false)}>
           <StatsContent open={statsOpen} />
