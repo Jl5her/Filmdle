@@ -9,8 +9,8 @@ const actorsByName = new Map(actors.map((a) => [a.name.toLowerCase(), a]))
 const filmsByTitleYear = new Map(films.map((f) => [`${f.title.toLowerCase()}|${f.releaseYear}`, f]))
 const oscarWinnerSet = new Set(oscarWinners.map((n) => n.toLowerCase()))
 
-function oscarWinnerForName(name: string): boolean | null {
-  return oscarWinnerSet.has(name.toLowerCase()) ? true : null
+function oscarWinnerForName(name: string): boolean {
+  return oscarWinnerSet.has(name.toLowerCase())
 }
 
 function genderFromTmdb(code: number): Gender | null {
