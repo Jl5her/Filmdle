@@ -1,19 +1,5 @@
-import type { MpaaRating } from "@stardle/types"
 import type { GameColumn } from "../_common/columns"
 import type { FilmGuess } from "./types"
-
-const MPAA_ORDER: MpaaRating[] = ["G", "PG", "PG-13", "R", "NC-17"]
-
-function mpaaToNum(rating: MpaaRating | null): number | null {
-  if (rating === null) return null
-  const idx = MPAA_ORDER.indexOf(rating)
-  return idx >= 0 ? idx + 1 : null
-}
-
-function numToMpaa(value: number): string {
-  const rating = MPAA_ORDER[value - 1]
-  return rating ?? "?"
-}
 
 function formatBoxOffice(m: number): string {
   if (m >= 1000) return `$${(m / 1000).toFixed(1)}B`
@@ -32,14 +18,9 @@ export function buildFilmdleColumns(): GameColumn<FilmGuess>[] {
       },
     },
     {
-      id: "runtime",
-      label: "Runtime",
-      evaluator: {
-        type: "comparison",
-        get: (f) => (f.runtime > 0 ? f.runtime : null),
-        closeWithin: 15,
-        format: (m) => `${m}m`,
-      },
+      id: "director",
+      label: "Director",
+      evaluator: { type: "match", get: (f) => (f.director ? f.director : null) },
     },
     {
       id: "genre",
@@ -47,13 +28,13 @@ export function buildFilmdleColumns(): GameColumn<FilmGuess>[] {
       evaluator: { type: "match", get: (f) => (f.genre === "Unknown" ? null : f.genre) },
     },
     {
-      id: "mpaa",
-      label: "Rating",
+      id: "runtime",
+      label: "Runtime",
       evaluator: {
         type: "comparison",
-        get: (f) => mpaaToNum(f.mpaaRating),
-        closeWithin: 1,
-        format: numToMpaa,
+        get: (f) => (f.runtime > 0 ? f.runtime : null),
+        closeWithin: 15,
+        format: (m) => `${m}m`,
       },
     },
     {
