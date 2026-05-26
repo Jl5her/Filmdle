@@ -9,7 +9,7 @@ interface Props {
 
 export function GameHeader({ title, onOpenStats, mode = "daily" }: Props) {
   return (
-    <header className="relative border-b-2 border-primary-200/60 bg-primary-50/70 px-4 py-3 text-center backdrop-blur-sm dark:border-primary-700/60 dark:bg-primary-900/70">
+    <header className="relative border-b-2 border-primary-200/60 px-4 py-3 text-center dark:border-primary-700/60">
       <Link
         to="/"
         aria-label="Back to menu"
@@ -23,7 +23,9 @@ export function GameHeader({ title, onOpenStats, mode = "daily" }: Props) {
       </h1>
       <p className="mt-0.5 text-[10px] text-primary-500 dark:text-primary-300">
         {mode === "arcade" ? (
-          <span className="font-bold uppercase tracking-wider text-secondary-500">Arcade</span>
+          <span className="font-bold uppercase tracking-wider text-primary-700 dark:text-primary-200">
+            Arcade
+          </span>
         ) : (
           formatLongDate()
         )}

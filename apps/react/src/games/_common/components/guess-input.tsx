@@ -129,7 +129,7 @@ export function GuessInput({
           onBlur={() => setTimeout(() => setShowDropdown(false), 120)}
           onKeyDown={handleKey}
           placeholder={placeholder}
-          className="w-full px-4 py-3 text-base rounded-lg border-2 border-primary-300 dark:border-primary-700 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-primary-50 placeholder:text-primary-500 dark:placeholder:text-primary-400 outline-none focus:border-secondary-500 [&::-webkit-search-cancel-button]:appearance-none"
+          className="w-full px-4 py-3 text-base rounded-lg border-2 border-primary-300 dark:border-primary-700 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-primary-50 placeholder:text-primary-500 dark:placeholder:text-primary-400 outline-none focus:border-primary-500 dark:focus:border-primary-400 [&::-webkit-search-cancel-button]:appearance-none"
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"

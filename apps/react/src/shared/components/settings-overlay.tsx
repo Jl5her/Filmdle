@@ -27,7 +27,7 @@ export function SettingsContent() {
               className={clsx(
                 "flex cursor-pointer flex-col items-center rounded-md border-2 px-2 py-3 transition-colors",
                 active
-                  ? "border-secondary-500 bg-secondary-500/15 text-primary-900 dark:text-primary-50"
+                  ? "border-primary-500 bg-primary-500/15 text-primary-900 dark:border-primary-300 dark:bg-primary-300/15 dark:text-primary-50"
                   : "border-primary-200 text-primary-600 hover:border-primary-400 dark:border-primary-700 dark:text-primary-300 dark:hover:border-primary-500",
               )}
             >
