@@ -18,7 +18,7 @@ export function AboutContent() {
           href="https://www.themoviedb.org/"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline decoration-secondary-500 underline-offset-2 hover:text-secondary-500"
+          className="underline decoration-primary-500 underline-offset-2 hover:text-primary-900 dark:hover:text-primary-50"
         >
           TMDB
         </a>

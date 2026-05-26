@@ -1,6 +1,6 @@
 export function HowToPlayContent() {
   return (
-    <ol className="list-decimal space-y-3 pl-5 text-sm leading-relaxed text-primary-700 marker:font-bold marker:text-secondary-500 dark:text-primary-200">
+    <ol className="list-decimal space-y-3 pl-5 text-sm leading-relaxed text-primary-700 marker:font-bold marker:text-primary-500 dark:text-primary-200 dark:marker:text-primary-400">
       <li>
         Pick a mode: <b>Actordle</b> (guess the actor) or <b>Filmdle</b> (guess the movie).
       </li>

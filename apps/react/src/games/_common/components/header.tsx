@@ -9,12 +9,12 @@ interface Props {
 
 export function GameHeader({ title, onOpenStats, mode = "daily" }: Props) {
   return (
-    <header className="relative border-b-2 border-primary-200 bg-primary-50 px-4 py-3 text-center dark:border-primary-700 dark:bg-primary-900">
+    <header className="relative border-b-2 border-primary-200/60 px-4 py-3 text-center dark:border-primary-700/60">
       <Link
         to="/"
         aria-label="Back to menu"
         title="Back"
-        className="absolute left-3 top-1/2 -translate-y-1/2 rounded p-2 text-2xl leading-none text-primary-700 transition-colors hover:bg-primary-200 dark:text-primary-50 dark:hover:bg-primary-700"
+        className="absolute left-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-2xl leading-none text-primary-700 transition-colors hover:bg-primary-200 dark:text-primary-50 dark:hover:bg-primary-700"
       >
         ‹
       </Link>
@@ -23,7 +23,9 @@ export function GameHeader({ title, onOpenStats, mode = "daily" }: Props) {
       </h1>
       <p className="mt-0.5 text-[10px] text-primary-500 dark:text-primary-300">
         {mode === "arcade" ? (
-          <span className="font-bold uppercase tracking-wider text-secondary-500">Arcade</span>
+          <span className="font-bold uppercase tracking-wider text-primary-700 dark:text-primary-200">
+            Arcade
+          </span>
         ) : (
           formatLongDate()
         )}
@@ -33,7 +35,7 @@ export function GameHeader({ title, onOpenStats, mode = "daily" }: Props) {
         onClick={onOpenStats}
         aria-label="Stats"
         title="Stats"
-        className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-2 text-primary-700 transition-colors hover:bg-primary-200 dark:text-primary-50 dark:hover:bg-primary-700"
+        className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-primary-700 transition-colors hover:bg-primary-200 dark:text-primary-50 dark:hover:bg-primary-700"
       >
         <svg
           viewBox="0 0 24 24"
