@@ -5,7 +5,7 @@ export interface ActorGuess {
   name: string
   dob: string
   gender: Gender | null
-  oscarWinner: boolean | null
+  oscarWinner: boolean
   playedRealPerson: boolean | null
   franchise: boolean | null
   filmIds: string[] | null

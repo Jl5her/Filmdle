@@ -2565,7 +2565,7 @@
     "name": "Matt Damon",
     "dob": "1970-10-08",
     "gender": "M",
-    "oscarWinner": true,
+    "oscarWinner": false,
     "playedRealPerson": true,
     "franchise": true,
     "tmdbId": 1892,
