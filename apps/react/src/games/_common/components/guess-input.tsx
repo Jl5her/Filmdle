@@ -114,11 +114,12 @@ export function GuessInput({
   if (disabled) return null
 
   return (
-    <div className="shrink-0 mx-3 py-2 bg-primary-50 dark:bg-primary-900">
+    <div className="shrink-0 mx-3 py-2">
       <div className="relative max-w-xs mx-auto">
         <input
           ref={inputRef}
-          type="text"
+          type="search"
+          name="guess-search"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value)
@@ -128,10 +129,15 @@ export function GuessInput({
           onBlur={() => setTimeout(() => setShowDropdown(false), 120)}
           onKeyDown={handleKey}
           placeholder={placeholder}
-          className="w-full px-4 py-3 text-base rounded-lg border-2 border-primary-300 dark:border-primary-700 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-primary-50 placeholder:text-primary-500 dark:placeholder:text-primary-400 outline-none focus:border-secondary-500"
+          className="w-full px-4 py-3 text-base rounded-lg border-2 border-primary-300 dark:border-primary-700 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-primary-50 placeholder:text-primary-500 dark:placeholder:text-primary-400 outline-none focus:border-secondary-500 [&::-webkit-search-cancel-button]:appearance-none"
           autoComplete="off"
           autoCorrect="off"
+          autoCapitalize="off"
           spellCheck={false}
+          data-1p-ignore
+          data-lpignore="true"
+          data-bwignore
+          data-form-type="other"
         />
         {showDropdown && trimmed && (
           <div

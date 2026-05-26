@@ -9,7 +9,7 @@ interface Props {
 
 export function GameHeader({ title, onOpenStats, mode = "daily" }: Props) {
   return (
-    <header className="relative border-b-2 border-primary-200 bg-primary-50 px-4 py-3 text-center dark:border-primary-700 dark:bg-primary-900">
+    <header className="relative border-b-2 border-primary-200/60 bg-primary-50/70 px-4 py-3 text-center backdrop-blur-sm dark:border-primary-700/60 dark:bg-primary-900/70">
       <Link
         to="/"
         aria-label="Back to menu"
