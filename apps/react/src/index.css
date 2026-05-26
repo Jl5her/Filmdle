@@ -3,16 +3,19 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-primary-50: #f8fafc;
-  --color-primary-100: #f1f5f9;
-  --color-primary-200: #e2e8f0;
-  --color-primary-300: #cbd5e1;
-  --color-primary-400: #94a3b8;
-  --color-primary-500: #64748b;
-  --color-primary-600: #475569;
-  --color-primary-700: #334155;
-  --color-primary-800: #1e293b;
-  --color-primary-900: #0f172a;
+  /* Warm sepia palette — replaces the previous slate grays so the
+     existing `primary-*` and `dark:primary-*` utilities cohere with
+     the vintage movie-ticket look. */
+  --color-primary-50: #faf3e0;
+  --color-primary-100: #f1e5c2;
+  --color-primary-200: #e3d2a0;
+  --color-primary-300: #cdb578;
+  --color-primary-400: #a78851;
+  --color-primary-500: #7a5d36;
+  --color-primary-600: #5c4524;
+  --color-primary-700: #3f2f17;
+  --color-primary-800: #261c0e;
+  --color-primary-900: #120d07;
 
   --color-success-500: #16a34a;
   --color-success-600: #15803d;
@@ -22,9 +25,69 @@
   --color-warning-600: #ca8a04;
   --color-warning-700: #a16207;
 
-  --color-danger-500: #ef4444;
-  --color-danger-600: #dc2626;
-  --color-danger-700: #b91c1c;
+  --color-danger-500: #b9281e;
+  --color-danger-600: #951f17;
+  --color-danger-700: #6f1711;
+}
+
+/* Ticket design tokens. The "paper" + "ink" pair swaps for dark mode
+   so the ticket reads as a weathered/aged version of itself. The red
+   stays the same in both modes — that's part of the ticket identity. */
+:root {
+  --ticket-paper: #faf3e0;
+  --ticket-paper-edge: #ead7a4;
+  --ticket-ink: #2a1810;
+  --ticket-red: #b9281e;
+  --ticket-red-dark: #8a1c1c;
+  --ticket-stub-text: #f5e6c2;
+
+  --theater-bg: #2e1f10;
+  --theater-bg-dim: #221608;
+  --theater-glow: #5a3d1c;
+
+  /* Mode-aware red accent — opaque values so it reads the same on
+     either paper color (color-mix with `transparent` over a dark
+     background swallows the red, so we set explicit shades). */
+  --ticket-rule: color-mix(in srgb, var(--ticket-red) 65%, transparent);
+
+  /* Height of the tear-away stub at the bottom of the ticket. The
+     guess input (on the game screen) and the menu icons + date all
+     live inside this strip. */
+  --tear-height: 108px;
+  /* Radius of the large circle inlays that bite into the left + right
+     edges at the perforation line. */
+  --tear-inlay: 16px;
+  /* Radius of the small scallop notches along the outer edges. */
+  --scallop: 6px;
+  --scallop-step: 24px;
+}
+
+.dark {
+  /* Warmer, slightly brighter sepia paper so the cream text and red
+     rule stay legible. */
+  --ticket-paper: #44321f;
+  --ticket-paper-edge: #2c1e0f;
+  --ticket-ink: #f7e8c4;
+  /* Bolder ticket-red against the dark paper. */
+  --ticket-red: #d44434;
+  --ticket-red-dark: #a32a1f;
+
+  /* Theater backdrop with a redder, more saturated stage glow. */
+  --theater-bg: #1c0d07;
+  --theater-bg-dim: #08030a;
+  --theater-glow: #6a1f12;
+
+  /* Opaque red rule in dark mode so it doesn't dim to invisibility
+     against the warm paper. */
+  --ticket-rule: #d44434;
+}
+
+@media (min-width: 600px) {
+  :root,
+  .dark {
+    --tear-height: 124px;
+    --tear-inlay: 20px;
+  }
 }
 
 html,
@@ -40,52 +103,19 @@ body,
 
 body {
   margin: 0;
-  background-color: var(--color-primary-50);
-  color: var(--color-primary-900);
+  color: var(--ticket-ink);
   font-family: "Geist", "Segoe UI", -apple-system, ui-sans-serif, system-ui, Roboto, sans-serif;
   font-feature-settings: "cv11", "ss01";
-}
-
-.dark body {
-  background-color: var(--color-primary-900);
-  color: var(--color-primary-50);
-}
-
-/* Filmstrip rails: two vertical strips of sprocket-hole perforations
-   in the side gutters, flanking the centered 720px .app-viewport.
-   Hidden on screens too narrow to have gutters (would overlap content). */
-body::before,
-body::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  width: 32px;
-  pointer-events: none;
-  z-index: 0;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='44'><rect x='10' y='10' width='12' height='24' rx='3' fill='%2364748b' fill-opacity='0.22'/></svg>");
-  background-repeat: repeat-y;
-  background-size: 32px 44px;
-}
-
-body::before {
-  left: max(0px, calc(50% - 360px - 32px));
-}
-
-body::after {
-  right: max(0px, calc(50% - 360px - 32px));
-}
-
-.dark body::before,
-.dark body::after {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='44'><rect x='10' y='10' width='12' height='24' rx='3' fill='%23cbd5e1' fill-opacity='0.28'/></svg>");
-}
-
-@media (max-width: 784px) {
-  body::before,
-  body::after {
-    display: none;
-  }
+  /* The "outside" of the ticket — a deep theater backdrop with a soft
+     spotlight glow centered on the ticket so it draws the eye. */
+  background-color: var(--theater-bg);
+  background-image:
+    radial-gradient(
+      ellipse 70% 60% at 50% 40%,
+      color-mix(in srgb, var(--theater-bg) 55%, var(--theater-glow)) 0%,
+      var(--theater-bg) 55%,
+      var(--theater-bg-dim) 100%
+    );
 }
 
 .fa5-title {
@@ -100,6 +130,26 @@ body::after {
   font-weight: 400;
 }
 
+/* Column header labels — a lighter condensed sans so the headers
+   read as small printed ticket text rather than display marquee. */
+.column-header {
+  font-family: "Oswald", "Geist", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+
+.ticket-script {
+  font-family: "Pacifico", "Brush Script MT", cursive;
+  letter-spacing: 0.02em;
+}
+
+/* --- The ticket --- */
+
+/* Two-section layout: the top ~80% is the main body (header + grid),
+   the bottom strip is the tear-away (the guess input lives here). A
+   horizontal perforation separates them, with two large circle inlays
+   biting into the left + right edges where the rip would start. Small
+   scallop notches run along all four outer edges. */
 .app-viewport {
   display: flex;
   flex-direction: column;
@@ -107,10 +157,144 @@ body::after {
   width: 100%;
   max-width: 720px;
   margin: 0 auto;
-  /* Transparent so the window-wide dot grid on `body` shows through,
-     both inside the centered viewport and in the side margins. */
-  background: transparent;
   position: relative;
+  isolation: isolate;
+  color: var(--ticket-ink);
+
+  background-color: var(--ticket-paper);
+  background-image:
+    /* large circle inlay — left side of the perforation */
+    radial-gradient(
+      circle var(--tear-inlay) at 0 calc(100% - var(--tear-height)),
+      var(--theater-bg) var(--tear-inlay),
+      transparent calc(var(--tear-inlay) + 0.5px)
+    ),
+    /* large circle inlay — right side of the perforation */
+    radial-gradient(
+      circle var(--tear-inlay) at 100% calc(100% - var(--tear-height)),
+      var(--theater-bg) var(--tear-inlay),
+      transparent calc(var(--tear-inlay) + 0.5px)
+    ),
+    /* horizontal dashed perforation between main body + tear-away */
+    linear-gradient(
+      to right,
+      var(--ticket-paper-edge) 0 6px,
+      transparent 6px 12px
+    ),
+    /* small scallop notches along the top outer edge */
+    radial-gradient(
+      circle var(--scallop) at calc(var(--scallop-step) / 2) 0,
+      var(--theater-bg) var(--scallop),
+      transparent calc(var(--scallop) + 0.5px)
+    ),
+    /* small scallop notches along the bottom outer edge */
+    radial-gradient(
+      circle var(--scallop) at calc(var(--scallop-step) / 2) 100%,
+      var(--theater-bg) var(--scallop),
+      transparent calc(var(--scallop) + 0.5px)
+    ),
+    /* small scallop notches along the left outer edge */
+    radial-gradient(
+      circle var(--scallop) at 0 calc(var(--scallop-step) / 2),
+      var(--theater-bg) var(--scallop),
+      transparent calc(var(--scallop) + 0.5px)
+    ),
+    /* small scallop notches along the right outer edge */
+    radial-gradient(
+      circle var(--scallop) at 100% calc(var(--scallop-step) / 2),
+      var(--theater-bg) var(--scallop),
+      transparent calc(var(--scallop) + 0.5px)
+    );
+  background-position:
+    0 0,
+    0 0,
+    0 calc(100% - var(--tear-height)),
+    0 0,
+    0 100%,
+    0 0,
+    100% 0;
+  background-size:
+    100% 100%,
+    100% 100%,
+    12px 2px,
+    var(--scallop-step) calc(var(--scallop) * 2),
+    var(--scallop-step) calc(var(--scallop) * 2),
+    calc(var(--scallop) * 2) var(--scallop-step),
+    calc(var(--scallop) * 2) var(--scallop-step);
+  background-repeat:
+    no-repeat,
+    no-repeat,
+    repeat-x,
+    repeat-x,
+    repeat-x,
+    repeat-y,
+    repeat-y;
+}
+
+/* Inset red rule traced around the main body section only. Its bottom
+   edge sits just above the tear-away perforation, framing the rip-off
+   stub with rounded corners (inward-curving relative to the body's
+   outer edges). */
+.app-viewport::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--tear-height) + 10px);
+  border: 1px solid var(--ticket-rule);
+  border-radius: 14px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Children render above the ::before inner rule without needing their
+   own z-index. Layered so utilities like `absolute` can still
+   override `position`. */
+@layer base {
+  .app-viewport > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* On very narrow screens, draw the inset rule closer to the scallops
+   so the tile grid has more breathing room. */
+@media (max-width: 480px) {
+  .app-viewport::before {
+    left: 8px;
+    right: 8px;
+  }
+}
+
+/* Header bar inside the ticket — a thin red rule beneath, like the
+   horizontal lines that segment a printed ticket. */
+.ticket-header-rule {
+  border-bottom: 1px solid var(--ticket-rule);
+}
+
+/* Small barcode/serial decoration in the header, rendered with CSS
+   alone (no extra assets). */
+.ticket-serial {
+  font-family: "Anton", sans-serif;
+  letter-spacing: 0.15em;
+  color: var(--ticket-red-dark);
+}
+
+.ticket-barcode {
+  display: inline-block;
+  width: 28px;
+  height: 14px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--ticket-ink) 0 1px,
+    transparent 1px 2px,
+    var(--ticket-ink) 2px 4px,
+    transparent 4px 5px,
+    var(--ticket-ink) 5px 7px,
+    transparent 7px 8px
+  );
+  opacity: 0.75;
 }
 
 .grid-cell-size {

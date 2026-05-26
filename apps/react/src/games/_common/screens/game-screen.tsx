@@ -147,19 +147,8 @@ export function GameScreen<T>({
           )}
         >
           {gameOver && (
-            <div className="mb-3 flex flex-col gap-2">
+            <div className="mb-3">
               <ResultBanner won={won} answer={nameOf(answer)} guessCount={guesses.length} />
-              <button
-                type="button"
-                onClick={startNextPuzzle}
-                className={clsx(
-                  "self-center rounded-full px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer",
-                  "bg-primary-500 text-primary-50 hover:bg-primary-600",
-                  "dark:bg-primary-600 dark:hover:bg-primary-500",
-                )}
-              >
-                {nextPuzzleLabel}
-              </button>
             </div>
           )}
           <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
@@ -172,13 +161,31 @@ export function GameScreen<T>({
               nameOf={nameOf}
             />
           </div>
-          <GuessInput
-            disabled={gameOver || resolving}
-            guessedKeys={guessedKeys}
-            placeholder={searchPlaceholder}
-            fetchSuggestions={fetchSuggestions}
-            onPick={handlePick}
-          />
+          <div className="shrink-0 flex flex-col justify-center h-[var(--tear-height)]">
+            {gameOver ? (
+              <div className="mx-3 flex justify-center">
+                <button
+                  type="button"
+                  onClick={startNextPuzzle}
+                  className={clsx(
+                    "w-full max-w-xs px-6 py-3 rounded-md font-bold uppercase tracking-wide transition-colors cursor-pointer",
+                    "bg-danger-600 text-primary-50 hover:bg-danger-700",
+                    "dark:bg-danger-500 dark:hover:bg-danger-600",
+                  )}
+                >
+                  {nextPuzzleLabel}
+                </button>
+              </div>
+            ) : (
+              <GuessInput
+                disabled={resolving}
+                guessedKeys={guessedKeys}
+                placeholder={searchPlaceholder}
+                fetchSuggestions={fetchSuggestions}
+                onPick={handlePick}
+              />
+            )}
+          </div>
         </div>
         <InlinePanel open={statsOpen} title="Stats" onClose={() => setStatsOpen(false)}>
           <StatsContent open={statsOpen} />

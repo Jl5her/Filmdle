@@ -9,33 +9,34 @@ interface Props {
 
 export function GameHeader({ title, onOpenStats, mode = "daily" }: Props) {
   return (
-    <header className="relative border-b-2 border-primary-200/60 px-4 py-3 text-center dark:border-primary-700/60">
+    <header className="ticket-header-rule relative px-4 py-3 text-center">
       <Link
         to="/"
         aria-label="Back to menu"
         title="Back"
-        className="absolute left-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-2xl leading-none text-primary-700 transition-colors hover:bg-primary-200 dark:text-primary-50 dark:hover:bg-primary-700"
+        className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-2xl leading-none text-danger-600 transition-colors hover:bg-primary-200/60 dark:text-primary-50 dark:hover:bg-primary-700/60"
       >
         ‹
       </Link>
-      <h1 className="fa5-title text-3xl uppercase text-primary-900 dark:text-primary-50">
-        {title}
-      </h1>
-      <p className="mt-0.5 text-[10px] text-primary-500 dark:text-primary-300">
+      <h1 className="fa5-title text-3xl uppercase text-danger-600 dark:text-primary-50">{title}</h1>
+      <p className="mt-0.5 flex items-center justify-center gap-2 text-[10px] text-primary-600 dark:text-primary-300">
         {mode === "arcade" ? (
           <span className="font-bold uppercase tracking-wider text-primary-700 dark:text-primary-200">
             Arcade
           </span>
         ) : (
-          formatLongDate()
+          <span>{formatLongDate()}</span>
         )}
+        <span className="ticket-serial">·</span>
+        <span className="ticket-barcode" aria-hidden="true" />
+        <span className="ticket-serial">№ 12345</span>
       </p>
       <button
         type="button"
         onClick={onOpenStats}
         aria-label="Stats"
         title="Stats"
-        className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-primary-700 transition-colors hover:bg-primary-200 dark:text-primary-50 dark:hover:bg-primary-700"
+        className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-danger-600 transition-colors hover:bg-primary-200/60 dark:text-primary-50 dark:hover:bg-primary-700/60"
       >
         <svg
           viewBox="0 0 24 24"
