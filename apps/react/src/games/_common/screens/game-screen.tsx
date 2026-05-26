@@ -6,10 +6,12 @@ import { todayKey } from "@/shared/lib/date"
 import { loadGuesses, saveGuesses } from "@/shared/lib/game-state"
 import { minHashPick } from "@/shared/lib/hash"
 import { appendResult } from "@/shared/lib/stats"
+import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
 import type { GameColumn } from "../columns"
 import { GuessGrid } from "../components/guess-grid"
 import { GuessInput, type Suggestion } from "../components/guess-input"
 import { GameHeader } from "../components/header"
+import { ResultBanner } from "../components/result-banner"
 
 const MAX_GUESSES = 5
 
@@ -99,6 +101,12 @@ export function GameScreen<T>({
     })
   }, [gameOver, gameKey, dateKey, answer, guesses, won, idOf, mode])
 
+  useWinConfetti({
+    won,
+    colors: MOVIE_THEATER_COLORS,
+    dedupKey: `${gameKey}:${mode}:${mode === "daily" ? dateKey : arcadeSeed}:${idOf(answer)}`,
+  })
+
   async function handlePick(key: string) {
     if (gameOver || guessedKeys.has(key) || resolving) return
     setResolving(true)
@@ -139,24 +147,13 @@ export function GameScreen<T>({
           )}
         >
           {gameOver && (
-            <div
-              className={clsx(
-                "mb-3 rounded-md border px-3 py-2 text-center text-sm font-semibold",
-                won
-                  ? "border-success-500 bg-success-500/20 text-success-600 dark:bg-success-600/30 dark:text-success-500"
-                  : "border-primary-300 bg-primary-100 text-primary-700 dark:border-primary-600 dark:bg-primary-800 dark:text-primary-100",
-              )}
-            >
-              <div>
-                {won
-                  ? `Got it in ${guesses.length} ${guesses.length === 1 ? "try" : "tries"} — ${nameOf(answer)}`
-                  : `Out of guesses. The answer was ${nameOf(answer)}.`}
-              </div>
+            <div className="mb-3 flex flex-col gap-2">
+              <ResultBanner won={won} answer={nameOf(answer)} guessCount={guesses.length} />
               <button
                 type="button"
                 onClick={startNextPuzzle}
                 className={clsx(
-                  "mt-2 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer",
+                  "self-center rounded-full px-4 py-1 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer",
                   "bg-primary-500 text-primary-50 hover:bg-primary-600",
                   "dark:bg-primary-600 dark:hover:bg-primary-500",
                 )}
