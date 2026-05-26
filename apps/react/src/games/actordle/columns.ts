@@ -2,11 +2,6 @@ import { computeAge } from "@/shared/lib/date"
 import type { GameColumn } from "../_common/columns"
 import type { ActorGuess } from "./types"
 
-function yesNo(v: boolean | null): string | null {
-  if (v === null) return null
-  return v ? "Yes" : "No"
-}
-
 export function buildActordleColumns(now = new Date()): GameColumn<ActorGuess>[] {
   return [
     {
@@ -27,19 +22,24 @@ export function buildActordleColumns(now = new Date()): GameColumn<ActorGuess>[]
       },
     },
     {
-      id: "oscar",
-      label: "Oscar",
-      evaluator: { type: "match", get: (a) => yesNo(a.oscarWinner) },
+      id: "nationality",
+      label: "Nationality",
+      evaluator: { type: "match", get: (a) => a.nationality },
+    },
+    {
+      id: "decade-of-debut",
+      label: "Debut",
+      evaluator: {
+        type: "comparison",
+        get: (a) => (a.debutYear ? Math.floor(a.debutYear / 10) : null),
+        closeWithin: 1,
+        format: (v) => `${v * 10}s`,
+      },
     },
     {
       id: "films-in-common",
       label: "Films",
       evaluator: { type: "shared", getIds: (a) => a.filmIds },
-    },
-    {
-      id: "played-real-person",
-      label: "Real Person",
-      evaluator: { type: "match", get: (a) => yesNo(a.playedRealPerson) },
     },
   ]
 }
