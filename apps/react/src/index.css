@@ -45,15 +45,14 @@
   --theater-bg-dim: #221608;
   --theater-glow: #5a3d1c;
 
-  /* Mode-aware red accents — opaque values so they read the same on
+  /* Mode-aware red accent — opaque values so it reads the same on
      either paper color (color-mix with `transparent` over a dark
      background swallows the red, so we set explicit shades). */
   --ticket-rule: color-mix(in srgb, var(--ticket-red) 65%, transparent);
-  --admit-one-color: color-mix(in srgb, var(--ticket-red) 80%, transparent);
 
   /* Height of the tear-away stub at the bottom of the ticket. The
-     guess input lives inside this strip, with the "Admit one" label
-     just above it. */
+     guess input (on the game screen) and the menu icons + date all
+     live inside this strip. */
   --tear-height: 108px;
   /* Radius of the large circle inlays that bite into the left + right
      edges at the perforation line. */
@@ -64,8 +63,8 @@
 }
 
 .dark {
-  /* Warmer, slightly brighter sepia paper so the cream text, red rule
-     and "Admit one" cursive all stay legible. */
+  /* Warmer, slightly brighter sepia paper so the cream text and red
+     rule stay legible. */
   --ticket-paper: #44321f;
   --ticket-paper-edge: #2c1e0f;
   --ticket-ink: #f7e8c4;
@@ -78,10 +77,9 @@
   --theater-bg-dim: #08030a;
   --theater-glow: #6a1f12;
 
-  /* Opaque accents in dark mode so the red rule + cursive don't dim
-     to invisibility against the warm paper. */
+  /* Opaque red rule in dark mode so it doesn't dim to invisibility
+     against the warm paper. */
   --ticket-rule: #d44434;
-  --admit-one-color: #ec6a55;
 }
 
 @media (min-width: 600px) {
@@ -242,26 +240,9 @@ body {
   z-index: 0;
 }
 
-/* "Admit one" cursive label tucked into the tear-away stub, sitting
-   just below the perforation. */
-.app-viewport::after {
-  content: "Admit one";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(var(--tear-height) - 24px);
-  text-align: center;
-  color: var(--admit-one-color);
-  font-family: "Pacifico", "Brush Script MT", cursive;
-  font-size: clamp(13px, 2.8vw, 16px);
-  letter-spacing: 0.02em;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Children render above the ::before inner rule and ::after tear-away
-   label without needing their own z-index. Layered so utilities like
-   `absolute` can still override `position`. */
+/* Children render above the ::before inner rule without needing their
+   own z-index. Layered so utilities like `absolute` can still
+   override `position`. */
 @layer base {
   .app-viewport > * {
     position: relative;
