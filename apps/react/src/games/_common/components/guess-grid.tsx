@@ -34,7 +34,7 @@ export function GuessGrid<T>({
           <div
             key={column.id}
             title={column.description}
-            className={`marquee grid-cell-width text-center text-sm uppercase text-primary-700 dark:text-primary-50${
+            className={`marquee grid-cell-width text-center text-xs uppercase leading-tight [overflow-wrap:anywhere] text-primary-700 dark:text-primary-50${
               column.description ? " cursor-help" : ""
             }`}
           >
