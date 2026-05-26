@@ -27,12 +27,6 @@
   --color-danger-700: #b91c1c;
 }
 
-:root {
-  /* Cursor position used by the spotlight overlay below. */
-  --mx: 50vw;
-  --my: 50vh;
-}
-
 html,
 body,
 #root {
@@ -47,14 +41,6 @@ body,
 body {
   margin: 0;
   background-color: var(--color-primary-50);
-  /* Base dot grid: covers the full window, always lightly visible.
-     Uses the same primary-500 hue as the pill buttons + icon chips. */
-  background-image: radial-gradient(
-    circle at center,
-    color-mix(in oklab, var(--color-primary-500) 22%, transparent) 1px,
-    transparent 1.4px
-  );
-  background-size: 22px 22px;
   color: var(--color-primary-900);
   font-family: "Geist", "Segoe UI", -apple-system, ui-sans-serif, system-ui, Roboto, sans-serif;
   font-feature-settings: "cv11", "ss01";
@@ -62,53 +48,43 @@ body {
 
 .dark body {
   background-color: var(--color-primary-900);
-  background-image: radial-gradient(
-    circle at center,
-    color-mix(in oklab, var(--color-primary-500) 38%, transparent) 1px,
-    transparent 1.4px
-  );
   color: var(--color-primary-50);
 }
 
-/* Desktop-only cursor spotlight: a denser dot layer masked to a radial
-   gradient anchored at the cursor. The dots near the pointer read
-   darker (close to #333); everything else stays at the base layer's
-   color. No bg wash — only the dot color changes. Hidden on touch
-   and coarse pointers. */
-@media (hover: hover) and (pointer: fine) {
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background-image: radial-gradient(
-      circle at center,
-      color-mix(in oklab, var(--color-primary-800) 92%, transparent) 1px,
-      transparent 1.4px
-    );
-    background-size: 22px 22px;
-    background-repeat: repeat;
-    -webkit-mask-image: radial-gradient(
-      circle 260px at var(--mx) var(--my),
-      black 0%,
-      rgba(0, 0, 0, 0.6) 25%,
-      transparent 75%
-    );
-    mask-image: radial-gradient(
-      circle 260px at var(--mx) var(--my),
-      black 0%,
-      rgba(0, 0, 0, 0.6) 25%,
-      transparent 75%
-    );
-  }
+/* Filmstrip rails: two vertical strips of sprocket-hole perforations
+   in the side gutters, flanking the centered 720px .app-viewport.
+   Hidden on screens too narrow to have gutters (would overlap content). */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='44'><rect x='10' y='10' width='12' height='24' rx='3' fill='%2364748b' fill-opacity='0.22'/></svg>");
+  background-repeat: repeat-y;
+  background-size: 32px 44px;
+}
 
-  .dark body::before {
-    background-image: radial-gradient(
-      circle at center,
-      color-mix(in oklab, var(--color-primary-200) 90%, transparent) 1px,
-      transparent 1.4px
-    );
+body::before {
+  left: max(0px, calc(50% - 360px - 32px));
+}
+
+body::after {
+  right: max(0px, calc(50% - 360px - 32px));
+}
+
+.dark body::before,
+.dark body::after {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='44'><rect x='10' y='10' width='12' height='24' rx='3' fill='%23cbd5e1' fill-opacity='0.28'/></svg>");
+}
+
+@media (max-width: 784px) {
+  body::before,
+  body::after {
+    display: none;
   }
 }
 
