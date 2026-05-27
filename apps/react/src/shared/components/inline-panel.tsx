@@ -27,7 +27,7 @@ export function InlinePanel({ open, title, onClose, children }: Props) {
     <div
       aria-hidden={!open}
       className={clsx(
-        "crossfade-panel absolute inset-0 flex flex-col",
+        "crossfade-panel absolute inset-0 flex flex-col px-3",
         open ? "crossfade-active" : "crossfade-inactive",
       )}
     >
@@ -39,11 +39,11 @@ export function InlinePanel({ open, title, onClose, children }: Props) {
           type="button"
           onClick={onClose}
           aria-label={`Close ${title}`}
-          className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-primary-700 transition-colors hover:bg-primary-200/80 dark:text-primary-100 dark:hover:bg-primary-700/80"
+          className="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-primary-700 transition-colors hover:bg-primary-200/80 dark:text-primary-100 dark:hover:bg-primary-700/80"
         >
           <svg
             viewBox="0 0 24 24"
-            className="h-5 w-5"
+            className="h-6 w-6"
             fill="none"
             stroke="currentColor"
             strokeWidth="2.2"
