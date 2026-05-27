@@ -9,7 +9,7 @@ interface Props {
 }
 
 const sideButtonClass =
-  "flex aspect-square h-full cursor-pointer items-center justify-center rounded-md text-danger-600 transition-colors hover:bg-primary-200/60 dark:text-primary-50 dark:hover:bg-primary-700/60"
+  "flex h-11 w-11 cursor-pointer items-center justify-center rounded-md text-danger-600 transition-colors hover:bg-primary-200/60 dark:text-primary-50 dark:hover:bg-primary-700/60"
 
 export function GameHeader({ title, onOpenStats, onOpenHowToPlay, mode = "daily" }: Props) {
   return (
@@ -18,9 +18,20 @@ export function GameHeader({ title, onOpenStats, onOpenHowToPlay, mode = "daily"
         to="/"
         aria-label="Back to menu"
         title="Back"
-        className={`absolute inset-y-0 left-3 text-2xl leading-none ${sideButtonClass}`}
+        className={`absolute left-3 top-1/2 -translate-y-1/2 ${sideButtonClass}`}
       >
-        ‹
+        <svg
+          viewBox="0 0 24 24"
+          className="h-6 w-6"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <polyline points="15 6 9 12 15 18" />
+        </svg>
       </Link>
       <h1 className="fa5-title text-3xl leading-none uppercase text-danger-600 dark:text-primary-50">
         {title}
@@ -37,7 +48,7 @@ export function GameHeader({ title, onOpenStats, onOpenHowToPlay, mode = "daily"
         <span className="ticket-barcode" aria-hidden="true" />
         <span className="ticket-serial">№ 12345</span>
       </p>
-      <div className="absolute inset-y-0 right-3 flex items-stretch gap-1">
+      <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1">
         <button
           type="button"
           onClick={onOpenHowToPlay}

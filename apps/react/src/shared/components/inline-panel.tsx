@@ -27,11 +27,11 @@ export function InlinePanel({ open, title, onClose, children }: Props) {
     <div
       aria-hidden={!open}
       className={clsx(
-        "crossfade-panel absolute inset-0 flex flex-col px-3",
+        "crossfade-panel absolute inset-0 flex flex-col",
         open ? "crossfade-active" : "crossfade-inactive",
       )}
     >
-      <header className="flex items-center justify-between pb-3">
+      <header className="flex items-center justify-between pb-3 pl-4 pr-3">
         <h2 className="fa5-title text-2xl uppercase text-primary-900 dark:text-primary-50">
           {title}
         </h2>
@@ -55,7 +55,7 @@ export function InlinePanel({ open, title, onClose, children }: Props) {
           </svg>
         </button>
       </header>
-      <div className="flex-1 overflow-auto pb-4">{children}</div>
+      <div className="flex-1 overflow-auto px-4 pb-4">{children}</div>
     </div>
   )
 }
