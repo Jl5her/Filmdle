@@ -1,10 +1,12 @@
 import clsx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { HowToPlayContent } from "@/shared/components/how-to-play-overlay"
 import { InlinePanel } from "@/shared/components/inline-panel"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { todayKey } from "@/shared/lib/date"
 import { loadGuesses, saveGuesses } from "@/shared/lib/game-state"
 import { minHashPick } from "@/shared/lib/hash"
+import { hasSeenHowToPlay, markHowToPlaySeen } from "@/shared/lib/how-to-play-seen"
 import { appendResult } from "@/shared/lib/stats"
 import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
 import type { GameColumn } from "../columns"
@@ -80,7 +82,17 @@ export function GameScreen<T>({
   const [guesses, setGuesses] = useState<T[]>(() => loadGuesses<T>(gameKey, dateKey))
   const [latestIndex, setLatestIndex] = useState(-1)
   const [resolving, setResolving] = useState(false)
-  const [statsOpen, setStatsOpen] = useState(false)
+  const [panel, setPanel] = useState<"stats" | "how-to-play" | null>(() =>
+    hasSeenHowToPlay(gameKey) ? null : "how-to-play",
+  )
+  const statsOpen = panel === "stats"
+  const howToOpen = panel === "how-to-play"
+  const overlayOpen = panel !== null
+
+  function closeHowToPlay() {
+    markHowToPlaySeen(gameKey)
+    setPanel((p) => (p === "how-to-play" ? null : p))
+  }
 
   const guessedKeys = useMemo(() => new Set(guesses.map(idOf)), [guesses, idOf])
   const won = guesses.some((g) => idOf(g) === idOf(answer))
@@ -138,12 +150,17 @@ export function GameScreen<T>({
 
   return (
     <div className="app-viewport flex flex-col">
-      <GameHeader title={title} mode={mode} onOpenStats={() => setStatsOpen((v) => !v)} />
+      <GameHeader
+        title={title}
+        mode={mode}
+        onOpenStats={() => setPanel((p) => (p === "stats" ? null : "stats"))}
+        onOpenHowToPlay={() => setPanel((p) => (p === "how-to-play" ? null : "how-to-play"))}
+      />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-3">
         <div
           className={clsx(
             "crossfade-panel flex flex-1 flex-col overflow-hidden",
-            statsOpen ? "crossfade-inactive" : "crossfade-active",
+            overlayOpen ? "crossfade-inactive" : "crossfade-active",
           )}
         >
           {gameOver && (
@@ -187,8 +204,11 @@ export function GameScreen<T>({
             )}
           </div>
         </div>
-        <InlinePanel open={statsOpen} title="Stats" onClose={() => setStatsOpen(false)}>
+        <InlinePanel open={statsOpen} title="Stats" onClose={() => setPanel(null)}>
           <StatsContent open={statsOpen} />
+        </InlinePanel>
+        <InlinePanel open={howToOpen} title="How to Play" onClose={closeHowToPlay}>
+          <HowToPlayContent />
         </InlinePanel>
       </div>
     </div>

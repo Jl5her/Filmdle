@@ -307,8 +307,10 @@ body {
 }
 
 .grid-cell-text {
+  font-family: "Inter", "Geist", "Segoe UI", -apple-system, sans-serif;
   font-size: clamp(10px, 2.6vw, 13px);
-  line-height: 1.1;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
 }
 
 .crossfade-panel {
