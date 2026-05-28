@@ -113,7 +113,7 @@ function CircleIcon({
       aria-label={label}
       title={label}
       className={clsx(
-        "flex h-10 w-10 cursor-pointer items-center justify-center rounded-full",
+        "flex h-10 w-10 cursor-pointer items-center justify-center rounded-md",
         "border border-danger-600/40 bg-primary-50 dark:border-primary-300/30 dark:bg-primary-800/60",
         "text-danger-700 dark:text-primary-100",
         "transition-colors hover:bg-danger-600/10 dark:hover:bg-primary-700",
