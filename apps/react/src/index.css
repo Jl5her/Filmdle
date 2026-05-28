@@ -60,6 +60,8 @@
   /* Radius of the small scallop notches along the outer edges. */
   --scallop: 6px;
   --scallop-step: 24px;
+  /* Space between the ticket's outer scalloped edge and the screen. */
+  --app-viewport-gutter: 8px;
 }
 
 .dark {
@@ -87,6 +89,7 @@
   .dark {
     --tear-height: 124px;
     --tear-inlay: 20px;
+    --app-viewport-gutter: 16px;
   }
 }
 
@@ -153,10 +156,10 @@ body {
 .app-viewport {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
-  width: 100%;
+  height: calc(100dvh - 2 * var(--app-viewport-gutter));
+  width: calc(100% - 2 * var(--app-viewport-gutter));
   max-width: 720px;
-  margin: 0 auto;
+  margin: var(--app-viewport-gutter) auto;
   position: relative;
   isolation: isolate;
   color: var(--ticket-ink);
