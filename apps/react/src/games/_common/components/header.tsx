@@ -13,7 +13,7 @@ const sideButtonClass =
 
 export function GameHeader({ title, onOpenStats, onOpenHowToPlay, mode = "daily" }: Props) {
   return (
-    <header className="ticket-header-rule relative flex flex-col items-center justify-center gap-1.5 px-4 py-3 text-center">
+    <header className="ticket-header-rule relative flex flex-col items-center justify-center gap-1.5 px-4 pt-3 pb-1 text-center">
       <Link
         to="/"
         aria-label="Back to menu"
