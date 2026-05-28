@@ -1,6 +1,6 @@
 export function HowToPlayContent() {
   return (
-    <ol className="list-decimal space-y-3 pl-5 text-sm leading-relaxed text-primary-700 marker:font-bold marker:text-primary-500 dark:text-primary-200 dark:marker:text-primary-400">
+    <ol className="list-decimal space-y-3 pl-5 text-sm leading-relaxed text-primary-700 marker:text-primary-500 dark:text-primary-200 dark:marker:text-primary-400">
       <li>
         Pick a mode: <b>Actordle</b> (guess the actor) or <b>Filmdle</b> (guess the movie).
       </li>
@@ -8,9 +8,9 @@ export function HowToPlayContent() {
       <li>
         Tile colors:
         <div className="mt-2 flex flex-wrap gap-2">
-          <Swatch className="bg-success-500" label="Correct" />
-          <Swatch className="bg-warning-500" label="Close" />
-          <Swatch className="bg-danger-500" label="Wrong" />
+          <Swatch className="bg-success-600" label="Correct" />
+          <Swatch className="bg-warning-600" label="Close" />
+          <Swatch className="bg-danger-600" label="Wrong" />
         </div>
       </li>
       <li>Arrows on number tiles point toward the answer (↑ higher, ↓ lower).</li>

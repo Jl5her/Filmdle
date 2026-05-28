@@ -152,7 +152,7 @@ export default function DebugCalendar() {
         </button>
       </div>
 
-      <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-x-3 border-b border-primary-200/60 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-primary-500 dark:border-primary-700/60 dark:text-primary-400">
+      <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-x-3 border-b border-primary-200/60 px-4 py-2 text-[10px] uppercase tracking-wider text-primary-500 dark:border-primary-700/60 dark:text-primary-400">
         <span>Date</span>
         <span>Filmdle</span>
         <span>Actordle</span>
@@ -179,7 +179,7 @@ export default function DebugCalendar() {
                   )}
                 >
                   <span className="text-[10px] uppercase tracking-wider">{row.weekdayShort}</span>
-                  <span className="text-lg font-black leading-none">{row.day}</span>
+                  <span className="text-lg leading-none">{row.day}</span>
                 </div>
                 <div className="break-words text-primary-900 dark:text-primary-50">
                   {row.filmTitle}

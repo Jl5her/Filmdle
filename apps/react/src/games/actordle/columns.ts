@@ -26,7 +26,7 @@ export function buildActordleColumns(now = new Date()): GameColumn<ActorGuess>[]
     },
     {
       id: "nationality",
-      label: "Nationality",
+      label: "From",
       description: "Country of birth. Green for an exact match.",
       evaluator: { type: "match", get: (a) => a.nationality },
     },
@@ -44,7 +44,7 @@ export function buildActordleColumns(now = new Date()): GameColumn<ActorGuess>[]
     },
     {
       id: "films-in-common",
-      label: "Films",
+      label: "Common",
       description:
         "Number of films you and the answer have both appeared in. Yellow if any overlap, green when the filmographies fully match.",
       evaluator: { type: "shared", getIds: (a) => a.filmIds },

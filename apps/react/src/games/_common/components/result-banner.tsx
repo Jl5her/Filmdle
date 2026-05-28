@@ -28,15 +28,15 @@ export function ResultBanner({
           : "bg-danger-500/15 dark:bg-danger-500/25 border-danger-500/60",
       )}
     >
-      <div className={clsx("text-[10px] font-bold uppercase tracking-[0.2em]", statusColor)}>
+      <div className={clsx("text-[10px] uppercase tracking-[0.2em]", statusColor)}>
         {won ? "Correct" : "Game Over"}
       </div>
       <div className="flex items-center justify-center mt-0.5">
-        <div className={clsx("text-xl font-black uppercase tracking-tight", answerColor)}>
+        <div className={clsx("text-xl uppercase tracking-tight", answerColor)}>
           {answer}
         </div>
       </div>
-      <div className={clsx("text-xs font-medium uppercase mt-1", statusColor)}>
+      <div className={clsx("text-xs uppercase mt-1", statusColor)}>
         {won
           ? `You got it in ${guessCount} ${guessCount === 1 ? "guess" : "guesses"}`
           : lossMessage}

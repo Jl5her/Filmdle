@@ -184,7 +184,7 @@ export function GuessInput({
                   </div>
                 )}
                 <div className="flex flex-col min-w-0 flex-1">
-                  <span className="font-semibold text-sm truncate">{s.label}</span>
+                  <span className="text-sm truncate">{s.label}</span>
                   {s.sublabel && (
                     <span className="text-[11px] text-primary-600 dark:text-primary-300 truncate">
                       {s.sublabel}
@@ -194,7 +194,7 @@ export function GuessInput({
                 {i === highlight && (
                   <span
                     aria-hidden="true"
-                    className="shrink-0 ml-2 px-1.5 py-0.5 text-[11px] font-semibold leading-none rounded border border-primary-400 dark:border-primary-300 text-primary-600 dark:text-primary-200"
+                    className="shrink-0 ml-2 px-1.5 py-0.5 text-[11px] leading-none rounded border border-primary-400 dark:border-primary-300 text-primary-600 dark:text-primary-200"
                   >
                     ↵
                   </span>

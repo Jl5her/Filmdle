@@ -20,12 +20,12 @@ export function GameModeButton({ label, sublabel, played, onClick }: Props) {
         "flex items-center justify-center gap-2",
       )}
     >
-      <span className="font-extrabold text-base tracking-wide">{label}</span>
+      <span className="text-base tracking-wide">{label}</span>
       {sublabel && (
-        <span className="hidden sm:inline text-xs font-semibold opacity-80">{sublabel}</span>
+        <span className="hidden sm:inline text-xs opacity-80">{sublabel}</span>
       )}
       {played && (
-        <span className="text-[10px] uppercase tracking-wider font-bold bg-primary-50/20 px-2 py-0.5 rounded-full">
+        <span className="text-[10px] uppercase tracking-wider bg-primary-50/20 px-2 py-0.5 rounded-full">
           Completed
         </span>
       )}

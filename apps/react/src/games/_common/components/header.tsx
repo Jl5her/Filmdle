@@ -21,7 +21,7 @@ export function GameHeader({ title, onOpenStats, mode = "daily" }: Props) {
       <h1 className="fa5-title text-3xl uppercase text-danger-600 dark:text-primary-50">{title}</h1>
       <p className="mt-0.5 flex items-center justify-center gap-2 text-[10px] text-primary-600 dark:text-primary-300">
         {mode === "arcade" ? (
-          <span className="font-bold uppercase tracking-wider text-primary-700 dark:text-primary-200">
+          <span className="uppercase tracking-wider text-primary-700 dark:text-primary-200">
             Arcade
           </span>
         ) : (

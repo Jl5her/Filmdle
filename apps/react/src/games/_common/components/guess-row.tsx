@@ -12,7 +12,7 @@ interface Props<T> {
 export function GuessRow<T>({ guess, answer, columns, nameOf, animate }: Props<T>) {
   return (
     <div>
-      <div className="marquee px-2 py-1 text-sm text-center uppercase text-primary-700 dark:text-primary-200 leading-none">
+      <div className="guess-name px-2 py-1 text-center uppercase text-primary-900 dark:text-primary-50">
         {nameOf(guess)}
       </div>
       <div className="flex gap-1 justify-center">

@@ -82,7 +82,7 @@ export function StatsContent({ open }: Props) {
 function Stat({ value, label }: { value: number | string; label: string }) {
   return (
     <div>
-      <div className="text-2xl font-black leading-none text-primary-900 dark:text-primary-50">
+      <div className="text-2xl leading-none text-primary-900 dark:text-primary-50">
         {value}
       </div>
       <div className="mt-1 text-[10px] uppercase tracking-wider text-primary-500 dark:text-primary-400">
@@ -96,12 +96,12 @@ function DistributionBar({ guess, count, max }: { guess: number; count: number; 
   const widthPct = count > 0 ? Math.max(8, (count / max) * 100) : 8
   return (
     <div className="flex items-center gap-2">
-      <span className="w-3 text-xs font-bold text-primary-600 dark:text-primary-300">{guess}</span>
+      <span className="w-3 text-xs text-primary-600 dark:text-primary-300">{guess}</span>
       <div className="flex-1 overflow-hidden rounded bg-primary-100 dark:bg-primary-900">
         <div
           style={{ width: `${widthPct}%` }}
           className={clsx(
-            "flex h-5 items-center justify-end px-2 text-xs font-bold text-primary-50",
+            "flex h-5 items-center justify-end px-2 text-xs text-primary-50",
             count > 0 ? "bg-success-500 dark:bg-success-600" : "bg-primary-200 dark:bg-primary-700",
           )}
         >

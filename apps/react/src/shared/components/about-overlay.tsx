@@ -26,11 +26,11 @@ export function AboutContent() {
       </p>
 
       <dl className="mt-5 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs">
-        <dt className="font-semibold uppercase tracking-wider text-primary-500 dark:text-primary-400">
+        <dt className="uppercase tracking-wider text-primary-500 dark:text-primary-400">
           Build
         </dt>
         <dd className="font-mono text-primary-900 dark:text-primary-100">{__APP_COMMIT__}</dd>
-        <dt className="font-semibold uppercase tracking-wider text-primary-500 dark:text-primary-400">
+        <dt className="uppercase tracking-wider text-primary-500 dark:text-primary-400">
           Released
         </dt>
         <dd className="text-primary-900 dark:text-primary-100">{buildDate}</dd>

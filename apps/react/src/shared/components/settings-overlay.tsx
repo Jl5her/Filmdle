@@ -13,7 +13,7 @@ export function SettingsContent() {
 
   return (
     <section>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary-500 dark:text-primary-400">
+      <h3 className="mb-2 text-xs uppercase tracking-wider text-primary-500 dark:text-primary-400">
         Theme
       </h3>
       <div className="grid grid-cols-3 gap-2">
@@ -31,7 +31,7 @@ export function SettingsContent() {
                   : "border-primary-200 text-primary-600 hover:border-primary-400 dark:border-primary-700 dark:text-primary-300 dark:hover:border-primary-500",
               )}
             >
-              <span className="text-sm font-bold">{option.label}</span>
+              <span className="text-sm">{option.label}</span>
               <span className="mt-0.5 text-[10px] text-primary-500 dark:text-primary-400">
                 {option.description}
               </span>

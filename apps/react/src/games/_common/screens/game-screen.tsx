@@ -168,7 +168,7 @@ export function GameScreen<T>({
                   type="button"
                   onClick={startNextPuzzle}
                   className={clsx(
-                    "w-full max-w-xs px-6 py-3 rounded-md font-bold uppercase tracking-wide transition-colors cursor-pointer",
+                    "w-full max-w-xs px-6 py-3 rounded-md uppercase tracking-wide transition-colors cursor-pointer",
                     "bg-danger-600 text-primary-50 hover:bg-danger-700",
                     "dark:bg-danger-500 dark:hover:bg-danger-600",
                   )}

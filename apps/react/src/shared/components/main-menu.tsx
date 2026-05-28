@@ -32,7 +32,7 @@ export function MainMenu() {
             title="Filmdle"
           />
           <h1 className="fa5-title text-5xl text-danger-600 dark:text-primary-50">FILMDLE</h1>
-          <p className="mt-2 text-sm font-bold text-primary-700 sm:text-base dark:text-primary-200">
+          <p className="mt-2 text-sm text-primary-700 sm:text-base dark:text-primary-200">
             Can you guess the actor or film in 5 tries?
           </p>
         </div>
@@ -89,7 +89,7 @@ export function MainMenu() {
             />
           )}
         </div>
-        <p className="text-xs font-semibold text-primary-700 dark:text-primary-300">
+        <p className="text-xs text-primary-700 dark:text-primary-300">
           {formatLongDate()}
         </p>
       </div>

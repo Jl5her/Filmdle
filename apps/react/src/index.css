@@ -17,17 +17,23 @@
   --color-primary-800: #261c0e;
   --color-primary-900: #120d07;
 
-  --color-success-500: #16a34a;
-  --color-success-600: #15803d;
-  --color-success-700: #166534;
+  /* Vintage tile palette. The -600 shades are the canonical tile bgs —
+     dark enough that cream text (text-primary-50) clears WCAG AA 4.5
+     contrast in BOTH light and dark modes, so the tile font + color
+     stays consistent and we don't need mode-aware text colors. The -500
+     shades are lighter accents (badges, swatches, icon hovers); -700
+     is for borders / pressed states. */
+  --color-success-500: #7a9c3e;
+  --color-success-600: #5e7a2c;
+  --color-success-700: #44591d;
 
-  --color-warning-500: #eab308;
-  --color-warning-600: #ca8a04;
-  --color-warning-700: #a16207;
+  --color-warning-500: #b58620;
+  --color-warning-600: #8d6817;
+  --color-warning-700: #604811;
 
-  --color-danger-500: #b9281e;
-  --color-danger-600: #951f17;
-  --color-danger-700: #6f1711;
+  --color-danger-500: #d44434;
+  --color-danger-600: #b9281e;
+  --color-danger-700: #7a1610;
 }
 
 /* Ticket design tokens. The "paper" + "ink" pair swaps for dark mode
@@ -60,6 +66,9 @@
   /* Radius of the small scallop notches along the outer edges. */
   --scallop: 6px;
   --scallop-step: 24px;
+  /* Diagonal cut at each ticket corner — gives the ticket the
+     chamfered/octagonal corner profile of a printed admission stub. */
+  --corner-chamfer: 14px;
   /* Space between the ticket's outer scalloped edge and the screen. */
   --app-viewport-gutter: 8px;
 }
@@ -108,6 +117,7 @@ body {
   margin: 0;
   color: var(--ticket-ink);
   font-family: "Geist", "Segoe UI", -apple-system, ui-sans-serif, system-ui, Roboto, sans-serif;
+  font-weight: 400;
   font-feature-settings: "cv11", "ss01";
   /* The "outside" of the ticket — a deep theater backdrop with a soft
      spotlight glow centered on the ticket so it draws the eye. */
@@ -133,12 +143,25 @@ body {
   font-weight: 400;
 }
 
-/* Column header labels — a lighter condensed sans so the headers
-   read as small printed ticket text rather than display marquee. */
+/* Guessed actor / actress name above each row of tiles. Anton was too
+   condensed to read cleanly at row scale — Geist 700 with tracking
+   keeps the ticket cadence (uppercase + spaced) while reading crisply. */
+.guess-name {
+  font-family: "Geist", "Segoe UI", -apple-system, ui-sans-serif, system-ui, Roboto, sans-serif;
+  font-weight: 700;
+  font-size: clamp(13px, 3.2vw, 15px);
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+}
+
+/* Column header labels — bold Geist at a slightly larger size for
+   maximum legibility on the dark header strip. The previous Oswald 400
+   was too thin/condensed to read cleanly at column widths. */
 .column-header {
-  font-family: "Oswald", "Geist", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  font-weight: 400;
-  letter-spacing: 0.05em;
+  font-family: "Geist", "Segoe UI", -apple-system, ui-sans-serif, system-ui, Roboto, sans-serif;
+  font-weight: 700;
+  font-size: clamp(11px, 2.6vw, 13px);
+  letter-spacing: 0.06em;
 }
 
 .ticket-script {
@@ -166,6 +189,16 @@ body {
 
   background-color: var(--ticket-paper);
   background-image:
+    /* 45° corner chamfer — top-left. Paints the triangular wedge
+       between the corner and the chamfer cut line with the theater
+       background so the corner reads as a clean diagonal cut. */
+    linear-gradient(135deg, var(--theater-bg) 0 50%, transparent 50%),
+    /* 45° corner chamfer — top-right */
+    linear-gradient(225deg, var(--theater-bg) 0 50%, transparent 50%),
+    /* 45° corner chamfer — bottom-right */
+    linear-gradient(315deg, var(--theater-bg) 0 50%, transparent 50%),
+    /* 45° corner chamfer — bottom-left */
+    linear-gradient(45deg, var(--theater-bg) 0 50%, transparent 50%),
     /* large circle inlay — left side of the perforation */
     radial-gradient(
       circle var(--tear-inlay) at 0 calc(100% - var(--tear-height)),
@@ -210,6 +243,10 @@ body {
     );
   background-position:
     0 0,
+    100% 0,
+    100% 100%,
+    0 100%,
+    0 0,
     0 0,
     0 calc(100% - var(--tear-height)),
     0 0,
@@ -217,6 +254,10 @@ body {
     0 0,
     100% 0;
   background-size:
+    var(--corner-chamfer) var(--corner-chamfer),
+    var(--corner-chamfer) var(--corner-chamfer),
+    var(--corner-chamfer) var(--corner-chamfer),
+    var(--corner-chamfer) var(--corner-chamfer),
     100% 100%,
     100% 100%,
     12px 2px,
@@ -225,6 +266,10 @@ body {
     calc(var(--scallop) * 2) var(--scallop-step),
     calc(var(--scallop) * 2) var(--scallop-step);
   background-repeat:
+    no-repeat,
+    no-repeat,
+    no-repeat,
+    no-repeat,
     no-repeat,
     no-repeat,
     repeat-x,
@@ -236,23 +281,46 @@ body {
 
 /* Inset red rule traced around the main body section only. Its bottom
    edge sits just above the tear-away perforation, framing the rip-off
-   stub with rounded corners (inward-curving relative to the body's
-   outer edges). */
-.app-viewport::before {
+   stub with chamfered corners that mirror the ticket's outer 45° cuts.
+   Drawn as two stacked layers: ::before paints a solid octagon in the
+   rule color, ::after paints a 1px-smaller octagon in the paper color,
+   leaving a 1px ring of red tracing the octagonal outline. */
+.app-viewport::before,
+.app-viewport::after {
   content: "";
   position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  clip-path: polygon(
+    var(--corner-chamfer) 0,
+    calc(100% - var(--corner-chamfer)) 0,
+    100% var(--corner-chamfer),
+    100% calc(100% - var(--corner-chamfer)),
+    calc(100% - var(--corner-chamfer)) 100%,
+    var(--corner-chamfer) 100%,
+    0 calc(100% - var(--corner-chamfer)),
+    0 var(--corner-chamfer)
+  );
+}
+
+.app-viewport::before {
   top: 12px;
   left: 12px;
   right: 12px;
   bottom: calc(var(--tear-height) + 10px);
-  border: 1px solid var(--ticket-rule);
-  border-radius: 14px;
-  pointer-events: none;
-  z-index: 0;
+  background: var(--ticket-rule);
 }
 
-/* Children render above the ::before inner rule without needing their
-   own z-index. Layered so utilities like `absolute` can still
+.app-viewport::after {
+  top: 13px;
+  left: 13px;
+  right: 13px;
+  bottom: calc(var(--tear-height) + 11px);
+  background: var(--ticket-paper);
+}
+
+/* Children render above the ::before/::after inset rule without needing
+   their own z-index. Layered so utilities like `absolute` can still
    override `position`. */
 @layer base {
   .app-viewport > * {
@@ -267,6 +335,10 @@ body {
   .app-viewport::before {
     left: 8px;
     right: 8px;
+  }
+  .app-viewport::after {
+    left: 9px;
+    right: 9px;
   }
 }
 
@@ -310,8 +382,18 @@ body {
 }
 
 .grid-cell-text {
-  font-size: clamp(10px, 2.6vw, 13px);
-  line-height: 1.1;
+  font-size: clamp(11px, 2.9vw, 14px);
+  line-height: 1.15;
+}
+
+/* Tile values — Geist 600. Heavier than the body sans for clarity at
+   small tile sizes, but not condensed (Oswald was too narrow for "M"
+   and similar wide glyphs to read cleanly). */
+.tile-value {
+  font-family: "Geist", "Segoe UI", -apple-system, ui-sans-serif, system-ui, Roboto, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  font-feature-settings: "tnum", "ss01";
 }
 
 .crossfade-panel {
