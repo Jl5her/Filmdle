@@ -83,9 +83,7 @@ export function StatsContent({ open }: Props) {
 function Stat({ value, label }: { value: number | string; label: string }) {
   return (
     <div>
-      <div className="text-2xl leading-none text-primary-900 dark:text-primary-50">
-        {value}
-      </div>
+      <div className="text-2xl leading-none text-primary-900 dark:text-primary-50">{value}</div>
       <div className="mt-1 text-[10px] uppercase tracking-wider text-primary-500 dark:text-primary-400">
         {label}
       </div>

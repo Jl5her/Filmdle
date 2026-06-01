@@ -95,9 +95,7 @@ export function MainMenu() {
             />
           )}
         </div>
-        <p className="text-xs text-primary-700 dark:text-primary-300">
-          {formatLongDate()}
-        </p>
+        <p className="text-xs text-primary-700 dark:text-primary-300">{formatLongDate()}</p>
       </div>
     </>
   )
