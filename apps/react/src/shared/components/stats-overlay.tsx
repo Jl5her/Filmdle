@@ -5,6 +5,7 @@ import { computeStatsSummary, loadStats } from "@/shared/lib/stats"
 const GAMES = [
   { id: "actordle", label: "Actordle" },
   { id: "filmdle", label: "Filmdle" },
+  { id: "capcrunch", label: "Cap Crunch" },
 ] as const
 
 type GameId = (typeof GAMES)[number]["id"]
@@ -32,7 +33,7 @@ export function StatsContent({ open }: Props) {
 
   return (
     <>
-      <div className="mb-5 grid grid-cols-2 gap-1 rounded-md bg-primary-100 p-1 dark:bg-primary-900">
+      <div className="mb-5 grid grid-cols-3 gap-1 rounded-md bg-primary-100 p-1 dark:bg-primary-900">
         {GAMES.map((g) => (
           <button
             key={g.id}

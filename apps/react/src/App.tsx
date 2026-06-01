@@ -4,6 +4,7 @@ import { MainMenu } from "./shared/components/main-menu"
 
 const ActordleGame = lazy(() => import("./games/actordle/screens/game"))
 const FilmdleGame = lazy(() => import("./games/filmdle/screens/game"))
+const CapCrunchGame = lazy(() => import("./games/capcrunch/screens/game"))
 const DebugCalendar = lazy(() => import("./shared/components/debug-calendar"))
 
 // Debug routes are visible in `vite dev` and in any deploy that sets
@@ -26,6 +27,7 @@ export function App() {
           <Route path="/" element={<MenuShell />} />
           <Route path="/actordle" element={<ActordleGame />} />
           <Route path="/filmdle" element={<FilmdleGame />} />
+          <Route path="/capcrunch" element={<CapCrunchGame />} />
           {showDebug && <Route path="/debug/calendar" element={<DebugCalendar />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

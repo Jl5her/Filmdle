@@ -2,9 +2,10 @@ export function HowToPlayContent() {
   return (
     <ol className="list-decimal space-y-3 pl-5 text-sm leading-relaxed text-primary-700 marker:text-primary-500 dark:text-primary-200 dark:marker:text-primary-400">
       <li>
-        Pick a mode: <b>Actordle</b> (guess the actor) or <b>Filmdle</b> (guess the movie).
+        Pick a mode: <b>Actordle</b> (guess the actor), <b>Filmdle</b> (guess the movie), or{" "}
+        <b>Cap Crunch</b> (guess the NBA player).
       </li>
-      <li>Type any actor or film. Each guess fills a row of attribute tiles.</li>
+      <li>Type any actor, film, or player. Each guess fills a row of attribute tiles.</li>
       <li>
         Tile colors:
         <div className="mt-2 flex flex-wrap gap-2">

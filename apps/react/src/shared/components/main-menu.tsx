@@ -22,6 +22,7 @@ export function MainMenu() {
   const today = useMemo(() => todayKey(), [])
   const actordleDone = hasPlayedToday("actordle", today)
   const filmdleDone = hasPlayedToday("filmdle", today)
+  const capCrunchDone = hasPlayedToday("capcrunch", today)
 
   return (
     <>
@@ -33,7 +34,7 @@ export function MainMenu() {
           />
           <h1 className="fa5-title text-5xl text-danger-600 dark:text-primary-50">FILMDLE</h1>
           <p className="mt-2 text-sm text-primary-700 sm:text-base dark:text-primary-200">
-            Can you guess the actor or film in 5 tries?
+            Can you guess the actor, film, or baller in 5 tries?
           </p>
         </div>
 
@@ -54,6 +55,11 @@ export function MainMenu() {
                 label="Filmdle"
                 played={filmdleDone}
                 onClick={() => navigate("/filmdle")}
+              />
+              <GameModeButton
+                label="Cap Crunch"
+                played={capCrunchDone}
+                onClick={() => navigate("/capcrunch")}
               />
             </div>
           </div>

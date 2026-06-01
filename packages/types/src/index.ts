@@ -28,6 +28,20 @@ export interface Film {
   mpaaRating: MpaaRating
 }
 
+export type Conference = "East" | "West"
+
+export interface NbaPlayer {
+  id: string
+  name: string
+  team: string
+  conference: Conference
+  division: string
+  position: string
+  heightIn: number
+  age: number
+  jersey: number
+}
+
 export type TileStatus = "correct" | "close" | "incorrect" | "unknown"
 export type Arrow = "↑" | "↓"
 
@@ -38,7 +52,7 @@ export interface EvaluatedCell {
 }
 
 export interface GameInfo {
-  id: "actordle" | "filmdle"
+  id: "actordle" | "filmdle" | "capcrunch"
   displayName: string
   subtitle: string
 }
