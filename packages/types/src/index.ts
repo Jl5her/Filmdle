@@ -50,3 +50,17 @@ export interface GameResult {
   outcome: "win" | "loss"
   guessCount: number
 }
+
+export interface CreditdleCredit {
+  tmdbId: number
+  title: string
+  year: number
+  posterPath: string | null
+}
+
+export interface CreditdleActor {
+  id: string
+  name: string
+  tmdbId: number
+  credits: CreditdleCredit[]
+}

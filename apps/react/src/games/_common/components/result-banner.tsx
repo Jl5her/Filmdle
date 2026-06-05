@@ -32,9 +32,7 @@ export function ResultBanner({
         {won ? "Correct" : "Game Over"}
       </div>
       <div className="flex items-center justify-center mt-0.5">
-        <div className={clsx("text-xl uppercase tracking-tight", answerColor)}>
-          {answer}
-        </div>
+        <div className={clsx("text-xl uppercase tracking-tight", answerColor)}>{answer}</div>
       </div>
       <div className={clsx("text-xs uppercase mt-1", statusColor)}>
         {won

@@ -1,7 +1,6 @@
 import type { GameResult } from "@stardle/types"
 
 const STATS_PREFIX = "filmdle-stats"
-const MAX_GUESSES = 5
 
 function statsKey(gameKey: string): string {
   return `${STATS_PREFIX}:${gameKey}`
@@ -43,14 +42,14 @@ export interface StatsSummary {
   distribution: number[]
 }
 
-export function computeStatsSummary(stats: GameResult[]): StatsSummary {
+export function computeStatsSummary(stats: GameResult[], maxGuesses = 5): StatsSummary {
   const played = stats.length
   const wins = stats.filter((r) => r.outcome === "win").length
   const winRate = played > 0 ? Math.round((wins / played) * 100) : 0
 
-  const distribution = new Array(MAX_GUESSES).fill(0) as number[]
+  const distribution = new Array(maxGuesses).fill(0) as number[]
   for (const r of stats) {
-    if (r.outcome === "win" && r.guessCount >= 1 && r.guessCount <= MAX_GUESSES) {
+    if (r.outcome === "win" && r.guessCount >= 1 && r.guessCount <= maxGuesses) {
       distribution[r.guessCount - 1] = (distribution[r.guessCount - 1] ?? 0) + 1
     }
   }

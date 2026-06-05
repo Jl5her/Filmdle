@@ -175,7 +175,14 @@ export async function getPersonDetails(
 }
 
 export interface TmdbPersonMovieCredits {
-  cast: { id: number; title: string; release_date?: string }[]
+  cast: {
+    id: number
+    title: string
+    release_date?: string
+    order?: number
+    vote_count?: number
+    poster_path?: string | null
+  }[]
 }
 
 export async function getPersonMovieCredits(
@@ -183,6 +190,26 @@ export async function getPersonMovieCredits(
   signal?: AbortSignal,
 ): Promise<TmdbPersonMovieCredits> {
   return get<TmdbPersonMovieCredits>(`/person/${id}/movie_credits`, signal)
+}
+
+export interface TmdbTvCredit {
+  id: number
+  name: string
+  first_air_date?: string
+  episode_count?: number
+  order?: number
+  poster_path?: string | null
+}
+
+export interface TmdbPersonTvCredits {
+  cast: TmdbTvCredit[]
+}
+
+export async function getPersonTvCredits(
+  id: number,
+  signal?: AbortSignal,
+): Promise<TmdbPersonTvCredits> {
+  return get<TmdbPersonTvCredits>(`/person/${id}/tv_credits`, signal)
 }
 
 export async function getMovieDetails(
