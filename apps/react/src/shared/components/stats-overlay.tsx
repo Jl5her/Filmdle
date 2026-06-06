@@ -3,28 +3,32 @@ import { useEffect, useMemo, useState } from "react"
 import { computeStatsSummary, loadStats } from "@/shared/lib/stats"
 
 const GAMES = [
-  { id: "actordle", label: "Actordle" },
-  { id: "filmdle", label: "Filmdle" },
+  { id: "actordle", label: "Actordle", maxGuesses: 5 },
+  { id: "filmdle", label: "Filmdle", maxGuesses: 5 },
+  { id: "creditdle", label: "Creditdle", maxGuesses: 6 },
+  { id: "showdle", label: "Showdle", maxGuesses: 6 },
 ] as const
 
 type GameId = (typeof GAMES)[number]["id"]
 
 interface Props {
   open: boolean
+  defaultGame?: GameId
 }
 
-export function StatsContent({ open }: Props) {
-  const [activeGame, setActiveGame] = useState<GameId>("actordle")
+export function StatsContent({ open, defaultGame }: Props) {
+  const [activeGame, setActiveGame] = useState<GameId>(defaultGame ?? "actordle")
   const [version, setVersion] = useState(0)
 
   useEffect(() => {
     if (open) setVersion((v) => v + 1)
   }, [open])
 
+  const activeGameConfig = GAMES.find((g) => g.id === activeGame)!
   const summary = useMemo(() => {
     if (!open) return null
-    return computeStatsSummary(loadStats(activeGame))
-  }, [open, activeGame, version])
+    return computeStatsSummary(loadStats(activeGame), activeGameConfig.maxGuesses)
+  }, [open, activeGame, activeGameConfig.maxGuesses, version])
 
   if (!summary) return null
 
@@ -39,7 +43,7 @@ export function StatsContent({ open }: Props) {
             type="button"
             onClick={() => setActiveGame(g.id)}
             className={clsx(
-              "marquee cursor-pointer rounded-md py-2 text-base uppercase transition-colors",
+              "marquee cursor-pointer rounded-md py-1.5 text-sm uppercase transition-colors",
               activeGame === g.id
                 ? "bg-primary-50 text-primary-900 shadow-sm dark:bg-primary-700 dark:text-primary-50"
                 : "text-primary-500 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-50",
@@ -82,9 +86,7 @@ export function StatsContent({ open }: Props) {
 function Stat({ value, label }: { value: number | string; label: string }) {
   return (
     <div>
-      <div className="text-2xl leading-none text-primary-900 dark:text-primary-50">
-        {value}
-      </div>
+      <div className="text-2xl leading-none text-primary-900 dark:text-primary-50">{value}</div>
       <div className="mt-1 text-[10px] uppercase tracking-wider text-primary-500 dark:text-primary-400">
         {label}
       </div>

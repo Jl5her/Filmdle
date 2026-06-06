@@ -22,6 +22,8 @@ export function MainMenu() {
   const today = useMemo(() => todayKey(), [])
   const actordleDone = hasPlayedToday("actordle", today)
   const filmdleDone = hasPlayedToday("filmdle", today)
+  const creditdleDone = hasPlayedToday("creditdle", today)
+  const showdleDone = hasPlayedToday("showdle", today)
 
   return (
     <>
@@ -33,7 +35,7 @@ export function MainMenu() {
           />
           <h1 className="fa5-title text-5xl text-danger-600 dark:text-primary-50">FILMDLE</h1>
           <p className="mt-2 text-sm text-primary-700 sm:text-base dark:text-primary-200">
-            Can you guess the actor or film in 5 tries?
+            Four daily film &amp; actor games
           </p>
         </div>
 
@@ -47,13 +49,27 @@ export function MainMenu() {
             <div className="flex w-full max-w-xs flex-col gap-3">
               <GameModeButton
                 label="Actordle"
+                sublabel="Guess the actor"
                 played={actordleDone}
                 onClick={() => navigate("/actordle")}
               />
               <GameModeButton
                 label="Filmdle"
+                sublabel="Guess the film"
                 played={filmdleDone}
                 onClick={() => navigate("/filmdle")}
+              />
+              <GameModeButton
+                label="Creditdle"
+                sublabel="Guess from film credits"
+                played={creditdleDone}
+                onClick={() => navigate("/creditdle")}
+              />
+              <GameModeButton
+                label="Showdle"
+                sublabel="Guess from TV credits"
+                played={showdleDone}
+                onClick={() => navigate("/showdle")}
               />
             </div>
           </div>
@@ -89,9 +105,7 @@ export function MainMenu() {
             />
           )}
         </div>
-        <p className="text-xs text-primary-700 dark:text-primary-300">
-          {formatLongDate()}
-        </p>
+        <p className="text-xs text-primary-700 dark:text-primary-300">{formatLongDate()}</p>
       </div>
     </>
   )

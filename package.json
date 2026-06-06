@@ -12,7 +12,8 @@
     "format": "biome format --write .",
     "cf:dev": "wrangler pages dev",
     "cf:deploy": "pnpm build && wrangler pages deploy",
-    "sync:actors": "node scripts/sync-actor-credits.mjs"
+    "sync:actors": "node scripts/sync-actor-credits.mjs",
+    "sync:creditdle": "node scripts/sync-creditdle.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.0",
