@@ -234,14 +234,19 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
               {!gameOver && revealedCount < MAX_CREDITS && <LockedCard index={revealedCount} />}
             </div>
 
-            {wrongGuesses.length > 0 && (
+            {guesses.length > 0 && (
               <div>
                 <p className="mb-1.5 text-[10px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
-                  Wrong guesses
+                  Guesses
                 </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {wrongGuesses.map((g) => (
-                    <WrongGuessBadge key={g.key} label={g.label} />
+                <div className="flex flex-col gap-1.5">
+                  {guesses.map((g, i) => (
+                    <GuessRow
+                      key={g.key}
+                      number={i + 1}
+                      label={g.label}
+                      correct={isCorrectGuess(g, answer)}
+                    />
                   ))}
                 </div>
               </div>
@@ -332,13 +337,37 @@ function LockedCard({ index }: { index: number }) {
   )
 }
 
-function WrongGuessBadge({ label }: { label: string }) {
+function GuessRow({ number, label, correct }: { number: number; label: string; correct: boolean }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-danger-500/15 px-2.5 py-1 text-xs text-danger-700 dark:bg-danger-500/20 dark:text-danger-400">
-      <span aria-hidden="true" className="text-danger-500">
-        ✕
+    <div
+      className={clsx(
+        "flex items-center gap-2.5 rounded-md border px-3 py-2",
+        correct
+          ? "border-success-500/40 bg-success-500/10 dark:border-success-500/30 dark:bg-success-500/15"
+          : "border-danger-500/40 bg-danger-500/10 dark:border-danger-500/30 dark:bg-danger-500/15",
+      )}
+    >
+      <span className="w-4 shrink-0 text-right text-[10px] text-primary-400 dark:text-primary-500">
+        {number}
       </span>
-      {label}
-    </span>
+      <div
+        className={clsx(
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded text-xs font-bold text-primary-50",
+          correct ? "bg-success-500" : "bg-danger-500",
+        )}
+      >
+        {correct ? "✓" : "✕"}
+      </div>
+      <span
+        className={clsx(
+          "text-sm",
+          correct
+            ? "text-success-700 dark:text-success-400"
+            : "text-primary-800 dark:text-primary-200",
+        )}
+      >
+        {label}
+      </span>
+    </div>
   )
 }
