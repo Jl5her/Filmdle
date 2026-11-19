@@ -1,5 +1,5 @@
 import clsx from "clsx"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { computeStatsSummary, loadStats } from "@/shared/lib/stats"
 
 const GAMES = [
@@ -7,6 +7,7 @@ const GAMES = [
   { id: "filmdle", label: "Filmdle", maxGuesses: 5 },
   { id: "creditdle", label: "Creditdle", maxGuesses: 6 },
   { id: "showdle", label: "Showdle", maxGuesses: 6 },
+  { id: "plotdle", label: "Plotdle", maxGuesses: 3 },
 ] as const
 
 type GameId = (typeof GAMES)[number]["id"]
@@ -19,6 +20,12 @@ interface Props {
 export function StatsContent({ open, defaultGame }: Props) {
   const [activeGame, setActiveGame] = useState<GameId>(defaultGame ?? "actordle")
   const [version, setVersion] = useState(0)
+  const activeTabRef = useRef<HTMLButtonElement>(null)
+
+  // The tab row scrolls on narrow screens; keep the selected game visible.
+  useEffect(() => {
+    if (open) activeTabRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" })
+  }, [open, activeGame])
 
   useEffect(() => {
     if (open) setVersion((v) => v + 1)
@@ -36,14 +43,20 @@ export function StatsContent({ open, defaultGame }: Props) {
 
   return (
     <>
-      <div className="mb-5 grid grid-cols-2 gap-1 rounded-md bg-primary-100 p-1 dark:bg-primary-900">
+      <div
+        role="tablist"
+        className="mb-5 flex gap-1 overflow-x-auto rounded-md bg-primary-100 p-1 [scrollbar-width:none] dark:bg-primary-900"
+      >
         {GAMES.map((g) => (
           <button
             key={g.id}
             type="button"
+            ref={activeGame === g.id ? activeTabRef : undefined}
+            role="tab"
+            aria-selected={activeGame === g.id}
             onClick={() => setActiveGame(g.id)}
             className={clsx(
-              "marquee cursor-pointer rounded-md py-1.5 text-sm uppercase transition-colors",
+              "marquee flex-1 shrink-0 cursor-pointer whitespace-nowrap rounded-md px-3 py-1.5 text-sm uppercase transition-colors",
               activeGame === g.id
                 ? "bg-primary-50 text-primary-900 shadow-sm dark:bg-primary-700 dark:text-primary-50"
                 : "text-primary-500 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-50",
@@ -87,7 +100,7 @@ function Stat({ value, label }: { value: number | string; label: string }) {
   return (
     <div>
       <div className="text-2xl leading-none text-primary-900 dark:text-primary-50">{value}</div>
-      <div className="mt-1 text-[10px] uppercase tracking-wider text-primary-500 dark:text-primary-400">
+      <div className="mt-1 text-[11px] uppercase tracking-wider text-primary-500 dark:text-primary-400">
         {label}
       </div>
     </div>

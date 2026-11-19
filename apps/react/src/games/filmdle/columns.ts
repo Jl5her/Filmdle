@@ -10,7 +10,7 @@ export function buildFilmdleColumns(): GameColumn<FilmGuess>[] {
   return [
     {
       id: "year",
-      label: "Released",
+      label: "Year",
       description:
         "Year of theatrical release. Green for an exact match, yellow if within 5 years. Arrow points toward the answer.",
       evaluator: {

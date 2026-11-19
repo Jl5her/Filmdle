@@ -1,7 +1,8 @@
 import clsx from "clsx"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { formatLongDate, todayKey } from "@/shared/lib/date"
+import { prefetchGames } from "@/shared/lib/game-loaders"
 import { hasPlayedToday } from "@/shared/lib/stats"
 import { AboutContent } from "./about-overlay"
 import { FilmIcon } from "./film-icon"
@@ -14,20 +15,55 @@ type Panel = "settings" | "about" | "how-to-play" | null
 
 const showDebug = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEBUG === "true"
 
+const GAMES = [
+  {
+    id: "actordle",
+    label: "Actordle",
+    sublabel: "Guess the actor from clues",
+    icon: "user",
+    isNew: false,
+  },
+  {
+    id: "filmdle",
+    label: "Filmdle",
+    sublabel: "Guess the film from clues",
+    icon: "film",
+    isNew: false,
+  },
+  {
+    id: "creditdle",
+    label: "Creditdle",
+    sublabel: "Name the actor from film credits",
+    icon: "clapperboard",
+    isNew: false,
+  },
+  {
+    id: "showdle",
+    label: "Showdle",
+    sublabel: "Name the actor from TV credits",
+    icon: "tv",
+    isNew: false,
+  },
+  {
+    id: "plotdle",
+    label: "Plotdle",
+    sublabel: "Name the film from a terrible plot summary",
+    icon: "scroll",
+    isNew: true,
+  },
+] as const
+
 export function MainMenu() {
   const navigate = useNavigate()
   const [panel, setPanel] = useState<Panel>(null)
   const close = () => setPanel(null)
 
   const today = useMemo(() => todayKey(), [])
-  const actordleDone = hasPlayedToday("actordle", today)
-  const filmdleDone = hasPlayedToday("filmdle", today)
-  const creditdleDone = hasPlayedToday("creditdle", today)
-  const showdleDone = hasPlayedToday("showdle", today)
+  useEffect(prefetchGames, [])
 
   return (
     <>
-      <div className="flex w-full flex-1 flex-col items-center px-4 pt-10 pb-[var(--tear-height)]">
+      <div className="flex w-full flex-1 flex-col items-center px-4 pt-8 pb-[var(--tear-height)] sm:px-10 sm:pt-12">
         <div className="text-center">
           <FilmIcon
             className="mx-auto mb-3 h-14 w-14 text-primary-800 dark:text-primary-100"
@@ -35,42 +71,33 @@ export function MainMenu() {
           />
           <h1 className="fa5-title text-5xl text-danger-600 dark:text-primary-50">FILMDLE</h1>
           <p className="mt-2 text-sm text-primary-700 sm:text-base dark:text-primary-200">
-            Four daily film &amp; actor games
+            Five daily film &amp; actor games
           </p>
         </div>
 
         <div className="relative mt-6 w-full flex-1 overflow-hidden">
           <div
             className={clsx(
-              "crossfade-panel flex h-full flex-col items-center justify-end pb-16",
+              "crossfade-panel flex h-full flex-col items-center justify-center overflow-y-auto pb-10 sm:justify-start sm:pt-10",
               panel === null ? "crossfade-active" : "crossfade-inactive",
             )}
           >
-            <div className="flex w-full max-w-xs flex-col gap-3">
-              <GameModeButton
-                label="Actordle"
-                sublabel="Guess the actor"
-                played={actordleDone}
-                onClick={() => navigate("/actordle")}
-              />
-              <GameModeButton
-                label="Filmdle"
-                sublabel="Guess the film"
-                played={filmdleDone}
-                onClick={() => navigate("/filmdle")}
-              />
-              <GameModeButton
-                label="Creditdle"
-                sublabel="Guess from film credits"
-                played={creditdleDone}
-                onClick={() => navigate("/creditdle")}
-              />
-              <GameModeButton
-                label="Showdle"
-                sublabel="Guess from TV credits"
-                played={showdleDone}
-                onClick={() => navigate("/showdle")}
-              />
+            <div className="grid w-full max-w-sm grid-cols-1 gap-2.5 sm:max-w-none sm:grid-cols-2 sm:gap-3">
+              {GAMES.map((g, i) => (
+                <GameModeButton
+                  key={g.id}
+                  label={g.label}
+                  sublabel={g.sublabel}
+                  icon={g.icon}
+                  isNew={g.isNew}
+                  played={hasPlayedToday(g.id, today)}
+                  onClick={() => navigate(`/${g.id}`)}
+                  className={clsx(
+                    // Odd count: let the last card span both columns on wider screens.
+                    i === GAMES.length - 1 && GAMES.length % 2 === 1 && "sm:col-span-2",
+                  )}
+                />
+              ))}
             </div>
           </div>
 
@@ -207,6 +234,7 @@ function QuestionSvg() {
       strokeLinejoin="round"
       aria-hidden="true"
     >
+      <circle cx="12" cy="12" r="10" />
       <path d="M9.879 7.519c1.171-1.025 3.071-1.025 4.243 0 1.171 1.025 1.171 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.452.999-1.452 1.827V14.5" />
       <circle cx="12" cy="17.5" r="0.75" fill="currentColor" stroke="none" />
     </svg>

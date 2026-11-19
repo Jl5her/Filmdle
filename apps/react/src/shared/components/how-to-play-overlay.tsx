@@ -1,23 +1,44 @@
+const MODES = [
+  {
+    name: "Actordle & Filmdle",
+    body: "Guess any actor or film. Each guess fills a row of clue tiles. Solve it in 5 tries.",
+  },
+  {
+    name: "Creditdle & Showdle",
+    body: "Name the actor from their film or TV credits. Each miss reveals another credit. 6 tries.",
+  },
+  {
+    name: "Plotdle",
+    body: "Name the movie from a terribly explained plot in 3 tries. Tap a hint (main character, year, genre) if you're stuck, and send any plot to a friend.",
+  },
+]
+
 export function HowToPlayContent() {
   return (
-    <ol className="list-decimal space-y-3 pl-5 text-sm leading-relaxed text-primary-700 marker:text-primary-500 dark:text-primary-200 dark:marker:text-primary-400">
-      <li>
-        Pick a mode: <b>Actordle</b> (guess the actor) or <b>Filmdle</b> (guess the movie).
-      </li>
-      <li>Type any actor or film. Each guess fills a row of attribute tiles.</li>
-      <li>
-        Tile colors:
-        <div className="mt-2 flex flex-wrap gap-2">
+    <div className="space-y-5 text-sm leading-relaxed text-primary-700 dark:text-primary-200">
+      <ul className="space-y-3">
+        {MODES.map((m) => (
+          <li key={m.name}>
+            <h3 className="fa5-title text-base uppercase text-primary-900 dark:text-primary-50">
+              {m.name}
+            </h3>
+            <p>{m.body}</p>
+          </li>
+        ))}
+      </ul>
+      <div>
+        <h3 className="fa5-title text-base uppercase text-primary-900 dark:text-primary-50">
+          Tile colors
+        </h3>
+        <div className="mt-2 flex flex-wrap gap-3">
           <Swatch className="bg-success-600" label="Correct" />
           <Swatch className="bg-warning-600" label="Close" />
           <Swatch className="bg-danger-600" label="Wrong" />
         </div>
-      </li>
-      <li>Arrows on number tiles point toward the answer (↑ higher, ↓ lower).</li>
-      <li>
-        Solve it in <b>5 tries</b>. New puzzles drop daily.
-      </li>
-    </ol>
+        <p className="mt-2">Arrows on number tiles point toward the answer (↑ higher, ↓ lower).</p>
+      </div>
+      <p>Every game has a new daily puzzle. Keep playing after with endless rounds.</p>
+    </div>
   )
 }
 

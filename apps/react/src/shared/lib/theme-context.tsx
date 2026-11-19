@@ -1,16 +1,34 @@
 import type { ReactNode } from "react"
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
-import { applyResolvedTheme, loadTheme, resolveTheme, saveTheme, type Theme } from "./theme"
+import {
+  applyDesign,
+  applyResolvedTheme,
+  type Design,
+  loadDesign,
+  loadTheme,
+  resolveTheme,
+  saveDesign,
+  saveTheme,
+  type Theme,
+} from "./theme"
 
 interface ThemeContextValue {
   theme: Theme
   setTheme: (theme: Theme) => void
+  design: Design
+  setDesign: (design: Design) => void
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => loadTheme())
+  const [design, setDesignState] = useState<Design>(() => loadDesign())
+
+  useEffect(() => {
+    applyDesign(design)
+    saveDesign(design)
+  }, [design])
 
   useEffect(() => {
     applyResolvedTheme(resolveTheme(theme))
@@ -24,7 +42,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme])
 
   const setTheme = useCallback((next: Theme) => setThemeState(next), [])
-  const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme])
+  const setDesign = useCallback((next: Design) => setDesignState(next), [])
+  const value = useMemo(
+    () => ({ theme, setTheme, design, setDesign }),
+    [theme, setTheme, design, setDesign],
+  )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }

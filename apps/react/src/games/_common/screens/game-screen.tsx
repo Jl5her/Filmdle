@@ -187,7 +187,12 @@ export function GameScreen<T>({
             )}
           </div>
         </div>
-        <InlinePanel open={statsOpen} title="Stats" onClose={() => setStatsOpen(false)}>
+        <InlinePanel
+          open={statsOpen}
+          title="Stats"
+          onClose={() => setStatsOpen(false)}
+          className="px-4 pt-3"
+        >
           <StatsContent open={statsOpen} />
         </InlinePanel>
       </div>

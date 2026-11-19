@@ -3,12 +3,32 @@ import { useEffect, useRef } from "react"
 
 interface Options {
   won: boolean
+  /** Colors for the small paper flecks mixed in with the movie shapes. */
   colors: string[]
   dedupKey: string | number | null
   duration?: number
   centerBurst?: boolean
 }
 
+// Popcorn is weighted so it dominates; tickets, clappers and stars add variety.
+const EMOJI = ["🍿", "🍿", "🍿", "🎟️", "🎬", "⭐"]
+const SCALAR = 2.2
+
+let shapeCache: confetti.Shape[] | null = null
+
+/** Emoji shapes are rasterized once, on first win, then reused. */
+function movieShapes(): confetti.Shape[] {
+  if (!shapeCache) {
+    shapeCache = EMOJI.map((text) => confetti.shapeFromText({ text, scalar: SCALAR }))
+  }
+  return shapeCache
+}
+
+/**
+ * Win celebration: popcorn pops up out of the bottom of the screen like a
+ * kettle, with a few tickets, clappers and stars, and a light sprinkle of
+ * colored flecks. Skipped entirely for users who prefer reduced motion.
+ */
 export function useWinConfetti({
   won,
   colors,
@@ -24,40 +44,48 @@ export function useWinConfetti({
     if (lastKeyRef.current === dedupKey) return
     lastKeyRef.current = dedupKey
 
+    const shapes = movieShapes()
+    const base = {
+      shapes,
+      scalar: SCALAR,
+      flat: true,
+      gravity: 1.1,
+      ticks: 220,
+      zIndex: 2000,
+      disableForReducedMotion: true,
+    }
     const end = Date.now() + duration
 
+    // Kernels keep popping from just below the bottom edge for `duration` ms.
     function frame() {
       confetti({
-        particleCount: 10,
-        angle: 60,
-        spread: 75,
-        startVelocity: 60,
-        gravity: 1.2,
-        origin: { x: 0, y: 0 },
-        colors,
-        zIndex: 2000,
-      })
-      confetti({
-        particleCount: 10,
-        angle: 120,
-        spread: 75,
-        startVelocity: 60,
-        gravity: 1.2,
-        origin: { x: 1, y: 0 },
-        colors,
-        zIndex: 2000,
+        ...base,
+        particleCount: 1,
+        angle: 90,
+        spread: 50,
+        startVelocity: 55 + Math.random() * 15,
+        origin: { x: 0.2 + Math.random() * 0.6, y: 1.05 },
       })
       if (Date.now() < end) requestAnimationFrame(frame)
     }
 
     if (centerBurst) {
       confetti({
-        particleCount: 140,
-        spread: 100,
-        startVelocity: 55,
-        origin: { x: 0.5, y: 0.3 },
+        ...base,
+        particleCount: 18,
+        spread: 110,
+        startVelocity: 45,
+        origin: { x: 0.5, y: 0.35 },
+      })
+      confetti({
+        particleCount: 60,
+        spread: 120,
+        startVelocity: 40,
+        scalar: 0.8,
+        origin: { x: 0.5, y: 0.35 },
         colors,
         zIndex: 2000,
+        disableForReducedMotion: true,
       })
     }
     frame()

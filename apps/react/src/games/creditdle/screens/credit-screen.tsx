@@ -236,7 +236,7 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
 
             {guesses.length > 0 && (
               <div>
-                <p className="mb-1.5 text-[10px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
+                <p className="mb-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
                   Guesses
                 </p>
                 <div className="flex flex-col gap-1.5">
@@ -270,7 +270,7 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
               </div>
             ) : (
               <div className="mx-3">
-                <p className="mb-1 text-center text-[10px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
+                <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
                   {remainingGuesses} {remainingGuesses === 1 ? "guess" : "guesses"} remaining
                 </p>
                 <GuessInput
@@ -284,7 +284,12 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
             )}
           </div>
         </div>
-        <InlinePanel open={statsOpen} title="Stats" onClose={() => setStatsOpen(false)}>
+        <InlinePanel
+          open={statsOpen}
+          title="Stats"
+          onClose={() => setStatsOpen(false)}
+          className="px-4 pt-3"
+        >
           <StatsContent open={statsOpen} defaultGame={gameKey as "creditdle" | "showdle"} />
         </InlinePanel>
       </div>
@@ -343,11 +348,11 @@ function GuessRow({ number, label, correct }: { number: number; label: string; c
       className={clsx(
         "flex items-center gap-2.5 rounded-md border px-3 py-2",
         correct
-          ? "border-success-500/40 bg-success-500/10 dark:border-success-500/30 dark:bg-success-500/15"
+          ? "border-success-500/40 bg-success-500/10 dark:border-success-400/50 dark:bg-success-500/15"
           : "border-danger-500/40 bg-danger-500/10 dark:border-danger-500/30 dark:bg-danger-500/15",
       )}
     >
-      <span className="w-4 shrink-0 text-right text-[10px] text-primary-400 dark:text-primary-500">
+      <span className="w-4 shrink-0 text-right text-[11px] text-primary-400 dark:text-primary-500">
         {number}
       </span>
       <div

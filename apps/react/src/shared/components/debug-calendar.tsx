@@ -116,7 +116,7 @@ export default function DebugCalendar() {
         <h1 className="fa5-title text-3xl uppercase text-primary-900 dark:text-primary-50">
           Answers
         </h1>
-        <p className="mt-0.5 text-[10px] uppercase tracking-wider text-warning-600 dark:text-warning-500">
+        <p className="mt-0.5 text-[11px] uppercase tracking-wider text-warning-600 dark:text-warning-500">
           Debug · local only
         </p>
       </header>
@@ -137,7 +137,7 @@ export default function DebugCalendar() {
           <button
             type="button"
             onClick={goToday}
-            className="mt-0.5 cursor-pointer text-[10px] uppercase tracking-wider text-primary-500 transition-colors hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-50"
+            className="mt-0.5 cursor-pointer text-[11px] uppercase tracking-wider text-primary-500 transition-colors hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-50"
           >
             Jump to today
           </button>
@@ -152,7 +152,7 @@ export default function DebugCalendar() {
         </button>
       </div>
 
-      <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-x-3 border-b border-primary-200/60 px-4 py-2 text-[10px] uppercase tracking-wider text-primary-500 dark:border-primary-700/60 dark:text-primary-400">
+      <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-x-3 border-b border-primary-200/60 px-4 py-2 text-[11px] uppercase tracking-wider text-primary-500 dark:border-primary-700/60 dark:text-primary-400">
         <span>Date</span>
         <span>Filmdle</span>
         <span>Actordle</span>
@@ -178,7 +178,7 @@ export default function DebugCalendar() {
                       : "text-primary-600 dark:text-primary-300",
                   )}
                 >
-                  <span className="text-[10px] uppercase tracking-wider">{row.weekdayShort}</span>
+                  <span className="text-[11px] uppercase tracking-wider">{row.weekdayShort}</span>
                   <span className="text-lg leading-none">{row.day}</span>
                 </div>
                 <div className="break-words text-primary-900 dark:text-primary-50">

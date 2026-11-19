@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom"
-import { formatLongDate } from "@/shared/lib/date"
+import { formatLongDate, formatShortDate } from "@/shared/lib/date"
 
 interface Props {
   title: string
   onOpenStats: () => void
   mode?: "daily" | "arcade"
+  /** Ticket serial shown in the subtitle, e.g. a puzzle number. */
+  serial?: string
 }
 
-export function GameHeader({ title, onOpenStats, mode = "daily" }: Props) {
+export function GameHeader({ title, onOpenStats, mode = "daily", serial }: Props) {
   return (
     <header className="ticket-header-rule relative flex min-h-20 items-stretch pt-3 text-center">
       <Link
@@ -22,17 +24,20 @@ export function GameHeader({ title, onOpenStats, mode = "daily" }: Props) {
         <h1 className="fa5-title text-3xl uppercase text-danger-600 dark:text-primary-50">
           {title}
         </h1>
-        <p className="mt-0.5 flex items-center justify-center gap-2 text-[10px] text-primary-600 dark:text-primary-300">
+        <p className="mt-0.5 flex items-center justify-center gap-2 text-[11px] text-primary-600 dark:text-primary-300">
           {mode === "arcade" ? (
             <span className="uppercase tracking-wider text-primary-700 dark:text-primary-200">
               Arcade
             </span>
           ) : (
-            <span>{formatLongDate()}</span>
+            <>
+              <span className="sm:hidden">{formatShortDate()}</span>
+              <span className="hidden sm:inline">{formatLongDate()}</span>
+            </>
           )}
           <span className="ticket-serial">·</span>
           <span className="ticket-barcode" aria-hidden="true" />
-          <span className="ticket-serial">№ 12345</span>
+          {serial && <span className="ticket-serial">№ {serial}</span>}
         </p>
       </div>
       <button

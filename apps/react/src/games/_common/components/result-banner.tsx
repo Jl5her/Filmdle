@@ -14,9 +14,11 @@ export function ResultBanner({
   guessCount,
   lossMessage = "Better luck next time!",
 }: Props) {
-  const statusColor = won ? "text-success-500" : "text-danger-500"
+  const statusColor = won
+    ? "text-success-700 dark:text-success-400"
+    : "text-danger-600 dark:text-danger-500"
   const answerColor = won
-    ? "text-success-700 dark:text-success-500"
+    ? "text-success-700 dark:text-success-300"
     : "text-primary-900 dark:text-primary-50"
 
   return (
@@ -28,7 +30,7 @@ export function ResultBanner({
           : "bg-danger-500/15 dark:bg-danger-500/25 border-danger-500/60",
       )}
     >
-      <div className={clsx("text-[10px] uppercase tracking-[0.2em]", statusColor)}>
+      <div className={clsx("text-[11px] uppercase tracking-[0.2em]", statusColor)}>
         {won ? "Correct" : "Game Over"}
       </div>
       <div className="flex items-center justify-center mt-0.5">

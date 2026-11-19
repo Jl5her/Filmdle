@@ -8,8 +8,8 @@ export function AboutContent() {
   return (
     <>
       <p className="text-sm leading-relaxed text-primary-700 dark:text-primary-200">
-        Filmdle is a daily film-trivia guessing game. Two modes, one round each per day: guess the
-        actor or guess the movie in five tries.
+        Filmdle is a set of five daily film-trivia games: guess actors, films and TV stars from
+        clues, credits and some very poorly explained plots.
       </p>
 
       <p className="mt-3 text-sm leading-relaxed text-primary-700 dark:text-primary-200">

@@ -64,3 +64,21 @@ export interface CreditdleActor {
   tmdbId: number
   credits: CreditdleCredit[]
 }
+
+export type PlotDifficulty = "easy" | "medium" | "hard"
+
+export interface PlotdlePlot {
+  /** Puzzle number. Stable forever: shared links are /plotdle/<id>. Append-only. */
+  id: number
+  plot: string
+  title: string
+  year: number
+  animated: boolean
+  difficulty: PlotDifficulty
+  /** Poorly written description of the main character (tap-to-reveal hint). */
+  character: string
+  /** Primary TMDB genre name (tap-to-reveal hint). */
+  genre: string
+  /** TMDB movie id, filled by scripts/plotdle/sync-tmdb.mjs. 0 if unresolved. */
+  tmdbId: number
+}

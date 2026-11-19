@@ -1,0 +1,476 @@
+import { plots } from "@stardle/data/plotdle"
+import type { PlotdlePlot } from "@stardle/types"
+import clsx from "clsx"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Navigate, useNavigate, useParams } from "react-router-dom"
+import type { Suggestion } from "@/games/_common/components/guess-input"
+import { GuessInput } from "@/games/_common/components/guess-input"
+import { GameHeader } from "@/games/_common/components/header"
+import { ResultBanner } from "@/games/_common/components/result-banner"
+import { searchMovie } from "@/lib/tmdb"
+import { InlinePanel } from "@/shared/components/inline-panel"
+import { StatsContent } from "@/shared/components/stats-overlay"
+import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
+import { todayKey } from "@/shared/lib/date"
+import { getIncludeAnimated } from "@/shared/lib/plotdle-prefs"
+import { appendResult } from "@/shared/lib/stats"
+import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
+
+const GAME_KEY = "plotdle"
+const MAX_GUESSES = 3
+/** Puzzle #1 is the daily on this date; each day after advances by one. */
+const EPOCH_KEY = "2026-11-18"
+
+interface PlotGuess {
+  key: string
+  label: string
+  year: number | null
+}
+
+const byId = new Map(plots.map((p) => [p.id, p]))
+const sortedPlots = [...plots].sort((a, b) => a.id - b.id)
+
+function dayIndex(dateKey: string): number {
+  const toUtc = (k: string) => {
+    const [y, m, d] = k.split("-").map(Number) as [number, number, number]
+    return Date.UTC(y, m - 1, d)
+  }
+  return Math.round((toUtc(dateKey) - toUtc(EPOCH_KEY)) / 86_400_000)
+}
+
+/** The plot that is "today's" daily. Cycles through the pool in id order. */
+function dailyPlot(dateKey: string): PlotdlePlot {
+  const n = sortedPlots.length
+  const idx = ((dayIndex(dateKey) % n) + n) % n
+  return sortedPlots[idx] as PlotdlePlot
+}
+
+function stateKey(id: number): string {
+  return `filmdle-state:${GAME_KEY}:${id}`
+}
+
+type HintId = "character" | "year" | "genre"
+
+const HINTS: { id: HintId; label: string; icon: string }[] = [
+  { id: "character", label: "Main character", icon: "fa-user" },
+  { id: "year", label: "Year", icon: "fa-calendar" },
+  { id: "genre", label: "Genre", icon: "fa-masks-theater" },
+]
+
+function hintValue(plot: PlotdlePlot, id: HintId): string {
+  if (id === "character") return `“${plot.character}”`
+  if (id === "year") return String(plot.year)
+  return plot.genre
+}
+
+interface PersistedState {
+  guesses: PlotGuess[]
+  hints: HintId[]
+}
+
+function loadState(id: number): PersistedState {
+  try {
+    const raw = localStorage.getItem(stateKey(id))
+    if (!raw) return { guesses: [], hints: [] }
+    const parsed = JSON.parse(raw) as Partial<PersistedState>
+    return {
+      guesses: Array.isArray(parsed?.guesses) ? parsed.guesses : [],
+      hints: Array.isArray(parsed?.hints) ? parsed.hints : [],
+    }
+  } catch {
+    return { guesses: [], hints: [] }
+  }
+}
+
+function saveState(id: number, state: PersistedState): void {
+  try {
+    localStorage.setItem(stateKey(id), JSON.stringify(state))
+  } catch {
+    // ignore
+  }
+}
+
+function isCorrectGuess(guess: PlotGuess, answer: PlotdlePlot): boolean {
+  if (guess.key === `p:${answer.id}`) return true
+  if (answer.tmdbId && guess.key === `t:${answer.tmdbId}`) return true
+  // Fallback for plots not yet synced to TMDB: same title, release year within one.
+  if (normaliseName(guess.label) !== normaliseName(answer.title)) return false
+  return guess.year === null || Math.abs(guess.year - answer.year) <= 1
+}
+
+function shareUrl(id: number): string {
+  return `${window.location.origin}/plotdle/${id}`
+}
+
+function buildShareText(
+  plot: PlotdlePlot,
+  guesses: PlotGuess[],
+  won: boolean,
+  hintsUsed: number,
+): string {
+  const lines = [`Plotdle #${plot.id}: guess the movie from this poorly explained plot`, ""]
+  lines.push(`"${plot.plot}"${plot.animated ? " (animated)" : ""}`)
+  if (guesses.length > 0) {
+    const squares = guesses.map((g) => (isCorrectGuess(g, plot) ? "🟩" : "🟥")).join("")
+    const score = won ? `${guesses.length}/${MAX_GUESSES}` : `X/${MAX_GUESSES}`
+    const hints = hintsUsed > 0 ? ` 💡${hintsUsed}` : ""
+    lines.push("", `${squares} ${score}${hints}`)
+  }
+  lines.push("", shareUrl(plot.id))
+  return lines.join("\n")
+}
+
+/** The plot after `id` in pool order, skipping animated films if the player opted out. */
+function nextPlotId(id: number, includeAnimated: boolean): number {
+  const start = sortedPlots.findIndex((p) => p.id === id)
+  for (let step = 1; step <= sortedPlots.length; step++) {
+    const p = sortedPlots[(start + step) % sortedPlots.length] as PlotdlePlot
+    if (includeAnimated || !p.animated) return p.id
+  }
+  return id
+}
+
+export default function PlotdleGame() {
+  const { id: idParam } = useParams()
+  const navigate = useNavigate()
+  const today = useMemo(() => todayKey(), [])
+  const daily = useMemo(() => dailyPlot(today), [today])
+
+  const answer = idParam === undefined ? daily : byId.get(Number(idParam))
+  if (!answer) return <Navigate to="/plotdle" replace />
+
+  // Remount per puzzle so guess state resets cleanly when navigating between plots.
+  return (
+    <PlotScreen
+      key={answer.id}
+      answer={answer}
+      isDaily={answer.id === daily.id}
+      today={today}
+      onNext={() => {
+        navigate(`/plotdle/${nextPlotId(answer.id, getIncludeAnimated())}`)
+      }}
+    />
+  )
+}
+
+function PlotScreen({
+  answer,
+  isDaily,
+  today,
+  onNext,
+}: {
+  answer: PlotdlePlot
+  isDaily: boolean
+  today: string
+  onNext: () => void
+}) {
+  const curated = useMemo(
+    () =>
+      buildCuratedSearch(
+        plots.map((p) => ({ ...p, id: String(p.id) })),
+        "title",
+      ),
+    [],
+  )
+  const [{ guesses, hints }, setState] = useState<PersistedState>(() => loadState(answer.id))
+  const [statsOpen, setStatsOpen] = useState(false)
+  const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "failed">("idle")
+
+  const won = guesses.some((g) => isCorrectGuess(g, answer))
+  const lost = !won && guesses.length >= MAX_GUESSES
+  const gameOver = won || lost
+  const guessedKeys = useMemo(() => new Set(guesses.map((g) => g.key)), [guesses])
+  const suggestionMeta = useRef(new Map<string, { label: string; year: number | null }>())
+
+  const recordedRef = useRef(false)
+  useEffect(() => {
+    if (!isDaily || !gameOver || recordedRef.current) return
+    recordedRef.current = true
+    appendResult(GAME_KEY, {
+      dateKey: today,
+      answerId: String(answer.id),
+      guesses: guesses.map((g) => g.label),
+      outcome: won ? "win" : "loss",
+      guessCount: guesses.length,
+    })
+  }, [isDaily, gameOver, today, answer.id, guesses, won])
+
+  useWinConfetti({
+    won,
+    colors: MOVIE_THEATER_COLORS,
+    dedupKey: `${GAME_KEY}:${answer.id}`,
+  })
+
+  const fetchSuggestions = useCallback(
+    async (query: string, signal: AbortSignal): Promise<Suggestion[]> => {
+      const local = curated.search(query, 4)
+      const out: Suggestion[] = local.map((p) => ({
+        key: `p:${p.id}`,
+        label: p.title,
+        sublabel: String(p.year),
+      }))
+      const seen = new Set(local.map((p) => `${normaliseName(p.title)}:${p.year}`))
+      for (const p of local)
+        suggestionMeta.current.set(`p:${p.id}`, { label: p.title, year: p.year })
+
+      let tmdb: Awaited<ReturnType<typeof searchMovie>> = []
+      try {
+        tmdb = await searchMovie(query, signal)
+      } catch (err) {
+        if ((err as Error).name === "AbortError") throw err
+      }
+      for (const r of tmdb) {
+        if (out.length >= 8) break
+        const year = r.release_date ? Number(r.release_date.slice(0, 4)) : null
+        if (seen.has(`${normaliseName(r.title)}:${year}`)) continue
+        // A curated plot is the same film as this TMDB hit: keep the curated row only.
+        if (local.some((p) => p.tmdbId === r.id)) continue
+        const key = `t:${r.id}`
+        suggestionMeta.current.set(key, { label: r.title, year })
+        out.push({
+          key,
+          label: r.title,
+          sublabel: year ? String(year) : undefined,
+          imageUrl: r.poster_path ? `https://image.tmdb.org/t/p/w92${r.poster_path}` : "",
+        })
+      }
+      return out
+    },
+    [curated],
+  )
+
+  function handlePick(key: string) {
+    if (gameOver || guessedKeys.has(key)) return
+    const meta = suggestionMeta.current.get(key) ?? { label: key, year: null }
+    setState((prev) => {
+      const next = {
+        ...prev,
+        guesses: [...prev.guesses, { key, label: meta.label, year: meta.year }],
+      }
+      saveState(answer.id, next)
+      return next
+    })
+  }
+
+  function revealHint(id: HintId) {
+    if (gameOver) return
+    setState((prev) => {
+      if (prev.hints.includes(id)) return prev
+      const next = { ...prev, hints: [...prev.hints, id] }
+      saveState(answer.id, next)
+      return next
+    })
+  }
+
+  async function handleShare() {
+    const text = buildShareText(answer, gameOver ? guesses : [], won, hints.length)
+    try {
+      if (navigator.share) {
+        await navigator.share({ text })
+        return
+      }
+      await navigator.clipboard.writeText(text)
+      setShareStatus("copied")
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return
+      setShareStatus("failed")
+    }
+    window.setTimeout(() => setShareStatus("idle"), 2000)
+  }
+
+  const remaining = MAX_GUESSES - guesses.length
+
+  return (
+    <div className="app-viewport flex flex-col">
+      <GameHeader
+        title="Plotdle"
+        mode={isDaily ? "daily" : "arcade"}
+        serial={String(answer.id)}
+        onOpenStats={() => setStatsOpen((v) => !v)}
+      />
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-3">
+        <div
+          className={clsx(
+            "crossfade-panel flex flex-1 flex-col overflow-hidden",
+            statsOpen ? "crossfade-inactive" : "crossfade-active",
+          )}
+        >
+          {gameOver && (
+            <div className="mb-3">
+              <ResultBanner
+                won={won}
+                answer={`${answer.title} (${answer.year})`}
+                guessCount={guesses.length}
+              />
+            </div>
+          )}
+
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden pb-2">
+            <p className="text-center text-xs uppercase tracking-widest text-primary-500 dark:text-primary-400">
+              Name the movie from this plot
+            </p>
+
+            <figure className="rounded-md border-2 border-primary-200 bg-primary-50 px-4 py-4 dark:border-primary-700 dark:bg-primary-800/60">
+              <blockquote className="text-center text-lg leading-snug text-primary-900 dark:text-primary-50">
+                “{answer.plot}”
+              </blockquote>
+              {answer.animated && (
+                <figcaption className="mt-2 flex justify-center">
+                  <span className="rounded-full border border-danger-500/50 px-2 py-0.5 text-[11px] uppercase tracking-widest text-danger-600 dark:text-danger-400">
+                    Animated
+                  </span>
+                </figcaption>
+              )}
+            </figure>
+
+            <div className="grid grid-cols-2 gap-2">
+              {HINTS.map((h) => {
+                const shown = gameOver || hints.includes(h.id)
+                return (
+                  <button
+                    key={h.id}
+                    type="button"
+                    disabled={shown}
+                    onClick={() => revealHint(h.id)}
+                    aria-label={shown ? undefined : `Reveal hint: ${h.label}`}
+                    className={clsx(
+                      "flex flex-col items-center justify-center gap-1 rounded-md border-2 px-2 py-2 text-center transition-colors",
+                      h.id === "character" && "col-span-2",
+                      shown
+                        ? "border-primary-200 bg-primary-50 dark:border-primary-700 dark:bg-primary-800/60"
+                        : "cursor-pointer border-dashed border-primary-300 text-primary-500 hover:border-danger-500/60 hover:text-danger-600 dark:border-primary-500/70 dark:text-primary-300 dark:hover:border-primary-300 dark:hover:text-primary-100",
+                    )}
+                  >
+                    <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
+                      <i className={clsx("fa-solid", h.icon)} aria-hidden="true" />
+                      {h.label}
+                    </span>
+                    <span
+                      className={clsx(
+                        "text-sm",
+                        shown
+                          ? "text-primary-900 dark:text-primary-50"
+                          : "text-xs italic text-primary-500 dark:text-primary-300",
+                      )}
+                    >
+                      {shown ? hintValue(answer, h.id) : "Tap to reveal"}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={handleShare}
+                className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider text-danger-600 transition-colors hover:bg-danger-600/10 dark:text-primary-100 dark:hover:bg-primary-700"
+              >
+                <i className="fa-solid fa-share-nodes" aria-hidden="true" />
+                {shareStatus === "copied"
+                  ? "Link copied"
+                  : shareStatus === "failed"
+                    ? "Couldn't copy"
+                    : gameOver
+                      ? "Share result"
+                      : "Send to a friend"}
+              </button>
+            </div>
+
+            {guesses.length > 0 && (
+              <div>
+                <p className="mb-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
+                  Guesses
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {guesses.map((g, i) => (
+                    <GuessRow
+                      key={g.key}
+                      number={i + 1}
+                      label={g.year ? `${g.label} (${g.year})` : g.label}
+                      correct={isCorrectGuess(g, answer)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex h-[var(--tear-height)] shrink-0 flex-col justify-center">
+            {gameOver ? (
+              <div className="mx-3 flex justify-center">
+                <button
+                  type="button"
+                  onClick={onNext}
+                  className={clsx(
+                    "w-full max-w-xs cursor-pointer rounded-md px-6 py-3 uppercase tracking-wide transition-colors",
+                    "bg-danger-600 text-primary-50 hover:bg-danger-700",
+                    "dark:bg-danger-500 dark:hover:bg-danger-600",
+                  )}
+                >
+                  Next Plot
+                </button>
+              </div>
+            ) : (
+              <div className="mx-3">
+                <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
+                  {remaining} {remaining === 1 ? "guess" : "guesses"} remaining
+                </p>
+                <GuessInput
+                  disabled={false}
+                  guessedKeys={guessedKeys}
+                  placeholder="Type a movie title…"
+                  fetchSuggestions={fetchSuggestions}
+                  onPick={handlePick}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+        <InlinePanel
+          open={statsOpen}
+          title="Stats"
+          onClose={() => setStatsOpen(false)}
+          className="px-4 pt-3"
+        >
+          <StatsContent open={statsOpen} defaultGame="plotdle" />
+        </InlinePanel>
+      </div>
+    </div>
+  )
+}
+
+function GuessRow({ number, label, correct }: { number: number; label: string; correct: boolean }) {
+  return (
+    <div
+      className={clsx(
+        "flex items-center gap-2.5 rounded-md border px-3 py-2",
+        correct
+          ? "border-success-500/40 bg-success-500/10 dark:border-success-400/50 dark:bg-success-500/15"
+          : "border-danger-500/40 bg-danger-500/10 dark:border-danger-500/30 dark:bg-danger-500/15",
+      )}
+    >
+      <span className="w-4 shrink-0 text-right text-[11px] text-primary-400 dark:text-primary-500">
+        {number}
+      </span>
+      <div
+        className={clsx(
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded text-xs font-bold text-primary-50",
+          correct ? "bg-success-500" : "bg-danger-500",
+        )}
+      >
+        {correct ? "✓" : "✕"}
+      </div>
+      <span
+        className={clsx(
+          "text-sm",
+          correct
+            ? "text-success-700 dark:text-success-400"
+            : "text-primary-800 dark:text-primary-200",
+        )}
+      >
+        {label}
+      </span>
+    </div>
+  )
+}

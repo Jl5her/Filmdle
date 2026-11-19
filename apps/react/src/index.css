@@ -23,6 +23,9 @@
      stays consistent and we don't need mode-aware text colors. The -500
      shades are lighter accents (badges, swatches, icon hovers); -700
      is for borders / pressed states. */
+  /* -300/-400 are light greens for text and borders on dark paper. */
+  --color-success-300: #c3dd8e;
+  --color-success-400: #a9c96b;
   --color-success-500: #7a9c3e;
   --color-success-600: #5e7a2c;
   --color-success-700: #44591d;
@@ -160,8 +163,8 @@ body {
 .column-header {
   font-family: "Geist", "Segoe UI", -apple-system, ui-sans-serif, system-ui, Roboto, sans-serif;
   font-weight: 700;
-  font-size: clamp(11px, 2.6vw, 13px);
-  letter-spacing: 0.06em;
+  font-size: clamp(9.5px, 2.5vw, 13px);
+  letter-spacing: 0.03em;
 }
 
 .ticket-script {
@@ -356,6 +359,10 @@ body {
   color: var(--ticket-red-dark);
 }
 
+.dark .ticket-serial {
+  color: var(--ticket-red);
+}
+
 .ticket-barcode {
   display: inline-block;
   width: 28px;
@@ -448,4 +455,235 @@ body {
 }
 .tile-delay-5 {
   animation-delay: 350ms;
+}
+
+/* =====================================================================
+   Design variants (Settings → Design). The default "ticket" design is
+   everything above. Each variant re-points the Tailwind palette vars and
+   ticket tokens, then restyles the frame, so components need no changes.
+   Selectors use :root[data-design] (set on <html> before first paint).
+   ===================================================================== */
+
+/* --- Cinema: bold marquee, red velvet, gold bulbs --------------------- */
+:root[data-design="cinema"] {
+  --color-primary-50: #fff4dc;
+  --color-primary-100: #fbe6bb;
+  --color-primary-200: #f0cd86;
+  --color-primary-300: #e2ad4c;
+  --color-primary-400: #c48a2c;
+  --color-primary-500: #8f5d19;
+  --color-primary-600: #6b4012;
+  --color-primary-700: #4a2a0c;
+  --color-primary-800: #2e1209;
+  --color-primary-900: #170805;
+
+  --color-success-300: #b3e3a2;
+  --color-success-400: #8fd27a;
+  --color-success-500: #4c9a3c;
+  --color-success-600: #357a2a;
+  --color-success-700: #23561b;
+  --color-warning-500: #e3a21a;
+  --color-warning-600: #a87306;
+  --color-warning-700: #7a5303;
+  --color-danger-500: #e0303f;
+  --color-danger-600: #b3122a;
+  --color-danger-700: #7d0a1c;
+
+  --ticket-paper: #fff4dc;
+  --ticket-paper-edge: #e2ad4c;
+  --ticket-ink: #2a0d08;
+  --ticket-red: #b3122a;
+  --ticket-red-dark: #8a0d20;
+  --ticket-rule: #e2ad4c;
+  --theater-bg: #3b0710;
+  --theater-bg-dim: #14020a;
+  --theater-glow: #9a1426;
+  --bulb: #f2a516;
+  --corner-chamfer: 0px;
+}
+
+:root[data-design="cinema"].dark {
+  --ticket-paper: #24090e;
+  --ticket-paper-edge: #6b4012;
+  --ticket-ink: #fbe6bb;
+  --ticket-red: #e0303f;
+  --ticket-red-dark: #e0303f;
+  --theater-bg: #12020a;
+  --theater-bg-dim: #050006;
+  --theater-glow: #5c0a18;
+  --bulb: #ffd56b;
+}
+
+/* Velvet curtain: soft vertical folds under the spotlight. */
+:root[data-design="cinema"] body {
+  background-image:
+    radial-gradient(
+      ellipse 60% 55% at 50% 38%,
+      color-mix(in srgb, var(--theater-glow) 55%, transparent) 0%,
+      transparent 70%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.28) 0 18px,
+      rgb(255 255 255 / 0.03) 18px 30px,
+      rgb(0 0 0 / 0.12) 30px 44px
+    ),
+    linear-gradient(var(--theater-bg), var(--theater-bg-dim));
+}
+
+:root[data-design="cinema"] .app-viewport {
+  border-radius: 22px;
+  /* Gold divider in place of the paper perforation. */
+  background-image: linear-gradient(to right, var(--ticket-rule) 0 10px, transparent 10px 16px);
+  background-position: 0 calc(100% - var(--tear-height));
+  background-size: 16px 2px;
+  background-repeat: repeat-x;
+  box-shadow:
+    0 0 0 3px var(--ticket-rule),
+    0 0 0 7px var(--theater-bg),
+    0 0 0 9px color-mix(in srgb, var(--ticket-rule) 60%, transparent),
+    0 0 50px color-mix(in srgb, var(--bulb) 35%, transparent),
+    0 24px 70px rgb(0 0 0 / 0.6);
+}
+
+/* Marquee bulbs: a dotted gold frame around the main section. */
+:root[data-design="cinema"] .app-viewport::before {
+  clip-path: none;
+  background: transparent;
+  border: 6px dotted var(--bulb);
+  border-radius: 14px;
+  top: 9px;
+  left: 9px;
+  right: 9px;
+  bottom: calc(var(--tear-height) + 8px);
+  filter: drop-shadow(0 0 3px var(--bulb)) drop-shadow(0 0 8px color-mix(in srgb, var(--bulb) 60%, transparent));
+}
+
+:root[data-design="cinema"] .app-viewport::after {
+  display: none;
+}
+
+:root[data-design="cinema"] .fa5-title {
+  font-family: "Anton", "Oswald", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+
+:root[data-design="cinema"].dark .fa5-title {
+  text-shadow: 0 0 18px color-mix(in srgb, var(--bulb) 45%, transparent);
+}
+
+:root[data-design="cinema"] .ticket-barcode {
+  display: none;
+}
+
+/* --- Modern: clean, neutral, app-like ---------------------------------- */
+:root[data-design="modern"] {
+  --color-primary-50: #fafaf9;
+  --color-primary-100: #f3f3f1;
+  --color-primary-200: #e4e4e0;
+  --color-primary-300: #cfcfc9;
+  --color-primary-400: #a1a19a;
+  --color-primary-500: #6c6c66;
+  --color-primary-600: #4f4f4a;
+  --color-primary-700: #3a3a36;
+  --color-primary-800: #262624;
+  --color-primary-900: #141413;
+
+  --color-success-300: #9fe0b0;
+  --color-success-400: #6fd08a;
+  --color-success-500: #3fa45a;
+  --color-success-600: #2b8a45;
+  --color-success-700: #1d6a33;
+  --color-warning-500: #e9a23b;
+  --color-warning-600: #b97a12;
+  --color-warning-700: #8a5a08;
+  --color-danger-500: #e5484d;
+  --color-danger-600: #d13438;
+  --color-danger-700: #a3262a;
+
+  --ticket-paper: #ffffff;
+  --ticket-paper-edge: #e4e4e0;
+  --ticket-ink: #141413;
+  --ticket-red: #d13438;
+  --ticket-red-dark: #a3262a;
+  --ticket-rule: #e4e4e0;
+  --theater-bg: #f1f1ee;
+  --theater-bg-dim: #f1f1ee;
+  --theater-glow: #f1f1ee;
+  --corner-chamfer: 0px;
+}
+
+:root[data-design="modern"].dark {
+  --ticket-paper: #1b1b1a;
+  --ticket-paper-edge: #333331;
+  --ticket-ink: #f3f3f1;
+  --ticket-red: #e5484d;
+  --ticket-red-dark: #e5484d;
+  --ticket-rule: #333331;
+  --theater-bg: #0e0e0d;
+  --theater-bg-dim: #0e0e0d;
+  --theater-glow: #0e0e0d;
+}
+
+:root[data-design="modern"] body {
+  background-image: none;
+}
+
+:root[data-design="modern"] .app-viewport {
+  border-radius: 16px;
+  border: 1px solid var(--ticket-rule);
+  /* Hairline divider above the input area instead of a perforation. */
+  background-image: linear-gradient(var(--ticket-rule), var(--ticket-rule));
+  background-position: 0 calc(100% - var(--tear-height));
+  background-size: 100% 1px;
+  background-repeat: no-repeat;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 12px 40px rgb(0 0 0 / 0.07);
+}
+
+:root[data-design="modern"] .app-viewport::before,
+:root[data-design="modern"] .app-viewport::after {
+  display: none;
+}
+
+/* Phones: full-bleed, like a native app. */
+@media (max-width: 599px) {
+  :root[data-design="modern"] {
+    --app-viewport-gutter: 0px;
+  }
+  :root[data-design="modern"] .app-viewport {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+:root[data-design="modern"] .fa5-title {
+  font-family: "Geist", "Segoe UI", -apple-system, ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+:root[data-design="modern"] .marquee {
+  font-family: "Geist", "Segoe UI", -apple-system, ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+:root[data-design="modern"] .ticket-barcode,
+:root[data-design="modern"] .ticket-header-rule {
+  border-color: var(--ticket-rule);
+}
+
+:root[data-design="modern"] .ticket-barcode {
+  display: none;
+}
+
+:root[data-design="modern"] .ticket-serial {
+  font-family: "Geist", sans-serif;
+  letter-spacing: 0;
+  color: var(--color-primary-500);
 }

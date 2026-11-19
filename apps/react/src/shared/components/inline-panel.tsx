@@ -6,6 +6,8 @@ interface Props {
   title: string
   onClose: () => void
   children: ReactNode
+  /** Extra classes, e.g. padding to match the container the panel overlays. */
+  className?: string
 }
 
 /**
@@ -13,7 +15,7 @@ interface Props {
  * `relative overflow-hidden` container next to a sibling menu/board
  * panel. Animates by opacity + small translateY when `open` flips.
  */
-export function InlinePanel({ open, title, onClose, children }: Props) {
+export function InlinePanel({ open, title, onClose, children, className }: Props) {
   useEffect(() => {
     if (!open) return
     const handler = (e: KeyboardEvent) => {
@@ -29,6 +31,7 @@ export function InlinePanel({ open, title, onClose, children }: Props) {
       className={clsx(
         "crossfade-panel absolute inset-0 flex flex-col",
         open ? "crossfade-active" : "crossfade-inactive",
+        className,
       )}
     >
       <header className="flex items-center justify-between pb-3">

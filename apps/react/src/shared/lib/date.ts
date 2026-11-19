@@ -13,6 +13,10 @@ export function computeAge(dob: string, now = new Date()): number {
   return age
 }
 
+export function formatShortDate(now = new Date()): string {
+  return now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+}
+
 export function formatLongDate(now = new Date()): string {
   return now.toLocaleDateString("en-US", {
     weekday: "long",
