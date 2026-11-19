@@ -32,10 +32,15 @@ function stateKey(id: number): string {
 
 type HintId = "character" | "year" | "genre"
 
-const HINTS: { id: HintId; label: string; icon: string }[] = [
-  { id: "character", label: "Main character", icon: "fa-user" },
-  { id: "year", label: "Year", icon: "fa-calendar" },
-  { id: "genre", label: "Genre", icon: "fa-masks-theater" },
+/**
+ * Hints escalate: year and genre unlock free after the first miss, the main
+ * character (the strongest hint) after the second. Players can also tap to
+ * reveal one early; only those early taps count toward the 💡 in the share.
+ */
+const HINTS: { id: HintId; label: string; icon: string; freeAfterMisses: number }[] = [
+  { id: "year", label: "Year", icon: "fa-calendar", freeAfterMisses: 1 },
+  { id: "genre", label: "Genre", icon: "fa-masks-theater", freeAfterMisses: 1 },
+  { id: "character", label: "Main character", icon: "fa-user", freeAfterMisses: 2 },
 ]
 
 function hintValue(plot: PlotdlePlot, id: HintId): string {
@@ -164,6 +169,9 @@ function PlotScreen({
   const lost = !won && guesses.length >= MAX_GUESSES
   const gameOver = won || lost
   const guessedKeys = useMemo(() => new Set(guesses.map((g) => g.key)), [guesses])
+  const misses = guesses.filter((g) => !isCorrectGuess(g, answer)).length
+  // Hints earned by missing; these never count as "used" in the share.
+  const unlocked = new Set(HINTS.filter((h) => misses >= h.freeAfterMisses).map((h) => h.id))
   const suggestionMeta = useRef(new Map<string, { label: string; year: number | null }>())
 
   const recordedRef = useRef(false)
@@ -237,7 +245,7 @@ function PlotScreen({
   }
 
   function revealHint(id: HintId) {
-    if (gameOver) return
+    if (gameOver || unlocked.has(id)) return
     setState((prev) => {
       if (prev.hints.includes(id)) return prev
       const next = { ...prev, hints: [...prev.hints, id] }
@@ -309,7 +317,8 @@ function PlotScreen({
 
             <div className="grid grid-cols-2 gap-2">
               {HINTS.map((h) => {
-                const shown = gameOver || hints.includes(h.id)
+                const shown = gameOver || unlocked.has(h.id) || hints.includes(h.id)
+                const remainingMisses = h.freeAfterMisses - misses
                 return (
                   <button
                     key={h.id}
@@ -339,6 +348,11 @@ function PlotScreen({
                     >
                       {shown ? hintValue(answer, h.id) : "Tap to reveal"}
                     </span>
+                    {!shown && (
+                      <span className="text-[11px] text-primary-400 dark:text-primary-400">
+                        Free after {remainingMisses} {remainingMisses === 1 ? "miss" : "misses"}
+                      </span>
+                    )}
                   </button>
                 )
               })}
