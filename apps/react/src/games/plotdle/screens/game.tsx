@@ -52,6 +52,8 @@ function hintValue(plot: PlotdlePlot, id: HintId): string {
 interface PersistedState {
   guesses: PlotGuess[]
   hints: HintId[]
+  /** Player chose "Reveal answer": counts as a loss. */
+  gaveUp?: boolean
 }
 
 function loadState(id: number): PersistedState {
@@ -62,6 +64,7 @@ function loadState(id: number): PersistedState {
     return {
       guesses: Array.isArray(parsed?.guesses) ? parsed.guesses : [],
       hints: Array.isArray(parsed?.hints) ? parsed.hints : [],
+      gaveUp: parsed?.gaveUp === true,
     }
   } catch {
     return { guesses: [], hints: [] }
@@ -93,17 +96,19 @@ function buildShareText(
   guesses: PlotGuess[],
   won: boolean,
   hintsUsed: number,
+  gaveUp: boolean,
 ): string {
   const lines = [
     `Plotdle #${formatSerial(plot.id)}: guess the movie from this poorly explained plot`,
     "",
   ]
   lines.push(`"${plot.plot}"${plot.animated ? " (animated)" : ""}`)
-  if (guesses.length > 0) {
+  if (guesses.length > 0 || gaveUp) {
     const squares = guesses.map((g) => (isCorrectGuess(g, plot) ? "🟩" : "🟥")).join("")
     const score = won ? `${guesses.length}/${MAX_GUESSES}` : `X/${MAX_GUESSES}`
     const hints = hintsUsed > 0 ? ` 💡${hintsUsed}` : ""
-    lines.push("", `${squares} ${score}${hints}`)
+    const flag = gaveUp ? " 🏳️" : ""
+    lines.push("", `${squares}${squares ? " " : ""}${score}${hints}${flag}`)
   }
   lines.push("", shareUrl(plot.id))
   return lines.join("\n")
@@ -161,12 +166,16 @@ function PlotScreen({
       ),
     [],
   )
-  const [{ guesses, hints }, setState] = useState<PersistedState>(() => loadState(answer.id))
+  const [{ guesses, hints, gaveUp = false }, setState] = useState<PersistedState>(() =>
+    loadState(answer.id),
+  )
   const [statsOpen, setStatsOpen] = useState(false)
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "failed">("idle")
+  // Revealing ends the game, so it takes a second tap to confirm.
+  const [confirmReveal, setConfirmReveal] = useState(false)
 
   const won = guesses.some((g) => isCorrectGuess(g, answer))
-  const lost = !won && guesses.length >= MAX_GUESSES
+  const lost = !won && (gaveUp || guesses.length >= MAX_GUESSES)
   const gameOver = won || lost
   const guessedKeys = useMemo(() => new Set(guesses.map((g) => g.key)), [guesses])
   const misses = guesses.filter((g) => !isCorrectGuess(g, answer)).length
@@ -254,8 +263,28 @@ function PlotScreen({
     })
   }
 
+  function revealAnswer() {
+    if (gameOver) return
+    if (!confirmReveal) {
+      setConfirmReveal(true)
+      window.setTimeout(() => setConfirmReveal(false), 3000)
+      return
+    }
+    setState((prev) => {
+      const next = { ...prev, gaveUp: true }
+      saveState(answer.id, next)
+      return next
+    })
+  }
+
   async function handleShare() {
-    const text = buildShareText(answer, gameOver ? guesses : [], won, hints.length)
+    const text = buildShareText(
+      answer,
+      gameOver ? guesses : [],
+      won,
+      hints.length,
+      gameOver && gaveUp,
+    )
     try {
       if (navigator.share) {
         await navigator.share({ text })
@@ -293,16 +322,19 @@ function PlotScreen({
                 won={won}
                 answer={`${answer.title} (${answer.year})`}
                 guessCount={guesses.length}
+                lossMessage={gaveUp ? "Answer revealed" : undefined}
               />
             </div>
           )}
 
-          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden pb-2">
-            <p className="text-center text-xs uppercase tracking-widest text-primary-500 dark:text-primary-400">
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overflow-x-hidden pb-2 kb:gap-2">
+            {/* While typing, this spacer pushes the plot down to sit just above the input. */}
+            <div aria-hidden="true" className="hidden kb:block kb:flex-1" />
+            <p className="kb:hidden text-center text-xs uppercase tracking-widest text-primary-500 dark:text-primary-400">
               Name the movie from this plot
             </p>
 
-            <figure className="rounded-md border-2 border-primary-200 bg-primary-50 px-4 py-4 dark:border-primary-700 dark:bg-primary-800/60">
+            <figure className="shrink-0 rounded-md border-2 border-primary-200 bg-primary-50 px-4 py-4 dark:border-primary-700 dark:bg-primary-800/60">
               <blockquote className="text-center text-lg leading-snug text-primary-900 dark:text-primary-50">
                 “{answer.plot}”
               </blockquote>
@@ -315,7 +347,14 @@ function PlotScreen({
               )}
             </figure>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div
+              className={clsx(
+                "grid shrink-0 grid-cols-2 gap-2",
+                !gameOver &&
+                  !HINTS.some((h) => unlocked.has(h.id) || hints.includes(h.id)) &&
+                  "kb:hidden",
+              )}
+            >
               {HINTS.map((h) => {
                 const shown = gameOver || unlocked.has(h.id) || hints.includes(h.id)
                 const remainingMisses = h.freeAfterMisses - misses
@@ -327,8 +366,10 @@ function PlotScreen({
                     onClick={() => revealHint(h.id)}
                     aria-label={shown ? undefined : `Reveal hint: ${h.label}`}
                     className={clsx(
-                      "flex flex-col items-center justify-center gap-1 rounded-md border-2 px-2 py-2 text-center transition-colors",
+                      "flex flex-col items-center justify-center gap-1 rounded-md border-2 px-2 py-2 text-center transition-colors kb:py-1",
                       h.id === "character" && "col-span-2",
+                      // Unrevealed hints just add distance between plot and keyboard.
+                      !shown && "kb:hidden",
                       shown
                         ? "border-primary-200 bg-primary-50 dark:border-primary-700 dark:bg-primary-800/60"
                         : "cursor-pointer border-dashed border-primary-300 text-primary-500 hover:border-danger-500/60 hover:text-danger-600 dark:border-primary-500/70 dark:text-primary-300 dark:hover:border-primary-300 dark:hover:text-primary-100",
@@ -359,7 +400,7 @@ function PlotScreen({
             </div>
 
             {!gameOver && (
-              <div className="flex justify-center">
+              <div className="flex flex-wrap justify-center gap-2 kb:hidden">
                 <button
                   type="button"
                   onClick={handleShare}
@@ -372,11 +413,24 @@ function PlotScreen({
                       ? "Couldn't copy"
                       : "Send to a friend"}
                 </button>
+                <button
+                  type="button"
+                  onClick={revealAnswer}
+                  className={clsx(
+                    "flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider transition-colors",
+                    confirmReveal
+                      ? "bg-danger-600 text-primary-50 hover:bg-danger-700 dark:bg-danger-500 dark:hover:bg-danger-600"
+                      : "text-primary-600 hover:bg-primary-600/10 dark:text-primary-300 dark:hover:bg-primary-700",
+                  )}
+                >
+                  <i className="fa-solid fa-eye" aria-hidden="true" />
+                  {confirmReveal ? "Tap again to reveal" : "Reveal answer"}
+                </button>
               </div>
             )}
 
             {guesses.length > 0 && (
-              <div>
+              <div className="shrink-0">
                 <p className="mb-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
                   Guesses
                 </p>
@@ -434,7 +488,7 @@ function PlotScreen({
               </div>
             ) : (
               <div className="mx-3">
-                <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
+                <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 kb:hidden dark:text-primary-400">
                   {remaining} {remaining === 1 ? "guess" : "guesses"} remaining
                 </p>
                 <GuessInput
