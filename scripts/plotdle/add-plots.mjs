@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 // Appends newly generated plots to the Plotdle pool.
 //
-//   node scripts/plotdle/add-plots.mjs new-plots.json [--shuffle]
+//   node scripts/plotdle/add-plots.mjs new-plots.json [--shuffle] [--arcade]
 //
 // Input is a JSON array in the shape generation-prompt.md asks for:
 //   { plot, character, genre, title, year, animated, difficulty }
 // Plots are validated, de-duplicated against the pool (same title + year),
 // and given the next puzzle numbers. Existing ids are never changed, so
 // shared /plotdle/<id> links stay valid. --shuffle mixes the new batch so
-// eras and difficulties don't come in runs. Afterwards run sync-tmdb.mjs.
+// eras and difficulties don't come in runs. New plots join the daily queue
+// (released one per day after the existing dailies) unless --arcade is
+// passed, which makes them playable right away from Play Again.
+// Afterwards run sync-tmdb.mjs.
 
 import { readFileSync, writeFileSync } from "node:fs"
 import { resolve } from "node:path"
@@ -46,7 +49,7 @@ function fnv1a(input) {
 
 const [input, ...flags] = process.argv.slice(2)
 if (!input) {
-  console.error("usage: node scripts/plotdle/add-plots.mjs <new-plots.json> [--shuffle]")
+  console.error("usage: node scripts/plotdle/add-plots.mjs <new-plots.json> [--shuffle] [--arcade]")
   process.exit(1)
 }
 
@@ -103,6 +106,7 @@ for (const p of incoming) {
     difficulty: DIFFICULTIES.has(p.difficulty) ? p.difficulty : "medium",
     character: p.character.trim().replace(/\.$/, ""),
     genre: p.genre,
+    pool: flags.includes("--arcade") ? "arcade" : "daily",
     tmdbId: Number.isInteger(p.tmdbId) ? p.tmdbId : 0,
   })
 }
@@ -119,4 +123,6 @@ for (const line of problems) console.log(line)
 console.log(
   `\nAdded ${added.length} plots (ids ${added[0]?.id ?? "-"}–${added.at(-1)?.id ?? "-"}). Pool size: ${out.length}.`,
 )
+const dailies = out.filter((p) => p.pool === "daily").length
+console.log(`Daily queue: ${dailies} plots (${dailies} days from launch).`)
 console.log("Next: node scripts/plotdle/sync-tmdb.mjs")

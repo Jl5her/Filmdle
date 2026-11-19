@@ -11,10 +11,11 @@ import { searchMovie } from "@/lib/tmdb"
 import { InlinePanel } from "@/shared/components/inline-panel"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
-import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
+import { formatSerial, todayKey } from "@/shared/lib/date"
 import { getIncludeAnimated } from "@/shared/lib/plotdle-prefs"
 import { appendResult } from "@/shared/lib/stats"
 import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
+import { byId, canOpen, dailyPlot, nextArcadePlot } from "../schedule"
 
 const GAME_KEY = "plotdle"
 const MAX_GUESSES = 3
@@ -23,16 +24,6 @@ interface PlotGuess {
   key: string
   label: string
   year: number | null
-}
-
-const byId = new Map(plots.map((p) => [p.id, p]))
-const sortedPlots = [...plots].sort((a, b) => a.id - b.id)
-
-/** The plot that is "today's" daily. Cycles through the pool in id order. */
-function dailyPlot(dateKey: string): PlotdlePlot {
-  const n = sortedPlots.length
-  const idx = ((((puzzleNumber(GAME_KEY, dateKey) ?? 1) - 1) % n) + n) % n
-  return sortedPlots[idx] as PlotdlePlot
 }
 
 function stateKey(id: number): string {
@@ -113,14 +104,12 @@ function buildShareText(
   return lines.join("\n")
 }
 
-/** The plot after `id` in pool order, skipping animated films if the player opted out. */
-function nextPlotId(id: number, includeAnimated: boolean): number {
-  const start = sortedPlots.findIndex((p) => p.id === id)
-  for (let step = 1; step <= sortedPlots.length; step++) {
-    const p = sortedPlots[(start + step) % sortedPlots.length] as PlotdlePlot
-    if (includeAnimated || !p.animated) return p.id
+function hasPlayed(id: number): boolean {
+  try {
+    return localStorage.getItem(stateKey(id)) !== null
+  } catch {
+    return false
   }
-  return id
 }
 
 export default function PlotdleGame() {
@@ -130,7 +119,8 @@ export default function PlotdleGame() {
   const daily = useMemo(() => dailyPlot(today), [today])
 
   const answer = idParam === undefined ? daily : byId.get(Number(idParam))
-  if (!answer) return <Navigate to="/plotdle" replace />
+  // Unknown ids and not-yet-released dailies fall back to today's puzzle.
+  if (!answer || !canOpen(answer, today)) return <Navigate to="/plotdle" replace />
 
   // Remount per puzzle so guess state resets cleanly when navigating between plots.
   return (
@@ -140,7 +130,8 @@ export default function PlotdleGame() {
       isDaily={answer.id === daily.id}
       today={today}
       onNext={() => {
-        navigate(`/plotdle/${nextPlotId(answer.id, getIncludeAnimated())}`)
+        const next = nextArcadePlot(answer.id, today, getIncludeAnimated(), hasPlayed)
+        navigate(next ? `/plotdle/${next.id}` : "/plotdle")
       }}
     />
   )

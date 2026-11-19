@@ -66,6 +66,7 @@ export interface CreditdleActor {
 }
 
 export type PlotDifficulty = "easy" | "medium" | "hard"
+export type PlotPool = "daily" | "arcade"
 
 export interface PlotdlePlot {
   /** Puzzle number. Stable forever: shared links are /plotdle/<id>. Append-only. */
@@ -79,6 +80,8 @@ export interface PlotdlePlot {
   character: string
   /** Primary TMDB genre name (tap-to-reveal hint). */
   genre: string
+  /** "daily" plots release one per day in id order; "arcade" plots are always playable. */
+  pool: PlotPool
   /** TMDB movie id, filled by scripts/plotdle/sync-tmdb.mjs. 0 if unresolved. */
   tmdbId: number
 }
