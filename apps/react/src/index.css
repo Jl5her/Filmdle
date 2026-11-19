@@ -120,6 +120,24 @@ body,
   --tear-height: 84px;
 }
 
+/* Pin the app to the visible area above the keyboard. iOS keeps the layout
+   viewport full height and pans the visual viewport inside it, so follow
+   that pan (--app-top) rather than letting the page scroll underneath. */
+:root[data-keyboard="open"],
+:root[data-keyboard="open"] body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+:root[data-keyboard="open"] #root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--app-height, 100dvh);
+  transform: translate3d(0, var(--app-top, 0px), 0);
+}
+
 #root {
   position: relative;
   z-index: 1;
