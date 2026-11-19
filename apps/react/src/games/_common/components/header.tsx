@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom"
-import { formatLongDate, formatShortDate } from "@/shared/lib/date"
+import { formatLongDate, formatSerial, formatShortDate } from "@/shared/lib/date"
 
 interface Props {
   title: string
   onOpenStats: () => void
   mode?: "daily" | "arcade"
-  /** Ticket serial shown in the subtitle, e.g. a puzzle number. */
-  serial?: string
+  /** Puzzle number shown as the ticket serial (zero-padded to 5 digits). */
+  serial?: number
 }
 
 export function GameHeader({ title, onOpenStats, mode = "daily", serial }: Props) {
@@ -37,7 +37,7 @@ export function GameHeader({ title, onOpenStats, mode = "daily", serial }: Props
           )}
           <span className="ticket-serial">·</span>
           <span className="ticket-barcode" aria-hidden="true" />
-          {serial && <span className="ticket-serial">№ {serial}</span>}
+          {serial !== undefined && <span className="ticket-serial">№ {formatSerial(serial)}</span>}
         </p>
       </div>
       <button

@@ -9,7 +9,7 @@ import { searchPerson } from "@/lib/tmdb"
 import { InlinePanel } from "@/shared/components/inline-panel"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
-import { todayKey } from "@/shared/lib/date"
+import { puzzleNumber, todayKey } from "@/shared/lib/date"
 import { fnv1a, minHashPick } from "@/shared/lib/hash"
 import { appendResult } from "@/shared/lib/stats"
 import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
@@ -203,7 +203,12 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
 
   return (
     <div className="app-viewport flex flex-col">
-      <GameHeader title={title} mode={mode} onOpenStats={() => setStatsOpen((v) => !v)} />
+      <GameHeader
+        title={title}
+        mode={mode}
+        serial={mode === "daily" ? puzzleNumber(gameKey, dateKey) : undefined}
+        onOpenStats={() => setStatsOpen((v) => !v)}
+      />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-3">
         <div
           className={clsx(

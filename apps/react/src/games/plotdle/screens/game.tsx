@@ -11,15 +11,13 @@ import { searchMovie } from "@/lib/tmdb"
 import { InlinePanel } from "@/shared/components/inline-panel"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
-import { todayKey } from "@/shared/lib/date"
+import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
 import { getIncludeAnimated } from "@/shared/lib/plotdle-prefs"
 import { appendResult } from "@/shared/lib/stats"
 import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
 
 const GAME_KEY = "plotdle"
 const MAX_GUESSES = 3
-/** Puzzle #1 is the daily on this date; each day after advances by one. */
-const EPOCH_KEY = "2026-11-18"
 
 interface PlotGuess {
   key: string
@@ -30,18 +28,10 @@ interface PlotGuess {
 const byId = new Map(plots.map((p) => [p.id, p]))
 const sortedPlots = [...plots].sort((a, b) => a.id - b.id)
 
-function dayIndex(dateKey: string): number {
-  const toUtc = (k: string) => {
-    const [y, m, d] = k.split("-").map(Number) as [number, number, number]
-    return Date.UTC(y, m - 1, d)
-  }
-  return Math.round((toUtc(dateKey) - toUtc(EPOCH_KEY)) / 86_400_000)
-}
-
 /** The plot that is "today's" daily. Cycles through the pool in id order. */
 function dailyPlot(dateKey: string): PlotdlePlot {
   const n = sortedPlots.length
-  const idx = ((dayIndex(dateKey) % n) + n) % n
+  const idx = ((((puzzleNumber(GAME_KEY, dateKey) ?? 1) - 1) % n) + n) % n
   return sortedPlots[idx] as PlotdlePlot
 }
 
@@ -108,7 +98,10 @@ function buildShareText(
   won: boolean,
   hintsUsed: number,
 ): string {
-  const lines = [`Plotdle #${plot.id}: guess the movie from this poorly explained plot`, ""]
+  const lines = [
+    `Plotdle #${formatSerial(plot.id)}: guess the movie from this poorly explained plot`,
+    "",
+  ]
   lines.push(`"${plot.plot}"${plot.animated ? " (animated)" : ""}`)
   if (guesses.length > 0) {
     const squares = guesses.map((g) => (isCorrectGuess(g, plot) ? "🟩" : "🟥")).join("")
@@ -285,7 +278,7 @@ function PlotScreen({
       <GameHeader
         title="Plotdle"
         mode={isDaily ? "daily" : "arcade"}
-        serial={String(answer.id)}
+        serial={answer.id}
         onOpenStats={() => setStatsOpen((v) => !v)}
       />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-3">
@@ -360,22 +353,22 @@ function PlotScreen({
               })}
             </div>
 
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={handleShare}
-                className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider text-danger-600 transition-colors hover:bg-danger-600/10 dark:text-primary-100 dark:hover:bg-primary-700"
-              >
-                <i className="fa-solid fa-share-nodes" aria-hidden="true" />
-                {shareStatus === "copied"
-                  ? "Link copied"
-                  : shareStatus === "failed"
-                    ? "Couldn't copy"
-                    : gameOver
-                      ? "Share result"
+            {!gameOver && (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider text-danger-600 transition-colors hover:bg-danger-600/10 dark:text-primary-100 dark:hover:bg-primary-700"
+                >
+                  <i className="fa-solid fa-share-nodes" aria-hidden="true" />
+                  {shareStatus === "copied"
+                    ? "Link copied"
+                    : shareStatus === "failed"
+                      ? "Couldn't copy"
                       : "Send to a friend"}
-              </button>
-            </div>
+                </button>
+              </div>
+            )}
 
             {guesses.length > 0 && (
               <div>
@@ -398,17 +391,40 @@ function PlotScreen({
 
           <div className="flex h-[var(--tear-height)] shrink-0 flex-col justify-center">
             {gameOver ? (
-              <div className="mx-3 flex justify-center">
+              <div className="mx-3 flex justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className={clsx(
+                    "flex flex-1 max-w-[11rem] cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border-2 px-3 py-3 uppercase tracking-wide transition-colors",
+                    "border-danger-600 text-danger-600 hover:bg-danger-600/10",
+                    "dark:border-danger-500 dark:text-primary-50 dark:hover:bg-danger-500/20",
+                  )}
+                >
+                  <i
+                    className={clsx(
+                      "fa-solid",
+                      shareStatus === "copied" ? "fa-check" : "fa-share-nodes",
+                    )}
+                    aria-hidden="true"
+                  />
+                  {shareStatus === "copied"
+                    ? "Copied"
+                    : shareStatus === "failed"
+                      ? "Try again"
+                      : "Share"}
+                </button>
                 <button
                   type="button"
                   onClick={onNext}
                   className={clsx(
-                    "w-full max-w-xs cursor-pointer rounded-md px-6 py-3 uppercase tracking-wide transition-colors",
+                    "flex flex-1 max-w-[11rem] cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border-2 border-transparent px-3 py-3 uppercase tracking-wide transition-colors",
                     "bg-danger-600 text-primary-50 hover:bg-danger-700",
                     "dark:bg-danger-500 dark:hover:bg-danger-600",
                   )}
                 >
-                  Next Plot
+                  <i className="fa-solid fa-rotate-right" aria-hidden="true" />
+                  Play Again
                 </button>
               </div>
             ) : (
