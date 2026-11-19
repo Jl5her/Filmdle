@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+/* Styles applied only while the on-screen keyboard is open (see keyboard-viewport.ts). */
+@custom-variant kb (&:where([data-keyboard="open"] *));
 
 @theme {
   /* Warm sepia palette — replaces the previous slate grays so the
@@ -111,6 +113,13 @@ body,
   height: 100%;
 }
 
+/* Keyboard open on a phone: every pixel above the keyboard counts, so
+   drop the outer gutter and slim the tear-away strip around the input. */
+:root[data-keyboard="open"] {
+  --app-viewport-gutter: 0px;
+  --tear-height: 84px;
+}
+
 #root {
   position: relative;
   z-index: 1;
@@ -182,7 +191,7 @@ body {
 .app-viewport {
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - 2 * var(--app-viewport-gutter));
+  height: calc(var(--app-height, 100dvh) - 2 * var(--app-viewport-gutter));
   width: calc(100% - 2 * var(--app-viewport-gutter));
   max-width: 720px;
   margin: var(--app-viewport-gutter) auto;
