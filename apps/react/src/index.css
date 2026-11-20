@@ -113,6 +113,20 @@ body,
   height: 100%;
 }
 
+/* The ticket always fits the screen and scrolls inside itself, so the page
+   never needs to: lock it so it can't be dragged or rubber-band. */
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Keep the ticket's top margin inside #root instead of pushing #root down
+   (which made the page a few pixels taller than the screen). */
+#root {
+  display: flow-root;
+}
+
 /* Keyboard open on a phone: every pixel above the keyboard counts, so
    drop the outer gutter and slim the tear-away strip around the input. */
 :root[data-keyboard="open"] {
