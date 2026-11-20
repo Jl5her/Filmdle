@@ -63,7 +63,7 @@ export function MainMenu() {
 
   return (
     <>
-      <div className="flex w-full flex-1 flex-col items-center px-4 pt-8 pb-[var(--tear-height)] sm:px-10 sm:pt-12">
+      <div className="flex min-h-0 w-full flex-1 flex-col items-center px-4 pt-8 pb-[var(--tear-height)] sm:px-10 sm:pt-12">
         <div className="text-center">
           <FilmIcon
             className="mx-auto mb-3 h-14 w-14 text-primary-800 dark:text-primary-100"
