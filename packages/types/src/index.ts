@@ -84,4 +84,14 @@ export interface PlotdlePlot {
   pool: PlotPool
   /** TMDB movie id, filled by scripts/plotdle/sync-tmdb.mjs. 0 if unresolved. */
   tmdbId: number
+  /**
+   * How widely known the film is, for Play Again: 3 = household name across
+   * generations, 2 = well known, 1 = niche (never served by Play Again).
+   * Missing counts as 2.
+   */
+  fame?: 1 | 2 | 3
+  /** Series or remake family; Play Again serves at most two per franchise. */
+  franchise?: string
+  /** Marvel Cinematic Universe film; never served by Play Again. */
+  mcu?: boolean
 }
