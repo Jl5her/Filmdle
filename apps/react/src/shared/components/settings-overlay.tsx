@@ -113,7 +113,7 @@ export function SettingsContent() {
               Include animated films
             </span>
             <span className="text-[11px] text-primary-500 dark:text-primary-400">
-              When off, Next Plot skips animated movies
+              When off, Play Again skips animated movies
             </span>
           </span>
           <input

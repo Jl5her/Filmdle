@@ -12,7 +12,7 @@ import { InlinePanel } from "@/shared/components/inline-panel"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
 import { formatSerial, todayKey } from "@/shared/lib/date"
-import { getIncludeAnimated } from "@/shared/lib/plotdle-prefs"
+import { getIncludeAnimated, setIncludeAnimated } from "@/shared/lib/plotdle-prefs"
 import { appendResult } from "@/shared/lib/stats"
 import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
 import { byId, canOpen, dailyPlot, nextArcadePlot } from "../schedule"
@@ -173,6 +173,7 @@ function PlotScreen({
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "failed">("idle")
   // Revealing ends the game, so it takes a second tap to confirm.
   const [confirmReveal, setConfirmReveal] = useState(false)
+  const [includeAnimated, setIncludeAnimatedState] = useState(getIncludeAnimated)
 
   const won = guesses.some((g) => isCorrectGuess(g, answer))
   const lost = !won && (gaveUp || guesses.length >= MAX_GUESSES)
@@ -450,41 +451,55 @@ function PlotScreen({
 
           <div className="flex h-[var(--tear-height)] shrink-0 flex-col justify-center">
             {gameOver ? (
-              <div className="mx-3 flex justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className={clsx(
-                    "flex flex-1 max-w-[11rem] cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border-2 px-3 py-3 uppercase tracking-wide transition-colors",
-                    "border-danger-600 text-danger-600 hover:bg-danger-600/10",
-                    "dark:border-danger-500 dark:text-primary-50 dark:hover:bg-danger-500/20",
-                  )}
-                >
-                  <i
+              <div className="mx-3 flex flex-col items-center gap-2">
+                <div className="flex w-full justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleShare}
                     className={clsx(
-                      "fa-solid",
-                      shareStatus === "copied" ? "fa-check" : "fa-share-nodes",
+                      "flex flex-1 max-w-[11rem] cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border-2 px-3 py-3 uppercase tracking-wide transition-colors",
+                      "border-danger-600 text-danger-600 hover:bg-danger-600/10",
+                      "dark:border-danger-500 dark:text-primary-50 dark:hover:bg-danger-500/20",
                     )}
-                    aria-hidden="true"
+                  >
+                    <i
+                      className={clsx(
+                        "fa-solid",
+                        shareStatus === "copied" ? "fa-check" : "fa-share-nodes",
+                      )}
+                      aria-hidden="true"
+                    />
+                    {shareStatus === "copied"
+                      ? "Copied"
+                      : shareStatus === "failed"
+                        ? "Try again"
+                        : "Share"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onNext}
+                    className={clsx(
+                      "flex flex-1 max-w-[11rem] cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border-2 border-transparent px-3 py-3 uppercase tracking-wide transition-colors",
+                      "bg-danger-600 text-primary-50 hover:bg-danger-700",
+                      "dark:bg-danger-500 dark:hover:bg-danger-600",
+                    )}
+                  >
+                    <i className="fa-solid fa-rotate-right" aria-hidden="true" />
+                    Play Again
+                  </button>
+                </div>
+                <label className="flex cursor-pointer items-center gap-2 text-[11px] uppercase tracking-widest text-primary-600 dark:text-primary-300">
+                  <input
+                    type="checkbox"
+                    checked={includeAnimated}
+                    onChange={(e) => {
+                      setIncludeAnimated(e.target.checked)
+                      setIncludeAnimatedState(e.target.checked)
+                    }}
+                    className="h-4 w-4 cursor-pointer accent-danger-600"
                   />
-                  {shareStatus === "copied"
-                    ? "Copied"
-                    : shareStatus === "failed"
-                      ? "Try again"
-                      : "Share"}
-                </button>
-                <button
-                  type="button"
-                  onClick={onNext}
-                  className={clsx(
-                    "flex flex-1 max-w-[11rem] cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border-2 border-transparent px-3 py-3 uppercase tracking-wide transition-colors",
-                    "bg-danger-600 text-primary-50 hover:bg-danger-700",
-                    "dark:bg-danger-500 dark:hover:bg-danger-600",
-                  )}
-                >
-                  <i className="fa-solid fa-rotate-right" aria-hidden="true" />
-                  Play Again
-                </button>
+                  Include animated films
+                </label>
               </div>
             ) : (
               <div className="mx-3">

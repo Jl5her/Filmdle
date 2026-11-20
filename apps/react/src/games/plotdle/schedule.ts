@@ -47,18 +47,57 @@ export function canOpen(plot: PlotdlePlot, dateKey: string): boolean {
   return day === undefined || day <= currentDay(dateKey) + 1
 }
 
-/** Plots Play Again may serve: arcade plots plus dailies from earlier days. */
+/** Most entries Play Again serves from one franchise. */
+const PER_FRANCHISE = 2
+/** How much more often household names come up than other well-known films. */
+const FAME_WEIGHT = { 1: 0, 2: 1, 3: 3 } as const
+
+/**
+ * Plots Play Again may ever serve: no MCU, nothing niche, and only the two
+ * best-known entries of each franchise (earliest wins a tie).
+ */
+const arcadeEligible: Set<number> = (() => {
+  const fameOf = (p: PlotdlePlot) => p.fame ?? 2
+  const ok = plots.filter((p) => !p.mcu && fameOf(p) > 1)
+  const kept = new Set<number>()
+  const byFranchise = new Map<string, PlotdlePlot[]>()
+  for (const p of ok) {
+    if (!p.franchise) kept.add(p.id)
+    else byFranchise.set(p.franchise, [...(byFranchise.get(p.franchise) ?? []), p])
+  }
+  for (const entries of byFranchise.values()) {
+    const best = entries
+      .sort((a, b) => fameOf(b) - fameOf(a) || a.year - b.year)
+      .slice(0, PER_FRANCHISE)
+    for (const p of best) kept.add(p.id)
+  }
+  return kept
+})()
+
+/** Plots Play Again may serve today: eligible arcade plots plus eligible dailies from earlier days. */
 function arcadeCandidates(dateKey: string): PlotdlePlot[] {
   const today = currentDay(dateKey)
   return plots.filter((p) => {
+    if (!arcadeEligible.has(p.id)) return false
     const day = scheduledDay(p, dateKey)
     return day === undefined || day < today
   })
 }
 
+function weightedPick(from: PlotdlePlot[]): PlotdlePlot | undefined {
+  const weight = (p: PlotdlePlot) => FAME_WEIGHT[p.fame ?? 2]
+  let r = Math.random() * from.reduce((sum, p) => sum + weight(p), 0)
+  for (const p of from) {
+    r -= weight(p)
+    if (r < 0) return p
+  }
+  return from.at(-1)
+}
+
 /**
- * Pick the next arcade plot: random, preferring ones the player hasn't
- * started, skipping animated films if the player opted out.
+ * Pick the next arcade plot: random but favouring household names,
+ * preferring ones the player hasn't started, skipping animated films if the
+ * player opted out.
  */
 export function nextArcadePlot(
   currentId: number,
@@ -70,6 +109,5 @@ export function nextArcadePlot(
     (p) => p.id !== currentId && (includeAnimated || !p.animated),
   )
   const fresh = pool.filter((p) => !hasPlayed(p.id))
-  const from = fresh.length > 0 ? fresh : pool
-  return from[Math.floor(Math.random() * from.length)]
+  return weightedPick(fresh.length > 0 ? fresh : pool)
 }
