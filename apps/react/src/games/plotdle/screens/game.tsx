@@ -174,8 +174,8 @@ function PlotScreen({
   // Revealing ends the game, so it takes a second tap to confirm.
   const [confirmReveal, setConfirmReveal] = useState(false)
   const [includeAnimated, setIncludeAnimatedState] = useState(getIncludeAnimated)
-  // Hides the answer (and hints only shown because the game ended) so the
-  // screen can be shown to or screenshotted for someone who hasn't played.
+  // After the game, "Hide answer" redraws the screen as a fresh, unplayed
+  // puzzle so it can be shown to or screenshotted for someone else.
   const [answerHidden, setAnswerHidden] = useState(false)
 
   const won = guesses.some((g) => isCorrectGuess(g, answer))
@@ -304,6 +304,7 @@ function PlotScreen({
   }
 
   const remaining = MAX_GUESSES - guesses.length
+  const masked = gameOver && answerHidden
 
   return (
     <div className="app-viewport flex flex-col">
@@ -320,34 +321,22 @@ function PlotScreen({
             statsOpen ? "crossfade-inactive" : "crossfade-active",
           )}
         >
-          {gameOver && (
+          {gameOver && !masked && (
             <div className="mb-3">
               <ResultBanner
                 won={won}
-                answer={
-                  answerHidden ? (
-                    <span className="tracking-[0.3em] text-primary-400 dark:text-primary-500">
-                      ? ? ? ? ?
-                    </span>
-                  ) : (
-                    `${answer.title} (${answer.year})`
-                  )
-                }
+                answer={`${answer.title} (${answer.year})`}
                 guessCount={guesses.length}
                 lossMessage={gaveUp ? "Answer revealed" : undefined}
                 action={
                   <button
                     type="button"
-                    onClick={() => setAnswerHidden((v) => !v)}
-                    aria-pressed={answerHidden}
-                    title={answerHidden ? "Show answer" : "Hide answer"}
+                    onClick={() => setAnswerHidden(true)}
+                    title="Hide answer"
                     className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-[10px] uppercase tracking-wider text-primary-600 transition-colors hover:bg-primary-600/10 dark:text-primary-300 dark:hover:bg-primary-700"
                   >
-                    <i
-                      className={clsx("fa-solid", answerHidden ? "fa-eye" : "fa-eye-slash")}
-                      aria-hidden="true"
-                    />
-                    {answerHidden ? "Show" : "Hide"}
+                    <i className="fa-solid fa-eye-slash" aria-hidden="true" />
+                    Hide
                   </button>
                 }
               />
@@ -383,10 +372,9 @@ function PlotScreen({
               )}
             >
               {HINTS.map((h) => {
-                const earned = unlocked.has(h.id) || hints.includes(h.id)
-                const shown = (gameOver && !answerHidden) || earned
-                const concealed = gameOver && !shown
-                const remainingMisses = h.freeAfterMisses - misses
+                // Masked: every hint looks untouched, as on a fresh puzzle.
+                const shown = !masked && (gameOver || unlocked.has(h.id) || hints.includes(h.id))
+                const remainingMisses = h.freeAfterMisses - (masked ? 0 : misses)
                 return (
                   <button
                     key={h.id}
@@ -401,9 +389,7 @@ function PlotScreen({
                       !shown && "kb:hidden",
                       shown
                         ? "border-primary-200 bg-primary-50 dark:border-primary-700 dark:bg-primary-800/60"
-                        : concealed
-                          ? "border-dashed border-primary-300 text-primary-500 dark:border-primary-500/70 dark:text-primary-300"
-                          : "cursor-pointer border-dashed border-primary-300 text-primary-500 hover:border-danger-500/60 hover:text-danger-600 dark:border-primary-500/70 dark:text-primary-300 dark:hover:border-primary-300 dark:hover:text-primary-100",
+                        : "cursor-pointer border-dashed border-primary-300 text-primary-500 hover:border-danger-500/60 hover:text-danger-600 dark:border-primary-500/70 dark:text-primary-300 dark:hover:border-primary-300 dark:hover:text-primary-100",
                     )}
                   >
                     <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
@@ -418,9 +404,9 @@ function PlotScreen({
                           : "text-xs italic text-primary-500 dark:text-primary-300",
                       )}
                     >
-                      {shown ? hintValue(answer, h.id) : concealed ? "Hidden" : "Tap to reveal"}
+                      {shown ? hintValue(answer, h.id) : "Tap to reveal"}
                     </span>
-                    {!shown && !concealed && (
+                    {!shown && (
                       <span className="text-[11px] text-primary-400 dark:text-primary-400">
                         Free after {remainingMisses} {remainingMisses === 1 ? "miss" : "misses"}
                       </span>
@@ -430,10 +416,16 @@ function PlotScreen({
               })}
             </div>
 
-            {!gameOver && (
-              <div className="flex flex-wrap justify-center gap-2 kb:hidden">
+            {(!gameOver || masked) && (
+              <div
+                className={clsx(
+                  "flex flex-wrap justify-center gap-2 kb:hidden",
+                  masked && "pointer-events-none",
+                )}
+              >
                 <button
                   type="button"
+                  tabIndex={masked ? -1 : undefined}
                   onClick={handleShare}
                   className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider text-danger-600 transition-colors hover:bg-danger-600/10 dark:text-primary-100 dark:hover:bg-primary-700"
                 >
@@ -446,6 +438,7 @@ function PlotScreen({
                 </button>
                 <button
                   type="button"
+                  tabIndex={masked ? -1 : undefined}
                   onClick={revealAnswer}
                   className={clsx(
                     "flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider transition-colors",
@@ -460,7 +453,7 @@ function PlotScreen({
               </div>
             )}
 
-            {guesses.length > 0 && (
+            {guesses.length > 0 && !masked && (
               <div className="shrink-0">
                 <p className="mb-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
                   Guesses
@@ -470,13 +463,7 @@ function PlotScreen({
                     <GuessRow
                       key={g.key}
                       number={i + 1}
-                      label={
-                        answerHidden && isCorrectGuess(g, answer)
-                          ? "Correct answer (hidden)"
-                          : g.year
-                            ? `${g.label} (${g.year})`
-                            : g.label
-                      }
+                      label={g.year ? `${g.label} (${g.year})` : g.label}
                       correct={isCorrectGuess(g, answer)}
                     />
                   ))}
@@ -486,7 +473,28 @@ function PlotScreen({
           </div>
 
           <div className="flex h-[var(--tear-height)] shrink-0 flex-col justify-center">
-            {gameOver ? (
+            {masked ? (
+              <div className="mx-3">
+                <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
+                  {MAX_GUESSES} guesses remaining
+                </p>
+                {/* Looks like the guess box; its only control brings the answer back. */}
+                <div className="relative mx-auto max-w-xs">
+                  <div className="w-full rounded-lg border-2 border-primary-300 bg-primary-100 px-4 py-3 text-base text-primary-500 dark:border-primary-700 dark:bg-primary-800 dark:text-primary-400">
+                    Type a movie title…
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAnswerHidden(false)}
+                    aria-label="Show answer"
+                    title="Show answer"
+                    className="absolute top-1/2 right-1.5 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-primary-400 transition-colors hover:bg-primary-200 hover:text-primary-700 dark:text-primary-500 dark:hover:bg-primary-700 dark:hover:text-primary-100"
+                  >
+                    <i className="fa-solid fa-eye" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            ) : gameOver ? (
               <div className="mx-3 flex flex-col items-center gap-2">
                 <div className="flex w-full justify-center gap-3">
                   <button
