@@ -86,6 +86,10 @@
   --ticket-wear: rgb(120 85 30 / 0.1);
   /* Space between the ticket's outer edge and the screen. */
   --app-viewport-gutter: 8px;
+  /* Content stays inside the printed border: this far from the ticket's
+     side edges, and scroll areas end this far above its bottom edge. */
+  --ticket-pad-x: 22px;
+  --ticket-safe-bottom: calc(var(--tear-height) + 16px);
 }
 
 .dark {
@@ -118,6 +122,7 @@
     --tear-height: 124px;
     --tear-inlay: 20px;
     --app-viewport-gutter: 16px;
+    --ticket-pad-x: 28px;
   }
 }
 
@@ -393,6 +398,25 @@ body {
     left: 7px;
     right: 7px;
   }
+}
+
+/* Scroll areas fade out at the bottom so a cut-off row reads as "more
+   below" rather than as clipped. Off while typing: the plot sits right
+   above the guess box then. */
+.scroll-fade {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent);
+}
+
+:root[data-keyboard="open"] .scroll-fade {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* Scroll areas above the stub stop short of the printed border instead
+   of running behind it and the perforation. */
+.ticket-stub {
+  margin-top: 16px;
 }
 
 /* Keep the stub's own content (guess box, buttons) clear of its side

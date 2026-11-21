@@ -82,7 +82,7 @@ export default function DebugPlots() {
 
   return (
     <div className="app-viewport flex flex-col">
-      <header className="relative border-b-2 border-primary-200/60 px-4 py-3 text-center dark:border-primary-700/60">
+      <header className="ticket-header-rule relative px-4 py-3 text-center">
         <Link
           to="/"
           aria-label="Back to menu"
@@ -99,7 +99,7 @@ export default function DebugPlots() {
         </p>
       </header>
 
-      <div className="px-4 pt-3">
+      <div className="px-[var(--ticket-pad-x)] pt-3">
         <input
           type="search"
           value={query}
@@ -123,7 +123,7 @@ export default function DebugPlots() {
         </p>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-2 pb-[calc(var(--tear-height)+1rem)]">
+      <div className="mb-[var(--ticket-safe-bottom)] scroll-fade min-h-0 flex-1 overflow-y-auto px-[var(--ticket-pad-x)] pt-2 pb-4">
         <ul className="flex flex-col gap-2.5">
           {results.slice(0, MAX_RESULTS).map((p) => (
             <PlotCard key={p.id} plot={p} playable={canOpen(p, today)} />

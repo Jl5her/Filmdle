@@ -58,7 +58,7 @@ export function InlinePanel({ open, title, onClose, children, className }: Props
           </svg>
         </button>
       </header>
-      <div className="flex-1 overflow-auto pb-4">{children}</div>
+      <div className="scroll-fade flex-1 overflow-auto pb-4">{children}</div>
     </div>
   )
 }

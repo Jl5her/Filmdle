@@ -400,7 +400,7 @@ function PlotScreen({
         seat={{ used: masked ? 0 : guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => setStatsOpen((v) => !v)}
       />
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-3">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-[var(--ticket-pad-x)] pt-3">
         <div
           className={clsx(
             "crossfade-panel flex flex-1 flex-col overflow-hidden",
@@ -433,7 +433,7 @@ function PlotScreen({
 
           <div
             className={clsx(
-              "flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overflow-x-hidden pb-2 kb:gap-2",
+              "scroll-fade flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overflow-x-hidden pb-4 kb:gap-2 kb:pb-2",
               introOpen && "hidden",
             )}
           >
@@ -684,7 +684,7 @@ function PlotScreen({
           open={statsOpen}
           title="Stats"
           onClose={() => setStatsOpen(false)}
-          className="px-4 pt-3 pb-[var(--tear-height)]"
+          className="px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
         >
           <StatsContent open={statsOpen} defaultGame="plotdle" />
         </InlinePanel>
