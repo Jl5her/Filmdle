@@ -14,9 +14,19 @@ interface Props {
   gameKey?: string
   /** Guesses used so far, printed as the Seat field. */
   seat?: { used: number; max: number }
+  /** Hide the header entirely (a screen short of room while typing). */
+  collapsed?: boolean
 }
 
-export function GameHeader({ title, onOpenStats, mode = "daily", serial, gameKey, seat }: Props) {
+export function GameHeader({
+  title,
+  onOpenStats,
+  mode = "daily",
+  serial,
+  gameKey,
+  seat,
+  collapsed = false,
+}: Props) {
   const streak = gameKey ? computeStatsSummary(loadStats(gameKey)).currentStreak : undefined
   const [explain, setExplain] = useState(false)
 
@@ -27,8 +37,9 @@ export function GameHeader({ title, onOpenStats, mode = "daily", serial, gameKey
     window.addEventListener("click", close)
     return () => window.removeEventListener("click", close)
   }, [explain])
+  if (collapsed) return null
   return (
-    <header className="ticket-header-rule relative z-20 flex min-h-20 items-stretch pt-3 text-center">
+    <header className="ticket-header-rule relative z-20 flex min-h-20 items-stretch pt-3 text-center kb:min-h-0 kb:py-0.5">
       <Link
         to="/"
         aria-label="Back to menu"
@@ -38,13 +49,13 @@ export function GameHeader({ title, onOpenStats, mode = "daily", serial, gameKey
         <Icon name="chevron-left" />
       </Link>
       <div className="relative flex min-w-0 flex-1 flex-col items-center justify-center px-1">
-        <h1 className="fa5-title text-3xl uppercase text-danger-600 dark:text-primary-50">
+        <h1 className="fa5-title text-3xl uppercase text-danger-600 kb:text-xl dark:text-primary-50">
           {title}
         </h1>
         {/* Printed ticket fields. Tapping them explains what each one means. */}
         <button
           type="button"
-          className="ticket-fields mt-1 cursor-pointer"
+          className="ticket-fields mt-1 cursor-pointer kb:hidden"
           aria-expanded={explain}
           aria-controls="ticket-fields-help"
           onClick={(e) => {

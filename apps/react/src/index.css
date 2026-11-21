@@ -727,6 +727,17 @@ button.ticket-fields:focus-visible {
   outline-offset: 2px;
 }
 
+/* Typing: less space between the content and the stub. */
+:root[data-keyboard="open"] .ticket-stub {
+  margin-top: 6px;
+}
+
+/* Typing: the header shrinks to just the title. */
+:root[data-keyboard="open"] .ticket-fields,
+:root[data-keyboard="open"] .ticket-fields-help {
+  display: none;
+}
+
 /* What the header fields mean, dropped down under the header on tap. */
 .ticket-fields-help {
   position: absolute;

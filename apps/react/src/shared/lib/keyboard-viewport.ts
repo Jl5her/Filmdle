@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from "react"
+
 /**
  * Mobile keyboards cover the bottom of the page without shrinking `100dvh`
  * (iOS Safari always; Android only honours `interactive-widget`). Track the
@@ -75,4 +77,22 @@ function isEditable(el: Element | null): boolean {
       el.type,
     )
   return (el as HTMLElement).isContentEditable
+}
+
+function subscribeKeyboard(onChange: () => void): () => void {
+  const observer = new MutationObserver(onChange)
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-keyboard"],
+  })
+  return () => observer.disconnect()
+}
+
+/** True while the on-screen keyboard is open (see installKeyboardViewport). */
+export function useKeyboardOpen(): boolean {
+  return useSyncExternalStore(
+    subscribeKeyboard,
+    () => document.documentElement.dataset.keyboard === "open",
+    () => false,
+  )
 }
