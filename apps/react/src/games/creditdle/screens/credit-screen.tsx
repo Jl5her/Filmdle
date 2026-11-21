@@ -1,6 +1,7 @@
 import type { CreditdleActor, CreditdleCredit } from "@stardle/types"
 import clsx from "clsx"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { ArcadeNextButton } from "@/games/_common/components/arcade-next-button"
 import type { Suggestion } from "@/games/_common/components/guess-input"
 import { GuessInput } from "@/games/_common/components/guess-input"
 import { GameHeader } from "@/games/_common/components/header"
@@ -299,8 +300,14 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
               </div>
             ) : (
               <div className="mx-3">
-                <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-300">
+                <p className="mb-1 flex items-center justify-center gap-2 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-300">
                   {remainingGuesses} {remainingGuesses === 1 ? "guess" : "guesses"} remaining
+                  {mode === "arcade" && (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <ArcadeNextButton label="Next" onClick={startNextPuzzle} />
+                    </>
+                  )}
                 </p>
                 <GuessInput
                   disabled={false}

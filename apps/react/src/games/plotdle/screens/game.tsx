@@ -559,6 +559,16 @@ function PlotScreen({
                   <Icon name="eye" />
                   {confirmReveal ? "Tap again to reveal" : "Reveal answer"}
                 </button>
+                {!isDaily && !masked && (
+                  <button
+                    type="button"
+                    onClick={onNext}
+                    className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider text-danger-600 transition-colors hover:bg-danger-600/10 dark:text-danger-400 dark:hover:bg-danger-500/20"
+                  >
+                    Next plot
+                    <Icon name="chevron-right" />
+                  </button>
+                )}
               </div>
             )}
 
