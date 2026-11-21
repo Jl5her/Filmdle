@@ -13,8 +13,6 @@ import { SettingsContent } from "./settings-overlay"
 
 type Panel = "settings" | "about" | "how-to-play" | null
 
-const showDebug = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEBUG === "true"
-
 const GAMES = [
   {
     id: "actordle",
@@ -124,13 +122,11 @@ export function MainMenu() {
           />
           <CircleIcon label="About" onClick={() => setPanel("about")} svg={<InfoSvg />} />
           <CircleIcon label="Settings" onClick={() => setPanel("settings")} svg={<GearSvg />} />
-          {showDebug && (
-            <CircleIcon
-              label="Debug: answer calendar"
-              onClick={() => navigate("/debug/calendar")}
-              svg={<CalendarSvg />}
-            />
-          )}
+          <CircleIcon
+            label="Debug: answer calendar"
+            onClick={() => navigate("/debug/calendar")}
+            svg={<CalendarSvg />}
+          />
         </div>
         <p className="text-xs text-primary-700 dark:text-primary-300">{formatLongDate()}</p>
       </div>

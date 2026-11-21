@@ -117,7 +117,7 @@ export default function DebugCalendar() {
           Answers
         </h1>
         <p className="mt-0.5 text-[11px] uppercase tracking-wider text-warning-600 dark:text-warning-500">
-          Debug · local only
+          Debug · spoilers
         </p>
       </header>
 
