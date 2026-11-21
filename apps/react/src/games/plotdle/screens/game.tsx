@@ -1,7 +1,7 @@
 import { plots } from "@stardle/data/plotdle"
 import type { PlotdlePlot } from "@stardle/types"
 import clsx from "clsx"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Navigate, useNavigate, useParams } from "react-router-dom"
 import type { Suggestion } from "@/games/_common/components/guess-input"
 import { GuessInput } from "@/games/_common/components/guess-input"
@@ -16,6 +16,7 @@ import { StatsContent } from "@/shared/components/stats-overlay"
 import { TicketDecor } from "@/shared/components/ticket-decor"
 import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
 import { formatSerial, todayKey } from "@/shared/lib/date"
+import { useKeyboardOpen } from "@/shared/lib/keyboard-viewport"
 import { getIncludeAnimated, setIncludeAnimated } from "@/shared/lib/plotdle-prefs"
 import { appendResult } from "@/shared/lib/stats"
 import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
@@ -41,6 +42,18 @@ type HintId = "character" | "year" | "genre"
  * character (the strongest hint) after the second. Players can also tap to
  * reveal one early; only those early taps count toward the 💡 in the share.
  */
+/**
+ * Steps tried, roomiest first, until the typing view fits above the
+ * keyboard: smaller plot text, then dropping the header.
+ */
+const FIT_STEPS = [
+  { plot: "text-lg", header: true },
+  { plot: "text-base", header: true },
+  { plot: "text-[15px]", header: true },
+  { plot: "text-sm", header: true },
+  { plot: "text-sm", header: false },
+] as const
+
 const HINTS: { id: HintId; label: string; icon: IconName; freeAfterMisses: number }[] = [
   { id: "year", label: "Year", icon: "calendar", freeAfterMisses: 1 },
   { id: "genre", label: "Genre", icon: "masks-theater", freeAfterMisses: 1 },
@@ -247,6 +260,10 @@ function PlotScreen({
   // After the game, "Hide answer" redraws the screen as a fresh, unplayed
   // puzzle so it can be shown to or screenshotted for someone else.
   const [answerHidden, setAnswerHidden] = useState(false)
+  const keyboardOpen = useKeyboardOpen()
+  const contentRef = useRef<HTMLDivElement>(null)
+  // 0 = normal plot text; each step shrinks it until it fits above the keyboard.
+  const [fitLevel, setFitLevel] = useState(0)
   // Hints the other person has tapped open while the answer is hidden. Not saved.
   const [maskedHints, setMaskedHints] = useState<HintId[]>([])
 
@@ -393,8 +410,31 @@ function PlotScreen({
 
   const remaining = MAX_GUESSES - guesses.length
   const masked = gameOver && answerHidden
-  // After the game the hints shrink to one-line rows so the guesses stay in view.
-  const compactHints = gameOver && !masked
+  // While typing, only the plot and any revealed hints sit above the keyboard,
+  // sized to fit without scrolling.
+  const typing = keyboardOpen && !gameOver
+  // After the game (and while typing) hints are one-line rows.
+  const compactHints = (gameOver && !masked) || typing
+
+  // Shrink the plot text until the typing view fits without scrolling.
+  useLayoutEffect(() => {
+    if (!typing) {
+      setFitLevel(0)
+      return
+    }
+    const el = contentRef.current
+    if (!el) return
+    // Content is bottom-aligned, so overflow spills off the top edge.
+    const check = () => {
+      const first = el.firstElementChild
+      if (first && first.getBoundingClientRect().top < el.getBoundingClientRect().top - 1)
+        setFitLevel((l) => Math.min(l + 1, FIT_STEPS.length - 1))
+    }
+    check()
+    const observer = new ResizeObserver(check)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [typing, fitLevel, hints.length, misses])
 
   return (
     <div className="app-viewport flex flex-col" data-game={GAME_KEY}>
@@ -403,6 +443,7 @@ function PlotScreen({
         mode={isDaily ? "daily" : "arcade"}
         serial={answer.id}
         gameKey={GAME_KEY}
+        collapsed={typing && !FIT_STEPS[fitLevel]?.header}
         seat={{ used: masked ? 0 : guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => setStatsOpen((v) => !v)}
       />
@@ -439,15 +480,17 @@ function PlotScreen({
           {introOpen && <NowShowing serial={answer.id} animated={answer.animated} />}
 
           <div
+            ref={contentRef}
             className={clsx(
-              "scroll-fade flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overflow-x-hidden pb-4 kb:gap-2 kb:pb-2",
+              "flex min-h-0 flex-1 flex-col",
+              typing
+                ? "justify-end gap-2 overflow-hidden pb-2"
+                : "scroll-fade gap-3 overflow-y-auto overflow-x-hidden pb-4",
               introOpen && "hidden",
             )}
           >
-            {/* While typing, this spacer pushes the plot down to sit just above the input. */}
-            <div aria-hidden="true" className="hidden kb:block kb:flex-1" />
             {!compactHints && (
-              <p className="kb:hidden text-center text-xs uppercase tracking-widest text-primary-500 dark:text-primary-300">
+              <p className="text-center text-xs uppercase tracking-widest text-primary-500 dark:text-primary-300">
                 Name the movie from this plot
               </p>
             )}
@@ -455,14 +498,19 @@ function PlotScreen({
             <figure
               className={clsx(
                 "shrink-0 rounded-md border-2 border-primary-200 bg-primary-50 px-4 dark:border-primary-700 dark:bg-primary-800/60",
-                compactHints ? "py-3" : "py-4",
+                typing ? "px-3 py-2" : compactHints ? "py-3" : "py-4",
               )}
             >
-              <blockquote className="text-center text-lg leading-snug text-primary-900 dark:text-primary-50">
+              <blockquote
+                className={clsx(
+                  "text-center leading-snug text-primary-900 dark:text-primary-50",
+                  typing ? FIT_STEPS[fitLevel]?.plot : "text-lg",
+                )}
+              >
                 “{answer.plot}”
               </blockquote>
               {answer.animated && (
-                <figcaption className="mt-2 flex justify-center">
+                <figcaption className={clsx("flex justify-center", typing ? "mt-1" : "mt-2")}>
                   <span className="rounded-full border border-danger-500/50 px-2 py-0.5 text-[11px] uppercase tracking-widest text-danger-600 dark:text-danger-400">
                     Animated
                   </span>
@@ -474,9 +522,9 @@ function PlotScreen({
               className={clsx(
                 "grid shrink-0 grid-cols-2",
                 compactHints ? "gap-1.5" : "gap-2",
-                !gameOver &&
+                typing &&
                   !HINTS.some((h) => unlocked.has(h.id) || hints.includes(h.id)) &&
-                  "kb:hidden",
+                  "hidden",
               )}
             >
               {HINTS.map((h) => {
@@ -497,11 +545,14 @@ function PlotScreen({
                     className={clsx(
                       "flex rounded-md border-2 transition-colors",
                       compactHints
-                        ? "min-w-0 items-baseline gap-2 px-3 py-1.5 text-left"
-                        : "flex-col items-center justify-center gap-1 px-2 py-2 text-center kb:py-1",
+                        ? clsx(
+                            "min-w-0 items-baseline gap-2 text-left",
+                            typing ? "px-2.5 py-1" : "px-3 py-1.5",
+                          )
+                        : "flex-col items-center justify-center gap-1 px-2 py-2 text-center",
                       h.id === "character" && "col-span-2",
                       // Unrevealed hints just add distance between plot and keyboard.
-                      !shown && "kb:hidden",
+                      !shown && typing && "hidden",
                       shown
                         ? "border-primary-200 bg-primary-50 dark:border-primary-700 dark:bg-primary-800/60"
                         : "cursor-pointer border-dashed border-primary-300 text-primary-500 hover:border-danger-500/60 hover:text-danger-600 dark:border-primary-500/70 dark:text-primary-300 dark:hover:border-primary-300 dark:hover:text-primary-100",
@@ -513,8 +564,9 @@ function PlotScreen({
                     </span>
                     <span
                       className={clsx(
-                        "text-sm",
+                        typing ? "text-[13px]" : "text-sm",
                         compactHints && "min-w-0",
+                        typing && "truncate",
                         shown
                           ? "text-primary-900 dark:text-primary-50"
                           : "text-xs italic text-primary-500 dark:text-primary-300",
@@ -532,8 +584,8 @@ function PlotScreen({
               })}
             </div>
 
-            {(!gameOver || masked) && (
-              <div className="flex flex-wrap justify-center gap-2 kb:hidden">
+            {(!gameOver || masked) && !typing && (
+              <div className="flex flex-wrap justify-center gap-2">
                 <button
                   type="button"
                   onClick={handleShare}
@@ -572,7 +624,7 @@ function PlotScreen({
               </div>
             )}
 
-            {guesses.length > 0 && !masked && (
+            {guesses.length > 0 && !masked && !typing && (
               <div className="shrink-0">
                 <p className="mb-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-300">
                   Guesses
