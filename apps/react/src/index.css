@@ -553,6 +553,72 @@ body {
   }
 }
 
+/* Saved ticket stubs in Stats: small torn stubs with side notches and a
+   perforated top edge. */
+.mini-stub {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 88px;
+  padding: 10px 6px 8px;
+  border-top: 2px dotted color-mix(in srgb, var(--ticket-ink) 35%, transparent);
+  border-radius: 0 0 4px 4px;
+  background:
+    radial-gradient(circle 6px at 0 55%, var(--ticket-paper) 6px, transparent 6.5px),
+    radial-gradient(circle 6px at 100% 55%, var(--ticket-paper) 6px, transparent 6.5px),
+    color-mix(in srgb, var(--ticket-paper) 88%, var(--ticket-stub-mix));
+  color: var(--ticket-ink);
+  text-align: center;
+  transform: rotate(-1.5deg);
+}
+
+.mini-stub:nth-child(even) {
+  transform: rotate(1.2deg);
+}
+
+.mini-stub-date {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ticket-ink) 60%, transparent);
+}
+
+.mini-stub-no {
+  font-family: "Anton", sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--ticket-red);
+}
+
+.mini-stub-score {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-stub-stamp {
+  margin-top: 2px;
+  padding: 0 4px;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  font-family: "Anton", sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
+}
+
+.mini-stub[data-result="win"] .mini-stub-stamp {
+  color: var(--ticket-red);
+}
+
+.mini-stub[data-result="loss"] .mini-stub-stamp {
+  color: color-mix(in srgb, var(--ticket-ink) 50%, transparent);
+}
+
 /* Each game prints on its own colour of ticket paper (Ticket design). */
 :root[data-design="ticket"] .app-viewport[data-game="actordle"] {
   --ticket-paper: #f8eccb;

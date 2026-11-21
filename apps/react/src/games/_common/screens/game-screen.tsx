@@ -211,7 +211,7 @@ export function GameScreen<T>({
           open={statsOpen}
           title="Stats"
           onClose={() => setStatsOpen(false)}
-          className="px-4 pt-3"
+          className="px-4 pt-3 pb-[var(--tear-height)]"
         >
           <StatsContent open={statsOpen} />
         </InlinePanel>

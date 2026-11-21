@@ -308,7 +308,7 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
           open={statsOpen}
           title="Stats"
           onClose={() => setStatsOpen(false)}
-          className="px-4 pt-3"
+          className="px-4 pt-3 pb-[var(--tear-height)]"
         >
           <StatsContent open={statsOpen} defaultGame={gameKey as "creditdle" | "showdle"} />
         </InlinePanel>
