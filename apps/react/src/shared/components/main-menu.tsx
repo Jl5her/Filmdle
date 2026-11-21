@@ -13,8 +13,6 @@ import { SettingsContent } from "./settings-overlay"
 
 type Panel = "settings" | "about" | "how-to-play" | null
 
-const showDebug = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEBUG === "true"
-
 const GAMES = [
   {
     id: "actordle",
@@ -124,13 +122,6 @@ export function MainMenu() {
           />
           <CircleIcon label="About" onClick={() => setPanel("about")} svg={<InfoSvg />} />
           <CircleIcon label="Settings" onClick={() => setPanel("settings")} svg={<GearSvg />} />
-          {showDebug && (
-            <CircleIcon
-              label="Debug: answer calendar"
-              onClick={() => navigate("/debug/calendar")}
-              svg={<CalendarSvg />}
-            />
-          )}
         </div>
         <p className="text-xs text-primary-700 dark:text-primary-300">{formatLongDate()}</p>
       </div>
@@ -198,26 +189,6 @@ function InfoSvg() {
       <circle cx="12" cy="12" r="10" />
       <line x1="12" y1="11" x2="12" y2="16" />
       <circle cx="12" cy="7.75" r="0.6" fill="currentColor" stroke="none" />
-    </svg>
-  )
-}
-
-function CalendarSvg() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-5 w-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="3" y="5" width="18" height="16" rx="2" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-      <line x1="8" y1="3" x2="8" y2="7" />
-      <line x1="16" y1="3" x2="16" y2="7" />
     </svg>
   )
 }
