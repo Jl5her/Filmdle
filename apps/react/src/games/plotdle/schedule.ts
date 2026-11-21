@@ -10,47 +10,23 @@ import { puzzleNumber } from "@/shared/lib/date"
  * - "arcade" plots are always playable from Play Again.
  * Once a daily's day has passed it joins the arcade rotation, so Play Again
  * never spoils today's or a future daily.
+ *
+ * When the daily plots run out, the schedule carries on through the
+ * well-known arcade plots (in id order, so it stays append-only) instead of
+ * starting over. Those plots stay in Play Again until they are close to
+ * their day, then sit out until it has passed.
  */
 
 const GAME_KEY = "plotdle"
-
-export const byId = new Map(plots.map((p) => [p.id, p]))
-const dailies = plots.filter((p) => p.pool === "daily").sort((a, b) => a.id - b.id)
-const dayOfDaily = new Map(dailies.map((p, i) => [p.id, i + 1]))
-
-/** Today's day number (launch day is 1). */
-export function currentDay(dateKey: string): number {
-  return puzzleNumber(GAME_KEY, dateKey) ?? 1
-}
-
-/** The daily for a date. If the schedule ever runs out, it wraps around. */
-export function dailyPlot(dateKey: string): PlotdlePlot {
-  const n = dailies.length
-  const idx = (((currentDay(dateKey) - 1) % n) + n) % n
-  return dailies[idx] as PlotdlePlot
-}
-
-/** Day a daily plot is scheduled for, or undefined for arcade plots. */
-function scheduledDay(plot: PlotdlePlot, dateKey: string): number | undefined {
-  const day = dayOfDaily.get(plot.id)
-  if (day === undefined) return undefined
-  // Past the end of the schedule every daily has been released already.
-  return currentDay(dateKey) > dailies.length ? 0 : day
-}
-
-/**
- * Whether a shared link may open this plot. Dailies unlock one day early so a
- * link sent from a time zone that is already on tomorrow still opens.
- */
-export function canOpen(plot: PlotdlePlot, dateKey: string): boolean {
-  const day = scheduledDay(plot, dateKey)
-  return day === undefined || day <= currentDay(dateKey) + 1
-}
+/** How many days ahead an extension plot leaves Play Again and shared links. */
+const SPOILER_WINDOW_DAYS = 60
 
 /** Most entries Play Again serves from one franchise. */
 const PER_FRANCHISE = 2
 /** How much more often household names come up than other well-known films. */
 const FAME_WEIGHT = { 1: 0, 2: 1, 3: 3 } as const
+
+export const byId = new Map(plots.map((p) => [p.id, p]))
 
 /**
  * Plots Play Again may ever serve: no MCU, nothing niche, and only the two
@@ -74,9 +50,51 @@ const arcadeEligible: Set<number> = (() => {
   return kept
 })()
 
-/** Daily puzzle number a plot is scheduled for, or undefined for arcade plots. */
+const dailies = plots.filter((p) => p.pool === "daily").sort((a, b) => a.id - b.id)
+const extension = plots
+  .filter((p) => p.pool === "arcade" && arcadeEligible.has(p.id))
+  .sort((a, b) => a.id - b.id)
+const schedule = [...dailies, ...extension]
+const dayOf = new Map(schedule.map((p, i) => [p.id, i + 1]))
+
+/** Today's day number (launch day is 1). */
+export function currentDay(dateKey: string): number {
+  return puzzleNumber(GAME_KEY, dateKey) ?? 1
+}
+
+/** The daily for a date. Only wraps around if the whole extended schedule is used up. */
+export function dailyPlot(dateKey: string): PlotdlePlot {
+  const n = schedule.length
+  const idx = (((currentDay(dateKey) - 1) % n) + n) % n
+  return schedule[idx] as PlotdlePlot
+}
+
+/** Day a plot is scheduled for, or undefined if it never is. */
+function scheduledDay(plot: PlotdlePlot, dateKey: string): number | undefined {
+  const day = dayOf.get(plot.id)
+  if (day === undefined) return undefined
+  // Past the end of the schedule every plot has been released already.
+  return currentDay(dateKey) > schedule.length ? 0 : day
+}
+
+/** An arcade plot whose daily is far enough off that it's fine to play now. */
+function farOffExtension(plot: PlotdlePlot, day: number, today: number): boolean {
+  return plot.pool === "arcade" && day > today + SPOILER_WINDOW_DAYS
+}
+
+/**
+ * Whether a shared link may open this plot. Dailies unlock one day early so a
+ * link sent from a time zone that is already on tomorrow still opens.
+ */
+export function canOpen(plot: PlotdlePlot, dateKey: string): boolean {
+  const day = scheduledDay(plot, dateKey)
+  const today = currentDay(dateKey)
+  return day === undefined || day <= today + 1 || farOffExtension(plot, day, today)
+}
+
+/** Daily puzzle number a plot is scheduled for, or undefined if it never is. */
 export function dailyNumberOf(plot: PlotdlePlot): number | undefined {
-  return dayOfDaily.get(plot.id)
+  return dayOf.get(plot.id)
 }
 
 /** Why Play Again never serves a plot, or undefined if it can. */
@@ -87,13 +105,16 @@ export function playAgainExclusion(plot: PlotdlePlot): string | undefined {
   return "Franchise limit"
 }
 
-/** Plots Play Again may serve today: eligible arcade plots plus eligible dailies from earlier days. */
+/**
+ * Plots Play Again may serve today: eligible plots that aren't scheduled,
+ * whose day has passed, or (extension plots) whose day is still far off.
+ */
 function arcadeCandidates(dateKey: string): PlotdlePlot[] {
   const today = currentDay(dateKey)
   return plots.filter((p) => {
     if (!arcadeEligible.has(p.id)) return false
     const day = scheduledDay(p, dateKey)
-    return day === undefined || day < today
+    return day === undefined || day < today || farOffExtension(p, day, today)
   })
 }
 

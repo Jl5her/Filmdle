@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { Suggestion } from "@/games/_common/components/guess-input"
 import { GuessInput } from "@/games/_common/components/guess-input"
 import { GameHeader } from "@/games/_common/components/header"
+import { NextPuzzleCountdown } from "@/games/_common/components/next-puzzle-countdown"
 import { ResultBanner } from "@/games/_common/components/result-banner"
 import { searchPerson } from "@/lib/tmdb"
 import { InlinePanel } from "@/shared/components/inline-panel"
@@ -11,8 +12,9 @@ import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { TicketDecor } from "@/shared/components/ticket-decor"
 import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
+import { pickDaily } from "@/shared/lib/daily-schedule"
 import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
-import { fnv1a, minHashPick } from "@/shared/lib/hash"
+import { fnv1a } from "@/shared/lib/hash"
 import { appendResult } from "@/shared/lib/stats"
 import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
 
@@ -102,7 +104,7 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
   )
 
   const answer = useMemo(() => {
-    if (mode === "daily") return minHashPick(candidates, (a) => a.id, `${gameKey}:${dateKey}`)
+    if (mode === "daily") return pickDaily(gameKey, candidates, (a) => a.id, dateKey)
     const idx = Math.floor(Math.random() * candidates.length)
     return candidates[idx] as CreditdleActor
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -225,7 +227,12 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
         >
           {gameOver && (
             <div className="mb-3">
-              <ResultBanner won={won} answer={answer.name} guessCount={guesses.length} />
+              <ResultBanner
+                won={won}
+                answer={answer.name}
+                guessCount={guesses.length}
+                footer={mode === "daily" ? <NextPuzzleCountdown game={title} /> : undefined}
+              />
             </div>
           )}
 

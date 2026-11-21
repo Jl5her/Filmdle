@@ -2,8 +2,8 @@ import { actorAnswerPool, actors, filmAnswerPool, films } from "@stardle/data"
 import clsx from "clsx"
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
+import { pickDaily } from "@/shared/lib/daily-schedule"
 import { todayKey } from "@/shared/lib/date"
-import { minHashPick } from "@/shared/lib/hash"
 
 const MONTH_NAMES = [
   "January",
@@ -54,15 +54,17 @@ export default function DebugCalendar() {
     const out: DayRow[] = []
     for (let d = 1; d <= daysInMonth; d += 1) {
       const dk = dateKeyOf(year, monthIndex, d)
-      const film = minHashPick(
+      const film = pickDaily(
+        "filmdle",
         filmCandidates as NonNullable<(typeof filmCandidates)[number]>[],
         (f) => f.id,
-        `filmdle:${dk}`,
+        dk,
       )
-      const actor = minHashPick(
+      const actor = pickDaily(
+        "actordle",
         actorCandidates as NonNullable<(typeof actorCandidates)[number]>[],
         (a) => a.id,
-        `actordle:${dk}`,
+        dk,
       )
       const weekday = new Date(year, monthIndex, d).toLocaleDateString("en-US", {
         weekday: "short",

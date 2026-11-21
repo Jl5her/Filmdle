@@ -1,5 +1,6 @@
 import clsx from "clsx"
 import { useState } from "react"
+import { createBackupCode, restoreBackupCode } from "@/shared/lib/backup"
 import { getIncludeAnimated, setIncludeAnimated } from "@/shared/lib/plotdle-prefs"
 import type { Design, Theme } from "@/shared/lib/theme"
 import { useTheme } from "@/shared/lib/theme-context"
@@ -127,6 +128,118 @@ export function SettingsContent() {
           />
         </label>
       </section>
+      <StatsBackup />
     </>
+  )
+}
+
+/** Copy a backup code of stats and progress, or paste one to restore it. */
+function StatsBackup() {
+  const [code, setCode] = useState("")
+  const [copied, setCopied] = useState<"idle" | "copied" | "manual">("idle")
+  const [restoreText, setRestoreText] = useState("")
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+
+  async function copy() {
+    const next = createBackupCode()
+    setCode(next)
+    try {
+      await navigator.clipboard.writeText(next)
+      setCopied("copied")
+      window.setTimeout(() => setCopied("idle"), 2500)
+    } catch {
+      // Clipboard blocked: show the code so it can be copied by hand.
+      setCopied("manual")
+    }
+  }
+
+  function restore() {
+    try {
+      const { games, days } = restoreBackupCode(restoreText)
+      setMessage({
+        ok: true,
+        text:
+          games > 0
+            ? `Restored stats for ${games} ${games === 1 ? "game" : "games"} (${days} days played).`
+            : "Restored your saved progress.",
+      })
+      setRestoreText("")
+    } catch (err) {
+      setMessage({ ok: false, text: (err as Error).message })
+    }
+  }
+
+  return (
+    <section className="mt-6">
+      <h3 className="mb-2 text-xs uppercase tracking-wider text-primary-500 dark:text-primary-300">
+        Your stats
+      </h3>
+      <div className="flex flex-col gap-3 rounded-md border-2 border-primary-200 px-3 py-3 dark:border-primary-700">
+        <p className="text-[12px] text-primary-600 dark:text-primary-300">
+          Stats and streaks are saved on this device only. Copy a backup code to move them to
+          another phone or browser.
+        </p>
+        <button
+          type="button"
+          onClick={copy}
+          className="cursor-pointer self-start rounded-md border-2 border-danger-600 px-3 py-2 text-sm uppercase tracking-wide text-danger-600 transition-colors hover:bg-danger-600/10 dark:border-danger-500 dark:text-primary-50"
+        >
+          {copied === "copied" ? "Backup code copied" : "Copy backup code"}
+        </button>
+        {copied === "manual" && (
+          <label className="flex flex-col gap-1 text-[12px] text-primary-600 dark:text-primary-300">
+            Copying was blocked. Select this code and copy it:
+            <textarea
+              readOnly
+              value={code}
+              rows={3}
+              onFocus={(e) => e.currentTarget.select()}
+              className="w-full rounded-md border border-primary-300 bg-primary-50 p-2 font-mono text-[11px] text-primary-900 dark:border-primary-700 dark:bg-primary-800 dark:text-primary-50"
+            />
+          </label>
+        )}
+        <label
+          htmlFor="restore-code"
+          className="text-[12px] text-primary-600 dark:text-primary-300"
+        >
+          Restore from a backup code
+        </label>
+        <div className="flex gap-2">
+          <input
+            id="restore-code"
+            value={restoreText}
+            onChange={(e) => {
+              setRestoreText(e.target.value)
+              setMessage(null)
+            }}
+            placeholder="Paste code"
+            autoComplete="off"
+            spellCheck={false}
+            className="min-w-0 flex-1 rounded-md border-2 border-primary-300 bg-primary-100 px-3 py-2 text-sm text-primary-900 outline-none placeholder:text-primary-500 focus:border-primary-500 dark:border-primary-700 dark:bg-primary-800 dark:text-primary-50"
+          />
+          <button
+            type="button"
+            onClick={restore}
+            disabled={!restoreText.trim()}
+            className="cursor-pointer rounded-md bg-danger-600 px-3 py-2 text-sm uppercase tracking-wide text-primary-50 transition-colors hover:bg-danger-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-danger-500"
+          >
+            Restore
+          </button>
+        </div>
+        {message && (
+          <p
+            role="status"
+            className={clsx(
+              "text-[12px]",
+              message.ok
+                ? "text-success-700 dark:text-success-400"
+                : "text-danger-600 dark:text-danger-400",
+            )}
+          >
+            {message.text}
+          </p>
+        )}
+      </div>
+    </section>
   )
 }

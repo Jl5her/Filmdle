@@ -1,5 +1,5 @@
 import clsx from "clsx"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useId, useMemo, useRef, useState } from "react"
 
 export interface Suggestion {
   key: string
@@ -31,6 +31,8 @@ export function GuessInput({
   const [showDropdown, setShowDropdown] = useState(false)
   const [highlight, setHighlight] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const listId = useId()
+  const optionId = (i: number) => `${listId}-opt-${i}`
   const dropdownRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<number | null>(null)
   const abortRef = useRef<AbortController | null>(null)
@@ -118,6 +120,9 @@ export function GuessInput({
 
   if (disabled) return null
 
+  const open = showDropdown && Boolean(trimmed)
+  const activeId = open && visible[highlight] ? optionId(highlight) : undefined
+
   return (
     <div className="shrink-0 mx-3 py-2">
       <div className="relative max-w-xs mx-auto">
@@ -134,6 +139,12 @@ export function GuessInput({
           onBlur={() => setTimeout(() => setShowDropdown(false), 120)}
           onKeyDown={handleKey}
           placeholder={placeholder}
+          aria-label={placeholder.replace(/(…|\.\.\.)$/, "")}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-activedescendant={activeId}
           className="w-full px-4 py-3 text-base rounded-lg border-2 border-primary-300 dark:border-primary-700 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-primary-50 placeholder:text-primary-500 dark:placeholder:text-primary-400 outline-none focus:border-primary-500 dark:focus:border-primary-400 [&::-webkit-search-cancel-button]:appearance-none"
           autoComplete="off"
           autoCorrect="off"
@@ -144,9 +155,18 @@ export function GuessInput({
           data-bwignore
           data-form-type="other"
         />
-        {showDropdown && trimmed && (
+        {/* Announces result counts to screen readers as the list updates. */}
+        <span className="sr-only" role="status" aria-live="polite">
+          {open && !loading && visible.length > 0
+            ? `${visible.length} ${visible.length === 1 ? "suggestion" : "suggestions"}. Use up and down arrows to choose.`
+            : ""}
+        </span>
+        {open && (
           <div
             ref={dropdownRef}
+            id={listId}
+            role="listbox"
+            aria-label="Suggestions"
             className="absolute bottom-full left-0 right-0 max-h-56 overflow-y-auto bg-primary-100 dark:bg-primary-800 border border-primary-300 dark:border-primary-700 rounded-lg mb-1 shadow-xl z-30"
           >
             {loading && visible.length === 0 && (
@@ -172,7 +192,11 @@ export function GuessInput({
             {visible.map((s, i) => (
               <button
                 key={s.key}
+                id={optionId(i)}
                 type="button"
+                role="option"
+                aria-selected={i === highlight}
+                tabIndex={-1}
                 data-suggestion
                 className={clsx(
                   "flex items-center gap-2 w-full px-3 py-2 text-left cursor-pointer transition-colors",
