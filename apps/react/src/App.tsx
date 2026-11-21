@@ -10,6 +10,7 @@ const MovieCreditGame = lazy(gameLoaders.creditdle)
 const TvCreditGame = lazy(gameLoaders.showdle)
 const PlotdleGame = lazy(gameLoaders.plotdle)
 const DebugCalendar = lazy(() => import("./shared/components/debug-calendar"))
+const DebugPlots = lazy(() => import("./shared/components/debug-plots"))
 
 // Debug routes are visible in `vite dev` and in any deploy that sets
 // VITE_SHOW_DEBUG=true (e.g. Cloudflare Pages preview environments).
@@ -36,6 +37,7 @@ export function App() {
           <Route path="/plotdle" element={<PlotdleGame />} />
           <Route path="/plotdle/:id" element={<PlotdleGame />} />
           {showDebug && <Route path="/debug/calendar" element={<DebugCalendar />} />}
+          {showDebug && <Route path="/debug/plots" element={<DebugPlots />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

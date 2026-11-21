@@ -74,6 +74,19 @@ const arcadeEligible: Set<number> = (() => {
   return kept
 })()
 
+/** Daily puzzle number a plot is scheduled for, or undefined for arcade plots. */
+export function dailyNumberOf(plot: PlotdlePlot): number | undefined {
+  return dayOfDaily.get(plot.id)
+}
+
+/** Why Play Again never serves a plot, or undefined if it can. */
+export function playAgainExclusion(plot: PlotdlePlot): string | undefined {
+  if (arcadeEligible.has(plot.id)) return undefined
+  if (plot.mcu) return "MCU"
+  if ((plot.fame ?? 2) === 1) return "Niche"
+  return "Franchise limit"
+}
+
 /** Plots Play Again may serve today: eligible arcade plots plus eligible dailies from earlier days. */
 function arcadeCandidates(dateKey: string): PlotdlePlot[] {
   const today = currentDay(dateKey)
