@@ -2,6 +2,7 @@ packages:
   - "apps/*"
   - "packages/*"
 allowBuilds:
+  '@fortawesome/fontawesome-free': false
   esbuild: true
   sharp: true
   workerd: true

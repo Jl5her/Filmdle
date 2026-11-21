@@ -145,12 +145,12 @@ export function GuessInput({
             className="absolute bottom-full left-0 right-0 max-h-56 overflow-y-auto bg-primary-100 dark:bg-primary-800 border border-primary-300 dark:border-primary-700 rounded-lg mb-1 shadow-xl z-30"
           >
             {loading && visible.length === 0 && (
-              <div className="px-3 py-2 text-xs text-primary-500 dark:text-primary-400">
+              <div className="px-3 py-2 text-xs text-primary-500 dark:text-primary-300">
                 Searching…
               </div>
             )}
             {!loading && visible.length === 0 && (
-              <div className="px-3 py-2 text-xs text-primary-500 dark:text-primary-400">
+              <div className="px-3 py-2 text-xs text-primary-500 dark:text-primary-300">
                 No matches
               </div>
             )}

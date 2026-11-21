@@ -137,7 +137,7 @@ export default function DebugCalendar() {
           <button
             type="button"
             onClick={goToday}
-            className="mt-0.5 cursor-pointer text-[11px] uppercase tracking-wider text-primary-500 transition-colors hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-50"
+            className="mt-0.5 cursor-pointer text-[11px] uppercase tracking-wider text-primary-500 transition-colors hover:text-primary-900 dark:text-primary-300 dark:hover:text-primary-50"
           >
             Jump to today
           </button>
@@ -152,7 +152,7 @@ export default function DebugCalendar() {
         </button>
       </div>
 
-      <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-x-3 border-b border-primary-200/60 px-[var(--ticket-pad-x)] py-2 text-[11px] uppercase tracking-wider text-primary-500 dark:border-primary-700/60 dark:text-primary-400">
+      <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-x-3 border-b border-primary-200/60 px-[var(--ticket-pad-x)] py-2 text-[11px] uppercase tracking-wider text-primary-500 dark:border-primary-700/60 dark:text-primary-300">
         <span>Date</span>
         <span>Filmdle</span>
         <span>Actordle</span>

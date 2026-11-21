@@ -67,7 +67,7 @@ export function GameModeButton({
       </span>
       <span
         aria-hidden="true"
-        className="flex items-center pr-3 text-sm text-primary-400 transition-transform group-hover:translate-x-0.5 group-hover:text-danger-600 dark:text-primary-500 dark:group-hover:text-primary-100"
+        className="flex items-center pr-3 text-sm text-primary-500 transition-transform group-hover:translate-x-0.5 group-hover:text-danger-600 dark:text-primary-300 dark:group-hover:text-primary-100"
       >
         <i className="fa-solid fa-chevron-right" />
       </span>

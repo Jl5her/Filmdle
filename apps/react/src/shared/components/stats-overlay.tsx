@@ -52,7 +52,7 @@ export function StatsContent({ open, defaultGame }: Props) {
     <>
       <div
         role="tablist"
-        className="mb-5 flex gap-1 overflow-x-auto rounded-md bg-primary-100 p-1 [scrollbar-width:none] dark:bg-primary-900"
+        className="mb-5 grid grid-cols-5 gap-0.5 rounded-md bg-primary-100 p-1 dark:bg-primary-900"
       >
         {GAMES.map((g) => (
           <button
@@ -63,10 +63,10 @@ export function StatsContent({ open, defaultGame }: Props) {
             aria-selected={activeGame === g.id}
             onClick={() => setActiveGame(g.id)}
             className={clsx(
-              "marquee flex-1 shrink-0 cursor-pointer whitespace-nowrap rounded-md px-3 py-1.5 text-sm uppercase transition-colors",
+              "marquee min-w-0 cursor-pointer whitespace-nowrap rounded-md px-0.5 py-1.5 text-[clamp(10px,3vw,14px)] tracking-[0.03em] uppercase transition-colors",
               activeGame === g.id
                 ? "bg-primary-50 text-primary-900 shadow-sm dark:bg-primary-700 dark:text-primary-50"
-                : "text-primary-500 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-50",
+                : "text-primary-500 hover:text-primary-900 dark:text-primary-300 dark:hover:text-primary-50",
             )}
           >
             {g.label}
@@ -75,7 +75,7 @@ export function StatsContent({ open, defaultGame }: Props) {
       </div>
 
       {summary.played === 0 ? (
-        <p className="py-8 text-center text-sm text-primary-500 dark:text-primary-400">
+        <p className="py-8 text-center text-sm text-primary-500 dark:text-primary-300">
           No games played yet. Play today's daily to start tracking stats.
         </p>
       ) : (
@@ -113,7 +113,7 @@ function Stat({ value, label }: { value: number | string; label: string }) {
   return (
     <div>
       <div className="text-2xl leading-none text-primary-900 dark:text-primary-50">{value}</div>
-      <div className="mt-1 text-[11px] uppercase tracking-wider text-primary-500 dark:text-primary-400">
+      <div className="mt-1 text-[11px] uppercase tracking-wider text-primary-500 dark:text-primary-300">
         {label}
       </div>
     </div>

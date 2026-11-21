@@ -38,7 +38,7 @@ export function SettingsContent() {
   return (
     <>
       <section>
-        <h3 className="mb-2 text-xs uppercase tracking-wider text-primary-500 dark:text-primary-400">
+        <h3 className="mb-2 text-xs uppercase tracking-wider text-primary-500 dark:text-primary-300">
           Design
         </h3>
         <div className="grid grid-cols-3 gap-2">
@@ -67,7 +67,7 @@ export function SettingsContent() {
                   ))}
                 </span>
                 <span className="text-sm">{option.label}</span>
-                <span className="mt-0.5 text-center text-[11px] text-primary-500 dark:text-primary-400">
+                <span className="mt-0.5 text-center text-[11px] text-primary-500 dark:text-primary-300">
                   {option.description}
                 </span>
               </button>
@@ -76,7 +76,7 @@ export function SettingsContent() {
         </div>
       </section>
       <section className="mt-6">
-        <h3 className="mb-2 text-xs uppercase tracking-wider text-primary-500 dark:text-primary-400">
+        <h3 className="mb-2 text-xs uppercase tracking-wider text-primary-500 dark:text-primary-300">
           Color mode
         </h3>
         <div className="grid grid-cols-3 gap-2">
@@ -95,7 +95,7 @@ export function SettingsContent() {
                 )}
               >
                 <span className="text-sm">{option.label}</span>
-                <span className="mt-0.5 text-[11px] text-primary-500 dark:text-primary-400">
+                <span className="mt-0.5 text-[11px] text-primary-500 dark:text-primary-300">
                   {option.description}
                 </span>
               </button>
@@ -104,7 +104,7 @@ export function SettingsContent() {
         </div>
       </section>
       <section className="mt-6">
-        <h3 className="mb-2 text-xs uppercase tracking-wider text-primary-500 dark:text-primary-400">
+        <h3 className="mb-2 text-xs uppercase tracking-wider text-primary-500 dark:text-primary-300">
           Plotdle
         </h3>
         <label className="flex cursor-pointer items-center justify-between gap-3 rounded-md border-2 border-primary-200 px-3 py-2.5 dark:border-primary-700">
@@ -112,7 +112,7 @@ export function SettingsContent() {
             <span className="text-sm text-primary-900 dark:text-primary-50">
               Include animated films
             </span>
-            <span className="text-[11px] text-primary-500 dark:text-primary-400">
+            <span className="text-[11px] text-primary-500 dark:text-primary-300">
               When off, Play Again skips animated movies
             </span>
           </span>

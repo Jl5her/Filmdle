@@ -79,10 +79,8 @@
   --stub-mark: 64px;
   /* What the stub's tint is mixed toward. */
   --ticket-stub-mix: #b08a4a;
-  /* Paper finish: grain, a fold crease and edge wear. */
+  /* Paper finish: grain and edge wear. */
   --ticket-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0 0.12 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
-  --ticket-crease-light: rgb(255 255 255 / 0.22);
-  --ticket-crease-dark: rgb(90 60 20 / 0.06);
   --ticket-wear: rgb(120 85 30 / 0.1);
   /* Space between the ticket's outer edge and the screen. */
   --app-viewport-gutter: 8px;
@@ -102,8 +100,6 @@
   --ticket-red: #d44434;
   --ticket-red-dark: #a32a1f;
   --ticket-stub-mix: #000000;
-  --ticket-crease-light: rgb(255 240 210 / 0.07);
-  --ticket-crease-dark: rgb(0 0 0 / 0.22);
   --ticket-wear: rgb(0 0 0 / 0.32);
 
   /* Theater backdrop with a redder, more saturated stage glow. */
@@ -291,14 +287,6 @@ body {
       var(--theater-bg) var(--perf-hole),
       transparent calc(var(--perf-hole) + 0.5px)
     ),
-    /* a fold crease across the ticket */
-    linear-gradient(
-      104deg,
-      transparent 47%,
-      var(--ticket-crease-light) 49.6%,
-      var(--ticket-crease-dark) 50.4%,
-      transparent 53%
-    ),
     /* edge wear: darker toward the edges (stronger in dark mode) */
     radial-gradient(ellipse 85% 80% at 50% 45%, transparent 55%, var(--ticket-wear) 100%),
     /* paper grain */
@@ -315,7 +303,6 @@ body {
     0 calc(100% - var(--tear-height) + var(--perf-step) / 2),
     0 0,
     0 0,
-    0 0,
     0 100%;
   background-size:
     100% 100%,
@@ -325,7 +312,6 @@ body {
     100% 100%,
     100% 100%,
     var(--perf-step) var(--perf-step),
-    100% 100%,
     100% 100%,
     180px 180px,
     100% var(--tear-height);
@@ -337,7 +323,6 @@ body {
     no-repeat,
     no-repeat,
     space no-repeat,
-    no-repeat,
     no-repeat,
     repeat,
     no-repeat;
@@ -508,8 +493,8 @@ body {
    grey on a loss. Lands with a quick thump. */
 .ticket-stamp {
   position: absolute;
-  right: 10px;
-  bottom: 6px;
+  left: 8px;
+  top: 6px;
   padding: 1px 6px;
   border: 2px solid currentColor;
   border-radius: 3px;
@@ -607,7 +592,7 @@ body {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--ticket-ink) 60%, transparent);
+  color: color-mix(in srgb, var(--ticket-ink) 72%, transparent);
 }
 
 .mini-stub-no {
@@ -685,34 +670,91 @@ body {
   margin-bottom: 0;
 }
 
-.ticket-fields > div {
+.ticket-fields > div,
+.ticket-fields .tf {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 12px;
+  padding: 0 8px;
   line-height: 1.15;
   white-space: nowrap;
 }
 
-.ticket-fields > div + div {
+/* The narrowest phones drop the date so the other fields fit. */
+@media (max-width: 359px) {
+  .ticket-fields .tf-date {
+    display: none;
+  }
+  .ticket-fields .tf-date + .tf {
+    border-left: 0;
+  }
+}
+
+.ticket-fields > div + div,
+.ticket-fields .tf + .tf {
   border-left: 1px solid var(--ticket-rule);
 }
 
-.ticket-fields dt {
-  font-size: 8.5px;
-  letter-spacing: 0.2em;
+.ticket-fields dt,
+.ticket-fields .tf-label {
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--ticket-ink) 55%, transparent);
+  color: color-mix(in srgb, var(--ticket-ink) 72%, transparent);
 }
 
-.ticket-fields dd {
+.ticket-fields dd,
+.ticket-fields .tf-value {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ticket-ink);
   font-variant-numeric: tabular-nums;
+}
+
+button.ticket-fields {
+  border-radius: 4px;
+  padding: 2px 0;
+  font: inherit;
+  background: none;
+  border: 0;
+}
+
+button.ticket-fields:focus-visible {
+  outline: 2px solid var(--ticket-red);
+  outline-offset: 2px;
+}
+
+/* What the header fields mean, dropped down under the header on tap. */
+.ticket-fields-help {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  z-index: 30;
+  width: max-content;
+  max-width: min(300px, calc(100vw - 48px));
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  border: 1px solid var(--ticket-rule);
+  border-radius: 6px;
+  background: var(--ticket-paper);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
+  color: var(--ticket-ink);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.ticket-fields-help b {
+  display: inline-block;
+  min-width: 3.6em;
+  margin-right: 4px;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ticket-red);
 }
 
 .ticket-serial {

@@ -112,7 +112,7 @@ export default function DebugPlots() {
           spellCheck={false}
           className="w-full rounded-lg border-2 border-primary-300 bg-primary-100 px-4 py-3 text-base text-primary-900 outline-none placeholder:text-primary-500 focus:border-primary-500 dark:border-primary-700 dark:bg-primary-800 dark:text-primary-50 dark:placeholder:text-primary-400 dark:focus:border-primary-400 [&::-webkit-search-cancel-button]:appearance-none"
         />
-        <p className="mt-2 text-[11px] uppercase tracking-wider text-primary-500 dark:text-primary-400">
+        <p className="mt-2 text-[11px] uppercase tracking-wider text-primary-500 dark:text-primary-300">
           {!query.trim()
             ? `${plots.length.toLocaleString()} movies have a plot`
             : results.length === 0
@@ -145,7 +145,7 @@ function PlotCard({ plot, playable }: { plot: PlotdlePlot; playable: boolean }) 
       </p>
       <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
         <span className="ticket-script text-danger-600 dark:text-danger-500">{plot.title}</span>
-        <span className="text-xs text-primary-500 dark:text-primary-400">{plot.year}</span>
+        <span className="text-xs text-primary-500 dark:text-primary-300">{plot.year}</span>
       </div>
       <p className="mt-1 text-xs text-primary-600 dark:text-primary-300">
         <span className="mr-1.5 font-semibold uppercase tracking-wider">Character</span>
@@ -186,7 +186,7 @@ function Chip({ children, strong = false }: { children: React.ReactNode; strong?
         "rounded-full border px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-wider",
         strong
           ? "border-primary-500 text-primary-800 dark:border-primary-300 dark:text-primary-100"
-          : "border-primary-300 text-primary-500 dark:border-primary-600 dark:text-primary-400",
+          : "border-primary-300 text-primary-500 dark:border-primary-600 dark:text-primary-300",
       )}
     >
       {children}
