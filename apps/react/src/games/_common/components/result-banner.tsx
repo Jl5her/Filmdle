@@ -6,6 +6,8 @@ interface Props {
   answer: ReactNode
   guessCount: number
   lossMessage?: string
+  /** Optional control pinned to the banner's top-right corner. */
+  action?: ReactNode
 }
 
 export function ResultBanner({
@@ -13,6 +15,7 @@ export function ResultBanner({
   answer,
   guessCount,
   lossMessage = "Better luck next time!",
+  action,
 }: Props) {
   const statusColor = won
     ? "text-success-700 dark:text-success-400"
@@ -30,6 +33,7 @@ export function ResultBanner({
           : "bg-danger-500/15 dark:bg-danger-500/25 border-danger-500/60",
       )}
     >
+      {action && <div className="absolute top-1 right-1">{action}</div>}
       <div className={clsx("text-[11px] uppercase tracking-[0.2em]", statusColor)}>
         {won ? "Correct" : "Game Over"}
       </div>

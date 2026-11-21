@@ -174,6 +174,9 @@ function PlotScreen({
   // Revealing ends the game, so it takes a second tap to confirm.
   const [confirmReveal, setConfirmReveal] = useState(false)
   const [includeAnimated, setIncludeAnimatedState] = useState(getIncludeAnimated)
+  // Hides the answer (and hints only shown because the game ended) so the
+  // screen can be shown to or screenshotted for someone who hasn't played.
+  const [answerHidden, setAnswerHidden] = useState(false)
 
   const won = guesses.some((g) => isCorrectGuess(g, answer))
   const lost = !won && (gaveUp || guesses.length >= MAX_GUESSES)
@@ -321,9 +324,32 @@ function PlotScreen({
             <div className="mb-3">
               <ResultBanner
                 won={won}
-                answer={`${answer.title} (${answer.year})`}
+                answer={
+                  answerHidden ? (
+                    <span className="tracking-[0.3em] text-primary-400 dark:text-primary-500">
+                      ? ? ? ? ?
+                    </span>
+                  ) : (
+                    `${answer.title} (${answer.year})`
+                  )
+                }
                 guessCount={guesses.length}
                 lossMessage={gaveUp ? "Answer revealed" : undefined}
+                action={
+                  <button
+                    type="button"
+                    onClick={() => setAnswerHidden((v) => !v)}
+                    aria-pressed={answerHidden}
+                    title={answerHidden ? "Show answer" : "Hide answer"}
+                    className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-[10px] uppercase tracking-wider text-primary-600 transition-colors hover:bg-primary-600/10 dark:text-primary-300 dark:hover:bg-primary-700"
+                  >
+                    <i
+                      className={clsx("fa-solid", answerHidden ? "fa-eye" : "fa-eye-slash")}
+                      aria-hidden="true"
+                    />
+                    {answerHidden ? "Show" : "Hide"}
+                  </button>
+                }
               />
             </div>
           )}
@@ -357,15 +383,17 @@ function PlotScreen({
               )}
             >
               {HINTS.map((h) => {
-                const shown = gameOver || unlocked.has(h.id) || hints.includes(h.id)
+                const earned = unlocked.has(h.id) || hints.includes(h.id)
+                const shown = (gameOver && !answerHidden) || earned
+                const concealed = gameOver && !shown
                 const remainingMisses = h.freeAfterMisses - misses
                 return (
                   <button
                     key={h.id}
                     type="button"
-                    disabled={shown}
+                    disabled={shown || gameOver}
                     onClick={() => revealHint(h.id)}
-                    aria-label={shown ? undefined : `Reveal hint: ${h.label}`}
+                    aria-label={shown || gameOver ? undefined : `Reveal hint: ${h.label}`}
                     className={clsx(
                       "flex flex-col items-center justify-center gap-1 rounded-md border-2 px-2 py-2 text-center transition-colors kb:py-1",
                       h.id === "character" && "col-span-2",
@@ -373,7 +401,9 @@ function PlotScreen({
                       !shown && "kb:hidden",
                       shown
                         ? "border-primary-200 bg-primary-50 dark:border-primary-700 dark:bg-primary-800/60"
-                        : "cursor-pointer border-dashed border-primary-300 text-primary-500 hover:border-danger-500/60 hover:text-danger-600 dark:border-primary-500/70 dark:text-primary-300 dark:hover:border-primary-300 dark:hover:text-primary-100",
+                        : concealed
+                          ? "border-dashed border-primary-300 text-primary-500 dark:border-primary-500/70 dark:text-primary-300"
+                          : "cursor-pointer border-dashed border-primary-300 text-primary-500 hover:border-danger-500/60 hover:text-danger-600 dark:border-primary-500/70 dark:text-primary-300 dark:hover:border-primary-300 dark:hover:text-primary-100",
                     )}
                   >
                     <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
@@ -388,9 +418,9 @@ function PlotScreen({
                           : "text-xs italic text-primary-500 dark:text-primary-300",
                       )}
                     >
-                      {shown ? hintValue(answer, h.id) : "Tap to reveal"}
+                      {shown ? hintValue(answer, h.id) : concealed ? "Hidden" : "Tap to reveal"}
                     </span>
-                    {!shown && (
+                    {!shown && !concealed && (
                       <span className="text-[11px] text-primary-400 dark:text-primary-400">
                         Free after {remainingMisses} {remainingMisses === 1 ? "miss" : "misses"}
                       </span>
@@ -440,7 +470,13 @@ function PlotScreen({
                     <GuessRow
                       key={g.key}
                       number={i + 1}
-                      label={g.year ? `${g.label} (${g.year})` : g.label}
+                      label={
+                        answerHidden && isCorrectGuess(g, answer)
+                          ? "Correct answer (hidden)"
+                          : g.year
+                            ? `${g.label} (${g.year})`
+                            : g.label
+                      }
                       correct={isCorrectGuess(g, answer)}
                     />
                   ))}
