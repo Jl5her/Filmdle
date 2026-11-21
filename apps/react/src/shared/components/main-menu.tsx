@@ -10,6 +10,7 @@ import { GameModeButton } from "./game-mode-button"
 import { HowToPlayContent } from "./how-to-play-overlay"
 import { InlinePanel } from "./inline-panel"
 import { SettingsContent } from "./settings-overlay"
+import { TicketDecor } from "./ticket-decor"
 
 type Panel = "settings" | "about" | "how-to-play" | null
 
@@ -61,7 +62,7 @@ export function MainMenu() {
 
   return (
     <>
-      <div className="flex min-h-0 w-full flex-1 flex-col items-center px-4 pt-8 pb-[var(--tear-height)] sm:px-10 sm:pt-12">
+      <div className="flex min-h-0 w-full flex-1 flex-col items-center px-[var(--ticket-pad-x)] pt-8 pb-[var(--ticket-safe-bottom)] sm:pt-12">
         <div className="text-center">
           <FilmIcon
             className="mx-auto mb-3 h-14 w-14 text-primary-800 dark:text-primary-100"
@@ -76,7 +77,7 @@ export function MainMenu() {
         <div className="relative mt-6 w-full flex-1 overflow-hidden">
           <div
             className={clsx(
-              "crossfade-panel flex h-full flex-col items-center justify-center overflow-y-auto pb-10 sm:justify-start sm:pt-10",
+              "scroll-fade crossfade-panel flex h-full flex-col items-center justify-center-safe overflow-y-auto pb-4 sm:justify-start sm:pt-10",
               panel === null ? "crossfade-active" : "crossfade-inactive",
             )}
           >
@@ -113,7 +114,7 @@ export function MainMenu() {
 
       {/* Tear-away footer: icons + date are vertically centered inside
           the bottom stub of the ticket. */}
-      <div className="absolute inset-x-0 bottom-0 h-[var(--tear-height)] flex flex-col items-center justify-center gap-2 px-4">
+      <div className="ticket-stub absolute inset-x-0 bottom-0 h-[var(--tear-height)] flex flex-col items-center justify-center gap-2 px-4">
         <div className="flex items-center justify-center gap-3">
           <CircleIcon
             label="How to play"
@@ -125,6 +126,7 @@ export function MainMenu() {
         </div>
         <p className="text-xs text-primary-700 dark:text-primary-300">{formatLongDate()}</p>
       </div>
+      <TicketDecor code={today.replaceAll("-", "").slice(2)} />
     </>
   )
 }

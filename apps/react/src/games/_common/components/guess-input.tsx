@@ -26,6 +26,8 @@ export function GuessInput({
   const [query, setQuery] = useState("")
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [loading, setLoading] = useState(false)
+  // The search request failed (offline, server down), as opposed to no results.
+  const [failed, setFailed] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const [highlight, setHighlight] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -43,6 +45,7 @@ export function GuessInput({
     if (!trimmed) {
       setSuggestions([])
       setLoading(false)
+      setFailed(false)
       return
     }
     setLoading(true)
@@ -55,12 +58,14 @@ export function GuessInput({
         const results = await fetchSuggestions(trimmed, controller.signal)
         if (!controller.signal.aborted) {
           setSuggestions(results.filter((s) => !guessedKeys.has(s.key)))
+          setFailed(false)
           setLoading(false)
           setHighlight(0)
         }
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
           setSuggestions([])
+          setFailed(true)
           setLoading(false)
         }
       }
@@ -145,13 +150,23 @@ export function GuessInput({
             className="absolute bottom-full left-0 right-0 max-h-56 overflow-y-auto bg-primary-100 dark:bg-primary-800 border border-primary-300 dark:border-primary-700 rounded-lg mb-1 shadow-xl z-30"
           >
             {loading && visible.length === 0 && (
-              <div className="px-3 py-2 text-xs text-primary-500 dark:text-primary-400">
+              <div className="px-3 py-2 text-xs text-primary-500 dark:text-primary-300">
                 Searching…
               </div>
             )}
             {!loading && visible.length === 0 && (
-              <div className="px-3 py-2 text-xs text-primary-500 dark:text-primary-400">
-                No matches
+              <div
+                role="status"
+                className={clsx(
+                  "px-3 py-2 text-xs",
+                  failed
+                    ? "text-danger-600 dark:text-danger-400"
+                    : "text-primary-500 dark:text-primary-300",
+                )}
+              >
+                {failed
+                  ? "Couldn't reach the movie search. Check your connection and try again."
+                  : "No matches"}
               </div>
             )}
             {visible.map((s, i) => (

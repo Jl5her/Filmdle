@@ -7,9 +7,11 @@ import { GameHeader } from "@/games/_common/components/header"
 import { ResultBanner } from "@/games/_common/components/result-banner"
 import { searchPerson } from "@/lib/tmdb"
 import { InlinePanel } from "@/shared/components/inline-panel"
+import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
+import { TicketDecor } from "@/shared/components/ticket-decor"
 import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
-import { puzzleNumber, todayKey } from "@/shared/lib/date"
+import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
 import { fnv1a, minHashPick } from "@/shared/lib/hash"
 import { appendResult } from "@/shared/lib/stats"
 import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
@@ -166,6 +168,8 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
         tmdbResults = (await searchPerson(query, signal)).slice(0, 8)
       } catch (err) {
         if ((err as Error).name === "AbortError") throw err
+        // Nothing local to fall back on: let the guess box say search failed.
+        if (localMatches.length === 0) throw err
       }
       const tmdbSuggestions: Suggestion[] = []
       for (const r of tmdbResults) {
@@ -200,16 +204,19 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
   }
 
   const remainingGuesses = MAX_GUESSES - guesses.length
+  const serial = mode === "daily" ? puzzleNumber(gameKey, dateKey) : undefined
 
   return (
-    <div className="app-viewport flex flex-col">
+    <div className="app-viewport flex flex-col" data-game={gameKey}>
       <GameHeader
         title={title}
         mode={mode}
-        serial={mode === "daily" ? puzzleNumber(gameKey, dateKey) : undefined}
+        serial={serial}
+        gameKey={gameKey}
+        seat={{ used: guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => setStatsOpen((v) => !v)}
       />
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-3">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-[var(--ticket-pad-x)] pt-3">
         <div
           className={clsx(
             "crossfade-panel flex flex-1 flex-col overflow-hidden",
@@ -222,8 +229,8 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
             </div>
           )}
 
-          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-2 space-y-3">
-            <p className="text-center text-xs uppercase tracking-widest text-primary-500 dark:text-primary-400">
+          <div className="scroll-fade min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-4 space-y-3">
+            <p className="text-center text-xs uppercase tracking-widest text-primary-500 dark:text-primary-300">
               Who appeared in these {mediaLabel}?
             </p>
 
@@ -241,7 +248,7 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
 
             {guesses.length > 0 && (
               <div>
-                <p className="mb-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
+                <p className="mb-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-300">
                   Guesses
                 </p>
                 <div className="flex flex-col gap-1.5">
@@ -258,14 +265,24 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
             )}
           </div>
 
-          <div className="shrink-0 flex flex-col justify-center h-[var(--tear-height)]">
+          <div className="ticket-stub shrink-0 flex flex-col justify-center h-[var(--tear-height)]">
             {gameOver ? (
-              <div className="mx-3 flex justify-center">
+              <div className="mx-3 flex justify-center gap-3">
+                <ShareTicketButton
+                  ticket={() => ({
+                    game: title,
+                    mode,
+                    serial,
+                    marks: guesses.map((g) => isCorrectGuess(g, answer)),
+                    maxGuesses: MAX_GUESSES,
+                    won,
+                  })}
+                />
                 <button
                   type="button"
                   onClick={startNextPuzzle}
                   className={clsx(
-                    "w-full max-w-xs px-6 py-3 rounded-md uppercase tracking-wide transition-colors cursor-pointer",
+                    "flex-1 max-w-xs px-6 py-3 rounded-md uppercase tracking-wide transition-colors cursor-pointer",
                     "bg-danger-600 text-primary-50 hover:bg-danger-700",
                     "dark:bg-danger-500 dark:hover:bg-danger-600",
                   )}
@@ -275,7 +292,7 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
               </div>
             ) : (
               <div className="mx-3">
-                <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
+                <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-300">
                   {remainingGuesses} {remainingGuesses === 1 ? "guess" : "guesses"} remaining
                 </p>
                 <GuessInput
@@ -293,11 +310,12 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
           open={statsOpen}
           title="Stats"
           onClose={() => setStatsOpen(false)}
-          className="px-4 pt-3"
+          className="px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
         >
           <StatsContent open={statsOpen} defaultGame={gameKey as "creditdle" | "showdle"} />
         </InlinePanel>
       </div>
+      <TicketDecor code={formatSerial(serial ?? 0)} torn={gameOver} />
     </div>
   )
 }
@@ -328,7 +346,7 @@ function CreditCard({
         <span className="truncate text-sm font-medium text-primary-900 dark:text-primary-50">
           {credit.title}
         </span>
-        <span className="text-xs text-primary-500 dark:text-primary-400">{credit.year}</span>
+        <span className="text-xs text-primary-500 dark:text-primary-300">{credit.year}</span>
       </div>
     </div>
   )
@@ -337,10 +355,10 @@ function CreditCard({
 function LockedCard({ index }: { index: number }) {
   return (
     <div className="flex items-center gap-3 rounded-md border-2 border-dashed border-primary-300 px-3 py-2.5 dark:border-primary-700">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary-200 text-xs font-bold text-primary-400 dark:bg-primary-800 dark:text-primary-500">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary-200 text-xs font-bold text-primary-500 dark:bg-primary-800 dark:text-primary-300">
         {index + 1}
       </div>
-      <p className="text-xs italic text-primary-400 dark:text-primary-500">
+      <p className="text-xs italic text-primary-500 dark:text-primary-300">
         Revealed after a wrong guess
       </p>
     </div>
@@ -357,7 +375,7 @@ function GuessRow({ number, label, correct }: { number: number; label: string; c
           : "border-danger-500/40 bg-danger-500/10 dark:border-danger-500/30 dark:bg-danger-500/15",
       )}
     >
-      <span className="w-4 shrink-0 text-right text-[11px] text-primary-400 dark:text-primary-500">
+      <span className="w-4 shrink-0 text-right text-[11px] text-primary-500 dark:text-primary-300">
         {number}
       </span>
       <div

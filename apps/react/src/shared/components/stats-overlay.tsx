@@ -1,5 +1,7 @@
+import type { GameResult } from "@stardle/types"
 import clsx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { formatSerial, puzzleNumber } from "@/shared/lib/date"
 import { computeStatsSummary, loadStats } from "@/shared/lib/stats"
 
 const GAMES = [
@@ -32,10 +34,15 @@ export function StatsContent({ open, defaultGame }: Props) {
   }, [open])
 
   const activeGameConfig = GAMES.find((g) => g.id === activeGame)!
+  const results = useMemo(
+    () => (open ? loadStats(activeGame) : []),
+    // `version` re-reads storage each time the panel opens.
+    [open, activeGame, version],
+  )
   const summary = useMemo(() => {
     if (!open) return null
-    return computeStatsSummary(loadStats(activeGame), activeGameConfig.maxGuesses)
-  }, [open, activeGame, activeGameConfig.maxGuesses, version])
+    return computeStatsSummary(results, activeGameConfig.maxGuesses)
+  }, [open, results, activeGameConfig.maxGuesses])
 
   if (!summary) return null
 
@@ -45,7 +52,7 @@ export function StatsContent({ open, defaultGame }: Props) {
     <>
       <div
         role="tablist"
-        className="mb-5 flex gap-1 overflow-x-auto rounded-md bg-primary-100 p-1 [scrollbar-width:none] dark:bg-primary-900"
+        className="mb-5 grid grid-cols-5 gap-0.5 rounded-md bg-primary-100 p-1 dark:bg-primary-900"
       >
         {GAMES.map((g) => (
           <button
@@ -56,10 +63,10 @@ export function StatsContent({ open, defaultGame }: Props) {
             aria-selected={activeGame === g.id}
             onClick={() => setActiveGame(g.id)}
             className={clsx(
-              "marquee flex-1 shrink-0 cursor-pointer whitespace-nowrap rounded-md px-3 py-1.5 text-sm uppercase transition-colors",
+              "marquee min-w-0 cursor-pointer whitespace-nowrap rounded-md px-0.5 py-1.5 text-[clamp(10px,3vw,14px)] tracking-[0.03em] uppercase transition-colors",
               activeGame === g.id
                 ? "bg-primary-50 text-primary-900 shadow-sm dark:bg-primary-700 dark:text-primary-50"
-                : "text-primary-500 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-50",
+                : "text-primary-500 hover:text-primary-900 dark:text-primary-300 dark:hover:text-primary-50",
             )}
           >
             {g.label}
@@ -68,7 +75,7 @@ export function StatsContent({ open, defaultGame }: Props) {
       </div>
 
       {summary.played === 0 ? (
-        <p className="py-8 text-center text-sm text-primary-500 dark:text-primary-400">
+        <p className="py-8 text-center text-sm text-primary-500 dark:text-primary-300">
           No games played yet. Play today's daily to start tracking stats.
         </p>
       ) : (
@@ -90,6 +97,12 @@ export function StatsContent({ open, defaultGame }: Props) {
               ))}
             </div>
           </section>
+
+          <StubCollection
+            gameKey={activeGame}
+            results={results}
+            maxGuesses={activeGameConfig.maxGuesses}
+          />
         </>
       )}
     </>
@@ -100,7 +113,7 @@ function Stat({ value, label }: { value: number | string; label: string }) {
   return (
     <div>
       <div className="text-2xl leading-none text-primary-900 dark:text-primary-50">{value}</div>
-      <div className="mt-1 text-[11px] uppercase tracking-wider text-primary-500 dark:text-primary-400">
+      <div className="mt-1 text-[11px] uppercase tracking-wider text-primary-500 dark:text-primary-300">
         {label}
       </div>
     </div>
@@ -124,5 +137,46 @@ function DistributionBar({ guess, count, max }: { guess: number; count: number; 
         </div>
       </div>
     </div>
+  )
+}
+
+/** Every daily played, newest first, kept like saved cinema stubs. */
+function StubCollection({
+  gameKey,
+  results,
+  maxGuesses,
+}: {
+  gameKey: string
+  results: GameResult[]
+  maxGuesses: number
+}) {
+  const stubs = [...results].sort((a, b) => b.dateKey.localeCompare(a.dateKey))
+  return (
+    <section className="mt-5">
+      <h3 className="marquee mb-2 text-base uppercase text-primary-600 dark:text-primary-300">
+        Ticket Stubs
+      </h3>
+      <ul className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2 [scrollbar-width:thin]">
+        {stubs.map((r) => {
+          const n = puzzleNumber(gameKey, r.dateKey)
+          const won = r.outcome === "win"
+          const [y, m, d] = r.dateKey.split("-").map(Number) as [number, number, number]
+          const date = new Date(y, m - 1, d).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })
+          return (
+            <li key={r.dateKey} className="mini-stub" data-result={won ? "win" : "loss"}>
+              <span className="mini-stub-date">{date}</span>
+              <span className="mini-stub-no">№ {n !== undefined ? formatSerial(n) : "—"}</span>
+              <span className="mini-stub-score">
+                {won ? `${r.guessCount}/${maxGuesses}` : `X/${maxGuesses}`}
+              </span>
+              <span className="mini-stub-stamp">{won ? "Admitted" : "No entry"}</span>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
   )
 }

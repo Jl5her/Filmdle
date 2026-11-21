@@ -104,7 +104,7 @@ export default function DebugCalendar() {
 
   return (
     <div className="app-viewport flex flex-col">
-      <header className="relative border-b-2 border-primary-200/60 px-4 py-3 text-center dark:border-primary-700/60">
+      <header className="ticket-header-rule relative px-4 py-3 text-center">
         <Link
           to="/"
           aria-label="Back to menu"
@@ -121,7 +121,7 @@ export default function DebugCalendar() {
         </p>
       </header>
 
-      <div className="flex items-center justify-between gap-2 px-4 pt-3">
+      <div className="flex items-center justify-between gap-2 px-[var(--ticket-pad-x)] pt-3">
         <button
           type="button"
           onClick={goPrev}
@@ -137,7 +137,7 @@ export default function DebugCalendar() {
           <button
             type="button"
             onClick={goToday}
-            className="mt-0.5 cursor-pointer text-[11px] uppercase tracking-wider text-primary-500 transition-colors hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-50"
+            className="mt-0.5 cursor-pointer text-[11px] uppercase tracking-wider text-primary-500 transition-colors hover:text-primary-900 dark:text-primary-300 dark:hover:text-primary-50"
           >
             Jump to today
           </button>
@@ -152,13 +152,13 @@ export default function DebugCalendar() {
         </button>
       </div>
 
-      <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-x-3 border-b border-primary-200/60 px-4 py-2 text-[11px] uppercase tracking-wider text-primary-500 dark:border-primary-700/60 dark:text-primary-400">
+      <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-x-3 border-b border-primary-200/60 px-[var(--ticket-pad-x)] py-2 text-[11px] uppercase tracking-wider text-primary-500 dark:border-primary-700/60 dark:text-primary-300">
         <span>Date</span>
         <span>Filmdle</span>
         <span>Actordle</span>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+      <div className="mb-[var(--ticket-safe-bottom)] scroll-fade min-h-0 flex-1 overflow-y-auto px-[var(--ticket-pad-x)] pb-4">
         <ul className="divide-y divide-primary-200/60 dark:divide-primary-700/60">
           {rows.map((row) => {
             const isToday = row.dateKey === todayKeyStr
@@ -167,7 +167,7 @@ export default function DebugCalendar() {
                 key={row.dateKey}
                 className={clsx(
                   "grid grid-cols-[auto_1fr_1fr] items-center gap-x-3 py-2 text-sm",
-                  isToday && "bg-primary-500/10 dark:bg-primary-500/20 -mx-4 px-4 rounded-sm",
+                  isToday && "bg-primary-500/10 dark:bg-primary-500/20 -mx-2 px-2 rounded-sm",
                 )}
               >
                 <div

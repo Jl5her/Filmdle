@@ -1,4 +1,5 @@
 import type { GameResult } from "@stardle/types"
+import { daysBetween, todayKey } from "./date"
 
 const STATS_PREFIX = "filmdle-stats"
 
@@ -42,7 +43,11 @@ export interface StatsSummary {
   distribution: number[]
 }
 
-export function computeStatsSummary(stats: GameResult[], maxGuesses = 5): StatsSummary {
+export function computeStatsSummary(
+  stats: GameResult[],
+  maxGuesses = 5,
+  today: string = todayKey(),
+): StatsSummary {
   const played = stats.length
   const wins = stats.filter((r) => r.outcome === "win").length
   const winRate = played > 0 ? Math.round((wins / played) * 100) : 0
@@ -54,22 +59,26 @@ export function computeStatsSummary(stats: GameResult[], maxGuesses = 5): StatsS
     }
   }
 
+  // A streak is wins on consecutive days: a loss or a skipped day ends it.
   const sorted = [...stats].sort((a, b) => a.dateKey.localeCompare(b.dateKey))
   let maxStreak = 0
   let running = 0
+  let prevKey: string | undefined
   for (const r of sorted) {
+    const consecutive = prevKey !== undefined && daysBetween(prevKey, r.dateKey) === 1
     if (r.outcome === "win") {
-      running += 1
+      running = consecutive ? running + 1 : 1
       if (running > maxStreak) maxStreak = running
     } else {
       running = 0
     }
+    prevKey = r.dateKey
   }
-  let currentStreak = 0
-  for (let i = sorted.length - 1; i >= 0; i -= 1) {
-    if (sorted[i]?.outcome === "win") currentStreak += 1
-    else break
-  }
+  // The current streak survives until today's puzzle is missed: it counts
+  // if the last daily played was today or yesterday.
+  const last = sorted.at(-1)
+  const currentStreak =
+    last && last.outcome === "win" && daysBetween(last.dateKey, today) <= 1 ? running : 0
 
   return { played, wins, winRate, currentStreak, maxStreak, distribution }
 }

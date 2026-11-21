@@ -1,8 +1,10 @@
 import clsx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { InlinePanel } from "@/shared/components/inline-panel"
+import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
-import { puzzleNumber, todayKey } from "@/shared/lib/date"
+import { TicketDecor } from "@/shared/components/ticket-decor"
+import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
 import { loadGuesses, saveGuesses } from "@/shared/lib/game-state"
 import { minHashPick } from "@/shared/lib/hash"
 import { appendResult } from "@/shared/lib/stats"
@@ -135,16 +137,19 @@ export function GameScreen<T>({
   }
 
   const nextPuzzleLabel = mode === "daily" ? "Play Again" : "Next Puzzle"
+  const serial = mode === "daily" ? puzzleNumber(gameKey, dateKey) : undefined
 
   return (
-    <div className="app-viewport flex flex-col">
+    <div className="app-viewport flex flex-col" data-game={gameKey}>
       <GameHeader
         title={title}
         mode={mode}
-        serial={mode === "daily" ? puzzleNumber(gameKey, dateKey) : undefined}
+        serial={serial}
+        gameKey={gameKey}
+        seat={{ used: guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => setStatsOpen((v) => !v)}
       />
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-3">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-[var(--ticket-pad-x)] pt-3">
         <div
           className={clsx(
             "crossfade-panel flex flex-1 flex-col overflow-hidden",
@@ -156,7 +161,7 @@ export function GameScreen<T>({
               <ResultBanner won={won} answer={nameOf(answer)} guessCount={guesses.length} />
             </div>
           )}
-          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="scroll-fade min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-4">
             <GuessGrid
               guesses={guesses}
               answer={answer}
@@ -166,14 +171,24 @@ export function GameScreen<T>({
               nameOf={nameOf}
             />
           </div>
-          <div className="shrink-0 flex flex-col justify-center h-[var(--tear-height)]">
+          <div className="ticket-stub shrink-0 flex flex-col justify-center h-[var(--tear-height)]">
             {gameOver ? (
-              <div className="mx-3 flex justify-center">
+              <div className="mx-3 flex justify-center gap-3">
+                <ShareTicketButton
+                  ticket={() => ({
+                    game: title,
+                    mode,
+                    serial,
+                    marks: guesses.map((g) => idOf(g) === idOf(answer)),
+                    maxGuesses: MAX_GUESSES,
+                    won,
+                  })}
+                />
                 <button
                   type="button"
                   onClick={startNextPuzzle}
                   className={clsx(
-                    "w-full max-w-xs px-6 py-3 rounded-md uppercase tracking-wide transition-colors cursor-pointer",
+                    "flex-1 max-w-xs px-6 py-3 rounded-md uppercase tracking-wide transition-colors cursor-pointer",
                     "bg-danger-600 text-primary-50 hover:bg-danger-700",
                     "dark:bg-danger-500 dark:hover:bg-danger-600",
                   )}
@@ -196,11 +211,12 @@ export function GameScreen<T>({
           open={statsOpen}
           title="Stats"
           onClose={() => setStatsOpen(false)}
-          className="px-4 pt-3"
+          className="px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
         >
           <StatsContent open={statsOpen} />
         </InlinePanel>
       </div>
+      <TicketDecor code={formatSerial(serial ?? 0)} torn={gameOver} />
     </div>
   )
 }

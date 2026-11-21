@@ -68,14 +68,26 @@
   /* Radius of the large circle inlays that bite into the left + right
      edges at the perforation line. */
   --tear-inlay: 16px;
-  /* Radius of the small scallop notches along the outer edges. */
-  --scallop: 6px;
-  --scallop-step: 24px;
-  /* Diagonal cut at each ticket corner — gives the ticket the
-     chamfered/octagonal corner profile of a printed admission stub. */
-  --corner-chamfer: 14px;
-  /* Space between the ticket's outer scalloped edge and the screen. */
+  /* Quarter-circle notch cut from each ticket corner. */
+  --corner-notch: 12px;
+  /* Punched perforation holes along the tear line. */
+  --perf-hole: 2.5px;
+  --perf-step: 11px;
+  /* Width of the stub's side print ("ADMIT ONE", barcode) and how tall
+     the barcode runs. */
+  --stub-side: 26px;
+  --stub-mark: 64px;
+  /* What the stub's tint is mixed toward. */
+  --ticket-stub-mix: #b08a4a;
+  /* Paper finish: grain and edge wear. */
+  --ticket-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0 0.12 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  --ticket-wear: rgb(120 85 30 / 0.1);
+  /* Space between the ticket's outer edge and the screen. */
   --app-viewport-gutter: 8px;
+  /* Content stays inside the printed border: this far from the ticket's
+     side edges, and scroll areas end this far above its bottom edge. */
+  --ticket-pad-x: 22px;
+  --ticket-safe-bottom: calc(var(--tear-height) + 16px);
 }
 
 .dark {
@@ -87,6 +99,8 @@
   /* Bolder ticket-red against the dark paper. */
   --ticket-red: #d44434;
   --ticket-red-dark: #a32a1f;
+  --ticket-stub-mix: #000000;
+  --ticket-wear: rgb(0 0 0 / 0.32);
 
   /* Theater backdrop with a redder, more saturated stage glow. */
   --theater-bg: #1c0d07;
@@ -104,6 +118,7 @@
     --tear-height: 124px;
     --tear-inlay: 20px;
     --app-viewport-gutter: 16px;
+    --ticket-pad-x: 28px;
   }
 }
 
@@ -215,11 +230,12 @@ body {
 
 /* --- The ticket --- */
 
-/* Two-section layout: the top ~80% is the main body (header + grid),
-   the bottom strip is the tear-away (the guess input lives here). A
-   horizontal perforation separates them, with two large circle inlays
-   biting into the left + right edges where the rip would start. Small
-   scallop notches run along all four outer edges. */
+/* A cinema admission ticket: a paper card with notched corners, a
+   printed double-rule border around the main body, and a tear-off stub
+   at the bottom (the guess input lives there) separated by a row of
+   punched perforation holes, with half-moon notches where the tear
+   starts. The stub is printed on a slightly darker tint and carries
+   "ADMIT ONE" up one side and a barcode up the other. */
 .app-viewport {
   display: flex;
   flex-direction: column;
@@ -233,82 +249,72 @@ body {
 
   background-color: var(--ticket-paper);
   background-image:
-    /* 45° corner chamfer — top-left. Paints the triangular wedge
-       between the corner and the chamfer cut line with the theater
-       background so the corner reads as a clean diagonal cut. */
-    linear-gradient(135deg, var(--theater-bg) 0 50%, transparent 50%),
-    /* 45° corner chamfer — top-right */
-    linear-gradient(225deg, var(--theater-bg) 0 50%, transparent 50%),
-    /* 45° corner chamfer — bottom-right */
-    linear-gradient(315deg, var(--theater-bg) 0 50%, transparent 50%),
-    /* 45° corner chamfer — bottom-left */
-    linear-gradient(45deg, var(--theater-bg) 0 50%, transparent 50%),
-    /* large circle inlay — left side of the perforation */
+    /* notched corners: a quarter circle bitten out of each corner */
+    radial-gradient(
+      circle var(--corner-notch) at 0 0,
+      var(--theater-bg) var(--corner-notch),
+      transparent calc(var(--corner-notch) + 0.5px)
+    ),
+    radial-gradient(
+      circle var(--corner-notch) at 100% 0,
+      var(--theater-bg) var(--corner-notch),
+      transparent calc(var(--corner-notch) + 0.5px)
+    ),
+    radial-gradient(
+      circle var(--corner-notch) at 100% 100%,
+      var(--theater-bg) var(--corner-notch),
+      transparent calc(var(--corner-notch) + 0.5px)
+    ),
+    radial-gradient(
+      circle var(--corner-notch) at 0 100%,
+      var(--theater-bg) var(--corner-notch),
+      transparent calc(var(--corner-notch) + 0.5px)
+    ),
+    /* half-moon notches where the stub tears off */
     radial-gradient(
       circle var(--tear-inlay) at 0 calc(100% - var(--tear-height)),
       var(--theater-bg) var(--tear-inlay),
       transparent calc(var(--tear-inlay) + 0.5px)
     ),
-    /* large circle inlay — right side of the perforation */
     radial-gradient(
       circle var(--tear-inlay) at 100% calc(100% - var(--tear-height)),
       var(--theater-bg) var(--tear-inlay),
       transparent calc(var(--tear-inlay) + 0.5px)
     ),
-    /* horizontal dashed perforation between main body + tear-away */
-    linear-gradient(
-      to right,
-      var(--ticket-paper-edge) 0 6px,
-      transparent 6px 12px
-    ),
-    /* small scallop notches along the top outer edge */
+    /* punched perforation holes along the tear line */
     radial-gradient(
-      circle var(--scallop) at calc(var(--scallop-step) / 2) 0,
-      var(--theater-bg) var(--scallop),
-      transparent calc(var(--scallop) + 0.5px)
+      circle var(--perf-hole) at 50% 50%,
+      var(--theater-bg) var(--perf-hole),
+      transparent calc(var(--perf-hole) + 0.5px)
     ),
-    /* small scallop notches along the bottom outer edge */
-    radial-gradient(
-      circle var(--scallop) at calc(var(--scallop-step) / 2) 100%,
-      var(--theater-bg) var(--scallop),
-      transparent calc(var(--scallop) + 0.5px)
-    ),
-    /* small scallop notches along the left outer edge */
-    radial-gradient(
-      circle var(--scallop) at 0 calc(var(--scallop-step) / 2),
-      var(--theater-bg) var(--scallop),
-      transparent calc(var(--scallop) + 0.5px)
-    ),
-    /* small scallop notches along the right outer edge */
-    radial-gradient(
-      circle var(--scallop) at 100% calc(var(--scallop-step) / 2),
-      var(--theater-bg) var(--scallop),
-      transparent calc(var(--scallop) + 0.5px)
-    );
+    /* edge wear: darker toward the edges (stronger in dark mode) */
+    radial-gradient(ellipse 85% 80% at 50% 45%, transparent 55%, var(--ticket-wear) 100%),
+    /* paper grain */
+    var(--ticket-grain),
+    /* the stub's darker print tint */
+    linear-gradient(var(--ticket-stub), var(--ticket-stub));
   background-position:
     0 0,
-    100% 0,
-    100% 100%,
-    0 100%,
     0 0,
     0 0,
-    0 calc(100% - var(--tear-height)),
     0 0,
-    0 100%,
     0 0,
-    100% 0;
+    0 0,
+    0 calc(100% - var(--tear-height) + var(--perf-step) / 2),
+    0 0,
+    0 0,
+    0 100%;
   background-size:
-    var(--corner-chamfer) var(--corner-chamfer),
-    var(--corner-chamfer) var(--corner-chamfer),
-    var(--corner-chamfer) var(--corner-chamfer),
-    var(--corner-chamfer) var(--corner-chamfer),
     100% 100%,
     100% 100%,
-    12px 2px,
-    var(--scallop-step) calc(var(--scallop) * 2),
-    var(--scallop-step) calc(var(--scallop) * 2),
-    calc(var(--scallop) * 2) var(--scallop-step),
-    calc(var(--scallop) * 2) var(--scallop-step);
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    var(--perf-step) var(--perf-step),
+    100% 100%,
+    180px 180px,
+    100% var(--tear-height);
   background-repeat:
     no-repeat,
     no-repeat,
@@ -316,108 +322,451 @@ body {
     no-repeat,
     no-repeat,
     no-repeat,
-    repeat-x,
-    repeat-x,
-    repeat-x,
-    repeat-y,
-    repeat-y;
+    space no-repeat,
+    no-repeat,
+    repeat,
+    no-repeat;
+  /* The stub prints on a slightly darker tint of this ticket's paper. */
+  --ticket-stub: color-mix(in srgb, var(--ticket-paper) 90%, var(--ticket-stub-mix));
 }
 
-/* Inset red rule traced around the main body section only. Its bottom
-   edge sits just above the tear-away perforation, framing the rip-off
-   stub with chamfered corners that mirror the ticket's outer 45° cuts.
-   Drawn as two stacked layers: ::before paints a solid octagon in the
-   rule color, ::after paints a 1px-smaller octagon in the paper color,
-   leaving a 1px ring of red tracing the octagonal outline. */
-.app-viewport::before,
-.app-viewport::after {
+/* Printed double-rule border around the main body, stopping just above
+   the perforation. */
+.app-viewport::before {
   content: "";
   position: absolute;
   pointer-events: none;
   z-index: 0;
-  clip-path: polygon(
-    var(--corner-chamfer) 0,
-    calc(100% - var(--corner-chamfer)) 0,
-    100% var(--corner-chamfer),
-    100% calc(100% - var(--corner-chamfer)),
-    calc(100% - var(--corner-chamfer)) 100%,
-    var(--corner-chamfer) 100%,
-    0 calc(100% - var(--corner-chamfer)),
-    0 var(--corner-chamfer)
-  );
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: calc(var(--tear-height) + 8px);
+  border: 3px double var(--ticket-rule);
+  border-radius: 4px;
 }
 
-.app-viewport::before {
-  top: 12px;
-  left: 12px;
-  right: 12px;
-  bottom: calc(var(--tear-height) + 10px);
-  background: var(--ticket-rule);
-}
-
+/* "ADMIT ONE" printed up the left edge of the stub. */
 .app-viewport::after {
-  top: 13px;
-  left: 13px;
-  right: 13px;
-  bottom: calc(var(--tear-height) + 11px);
-  background: var(--ticket-paper);
+  content: "ADMIT ONE";
+  display: none;
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--stub-side);
+  height: var(--tear-height);
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: "Anton", "Oswald", sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--ticket-red-dark);
 }
 
-/* Children render above the ::before/::after inset rule without needing
-   their own z-index. Layered so utilities like `absolute` can still
-   override `position`. */
-@layer base {
-  .app-viewport > * {
-    position: relative;
-    z-index: 1;
+.dark .app-viewport::after {
+  color: var(--ticket-red);
+}
+
+/* The stub's side print only fits once the screen leaves room either
+   side of the guess box. */
+@media (min-width: 370px) {
+  .app-viewport::after {
+    display: flex;
   }
 }
 
-/* On very narrow screens, draw the inset rule closer to the scallops
-   so the tile grid has more breathing room. */
 @media (max-width: 480px) {
   .app-viewport::before {
-    left: 8px;
-    right: 8px;
+    left: 7px;
+    right: 7px;
   }
-  .app-viewport::after {
-    left: 9px;
-    right: 9px;
+}
+
+/* Scroll areas fade out at the bottom so a cut-off row reads as "more
+   below" rather than as clipped. Off while typing: the plot sits right
+   above the guess box then. */
+.scroll-fade {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent);
+}
+
+:root[data-keyboard="open"] .scroll-fade {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* Scroll areas above the stub stop short of the printed border instead
+   of running behind it and the perforation. */
+.ticket-stub {
+  margin-top: 16px;
+}
+
+/* Keep the stub's own content (guess box, buttons) clear of its side
+   print. */
+@media (min-width: 370px) {
+  .ticket-stub {
+    padding-inline: calc(var(--stub-side) - 4px);
   }
+  :root[data-design="cinema"] .ticket-stub,
+  :root[data-design="modern"] .ticket-stub {
+    padding-inline: 0;
+  }
+}
+
+/* Stub barcode (TicketDecor): Code 39 of the puzzle number, printed up
+   the stub's right edge. Shown once the screen has room for it. */
+.ticket-stub-barcode {
+  display: none;
+  position: absolute;
+  right: 9px;
+  bottom: calc((var(--tear-height) - var(--stub-mark)) / 2);
+  width: 11px;
+  height: var(--stub-mark);
+  color: var(--ticket-ink);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+@media (min-width: 370px) {
+  .ticket-stub-barcode {
+    display: block;
+  }
+}
+
+/* The stub tears off when the game ends: a ragged gap rips across the
+   perforation and the stub's contents drop a little. */
+.ticket-rip {
+  position: absolute;
+  left: var(--tear-inlay);
+  right: var(--tear-inlay);
+  bottom: calc(var(--tear-height) - 5px);
+  height: 10px;
+  background: var(--theater-bg);
+  -webkit-mask: var(--rip-edge) repeat-x center / 14px 10px;
+  mask: var(--rip-edge) repeat-x center / 14px 10px;
+  pointer-events: none;
+  animation: ticket-rip 520ms cubic-bezier(0.5, 0, 0.2, 1) both;
+  --rip-edge: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10'%3E%3Cpath d='M0 3 L4 0 L8 4 L14 1 L14 8 L10 10 L5 6 L0 9 Z'/%3E%3C/svg%3E");
+}
+
+.app-viewport:has(.ticket-rip) .ticket-stub {
+  transform: translateY(3px) rotate(-0.35deg);
+  animation: ticket-stub-drop 520ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+@keyframes ticket-rip {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes ticket-stub-drop {
+  0%,
+  55% {
+    transform: none;
+  }
+  100% {
+    transform: translateY(3px) rotate(-0.35deg);
+  }
+}
+
+:root[data-design="cinema"] .ticket-rip,
+:root[data-design="modern"] .ticket-rip,
+:root[data-design="cinema"] .ticket-stub-barcode,
+:root[data-design="modern"] .ticket-stub-barcode {
+  display: none;
+}
+
+:root[data-design="cinema"] .app-viewport .ticket-stub,
+:root[data-design="modern"] .app-viewport .ticket-stub {
+  transform: none;
+  animation: none;
+}
+
+/* Result stamp on the banner: ADMITTED in red ink on a win, NO ENTRY in
+   grey on a loss. Lands with a quick thump. */
+.ticket-stamp {
+  position: absolute;
+  left: 8px;
+  top: 6px;
+  padding: 1px 6px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  font-family: "Anton", "Oswald", sans-serif;
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transform: rotate(-11deg);
+  opacity: 0.8;
+  pointer-events: none;
+  animation: ticket-stamp 380ms cubic-bezier(0.2, 1.6, 0.4, 1) 120ms both;
+}
+
+.ticket-stamp[data-result="win"] {
+  color: var(--ticket-red);
+}
+
+.ticket-stamp[data-result="loss"] {
+  color: color-mix(in srgb, var(--ticket-ink) 55%, transparent);
+}
+
+@keyframes ticket-stamp {
+  from {
+    transform: rotate(-11deg) scale(2.2);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(-11deg) scale(1);
+    opacity: 0.8;
+  }
+}
+
+:root[data-design="modern"] .ticket-stamp {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticket-rip,
+  .ticket-stamp,
+  .app-viewport:has(.ticket-rip) .ticket-stub {
+    animation: none;
+  }
+}
+
+/* Plotdle's "Now Showing" card: a marquee board ringed with bulbs. */
+.now-showing-marquee {
+  border: 6px dotted var(--ticket-red);
+  border-radius: 10px;
+  outline: 2px solid var(--ticket-rule);
+  outline-offset: 4px;
+  background: color-mix(in srgb, var(--ticket-paper) 85%, var(--ticket-ink));
+  animation: marquee-bulbs 1.6s steps(2) infinite;
+}
+
+@keyframes marquee-bulbs {
+  50% {
+    border-color: color-mix(in srgb, var(--ticket-red) 55%, var(--ticket-paper));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .now-showing-marquee {
+    animation: none;
+  }
+}
+
+/* Saved ticket stubs in Stats: small torn stubs with side notches and a
+   perforated top edge. */
+.mini-stub {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 88px;
+  padding: 10px 6px 8px;
+  border-top: 2px dotted color-mix(in srgb, var(--ticket-ink) 35%, transparent);
+  border-radius: 0 0 4px 4px;
+  background:
+    radial-gradient(circle 6px at 0 55%, var(--ticket-paper) 6px, transparent 6.5px),
+    radial-gradient(circle 6px at 100% 55%, var(--ticket-paper) 6px, transparent 6.5px),
+    color-mix(in srgb, var(--ticket-paper) 88%, var(--ticket-stub-mix));
+  color: var(--ticket-ink);
+  text-align: center;
+  transform: rotate(-1.5deg);
+}
+
+.mini-stub:nth-child(even) {
+  transform: rotate(1.2deg);
+}
+
+.mini-stub-date {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ticket-ink) 72%, transparent);
+}
+
+.mini-stub-no {
+  font-family: "Anton", sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--ticket-red);
+}
+
+.mini-stub-score {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-stub-stamp {
+  margin-top: 2px;
+  padding: 0 4px;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  font-family: "Anton", sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
+}
+
+.mini-stub[data-result="win"] .mini-stub-stamp {
+  color: var(--ticket-red);
+}
+
+.mini-stub[data-result="loss"] .mini-stub-stamp {
+  color: color-mix(in srgb, var(--ticket-ink) 50%, transparent);
+}
+
+/* Each game prints on its own colour of ticket paper (Ticket design). */
+:root[data-design="ticket"] .app-viewport[data-game="actordle"] {
+  --ticket-paper: #f8eccb;
+}
+:root[data-design="ticket"] .app-viewport[data-game="creditdle"] {
+  --ticket-paper: #ecf1dc;
+}
+:root[data-design="ticket"] .app-viewport[data-game="showdle"] {
+  --ticket-paper: #e5eef0;
+}
+:root[data-design="ticket"] .app-viewport[data-game="plotdle"] {
+  --ticket-paper: #f9e7e0;
+}
+:root[data-design="ticket"].dark .app-viewport[data-game="actordle"] {
+  --ticket-paper: #463720;
+}
+:root[data-design="ticket"].dark .app-viewport[data-game="creditdle"] {
+  --ticket-paper: #34381f;
+}
+:root[data-design="ticket"].dark .app-viewport[data-game="showdle"] {
+  --ticket-paper: #27353a;
+}
+:root[data-design="ticket"].dark .app-viewport[data-game="plotdle"] {
+  --ticket-paper: #4a2a26;
 }
 
 /* Header bar inside the ticket — a thin red rule beneath, like the
    horizontal lines that segment a printed ticket. */
 .ticket-header-rule {
-  border-bottom: 1px solid var(--ticket-rule);
+  /* Stops at the printed border instead of running off the ticket edge. */
+  background: linear-gradient(var(--ticket-rule), var(--ticket-rule)) bottom center / calc(100% - 26px)
+    1px no-repeat;
 }
 
-/* Small barcode/serial decoration in the header, rendered with CSS
-   alone (no extra assets). */
-.ticket-serial {
-  font-family: "Anton", sans-serif;
-  letter-spacing: 0.15em;
-  color: var(--ticket-red-dark);
+/* Printed fields under the game title (Date | Show | Ticket), split by
+   thin rules like the boxes on a real admission ticket. */
+.ticket-fields {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0;
 }
 
-.dark .ticket-serial {
+.ticket-fields > div,
+.ticket-fields .tf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 8px;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+/* The narrowest phones drop the date so the other fields fit. */
+@media (max-width: 359px) {
+  .ticket-fields .tf-date {
+    display: none;
+  }
+  .ticket-fields .tf-date + .tf {
+    border-left: 0;
+  }
+}
+
+.ticket-fields > div + div,
+.ticket-fields .tf + .tf {
+  border-left: 1px solid var(--ticket-rule);
+}
+
+.ticket-fields dt,
+.ticket-fields .tf-label {
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ticket-ink) 72%, transparent);
+}
+
+.ticket-fields dd,
+.ticket-fields .tf-value {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ticket-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+button.ticket-fields {
+  border-radius: 4px;
+  padding: 2px 0;
+  font: inherit;
+  background: none;
+  border: 0;
+}
+
+button.ticket-fields:focus-visible {
+  outline: 2px solid var(--ticket-red);
+  outline-offset: 2px;
+}
+
+/* What the header fields mean, dropped down under the header on tap. */
+.ticket-fields-help {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  z-index: 30;
+  width: max-content;
+  max-width: min(300px, calc(100vw - 48px));
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  border: 1px solid var(--ticket-rule);
+  border-radius: 6px;
+  background: var(--ticket-paper);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
+  color: var(--ticket-ink);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.ticket-fields-help b {
+  display: inline-block;
+  min-width: 3.6em;
+  margin-right: 4px;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--ticket-red);
 }
 
-.ticket-barcode {
-  display: inline-block;
-  width: 28px;
-  height: 14px;
-  background-image: repeating-linear-gradient(
-    to right,
-    var(--ticket-ink) 0 1px,
-    transparent 1px 2px,
-    var(--ticket-ink) 2px 4px,
-    transparent 4px 5px,
-    var(--ticket-ink) 5px 7px,
-    transparent 7px 8px
-  );
-  opacity: 0.75;
+.ticket-serial {
+  font-family: "Anton", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: var(--ticket-red-dark);
+}
+
+.dark .ticket-fields .ticket-serial,
+.dark .ticket-serial {
+  color: var(--ticket-red);
 }
 
 .grid-cell-size {
@@ -540,7 +889,7 @@ body {
   --theater-bg-dim: #14020a;
   --theater-glow: #9a1426;
   --bulb: #f2a516;
-  --corner-chamfer: 0px;
+  --corner-notch: 0px;
 }
 
 :root[data-design="cinema"].dark {
@@ -614,10 +963,6 @@ body {
   text-shadow: 0 0 18px color-mix(in srgb, var(--bulb) 45%, transparent);
 }
 
-:root[data-design="cinema"] .ticket-barcode {
-  display: none;
-}
-
 /* --- Modern: clean, neutral, app-like ---------------------------------- */
 :root[data-design="modern"] {
   --color-primary-50: #fafaf9;
@@ -652,7 +997,7 @@ body {
   --theater-bg: #f1f1ee;
   --theater-bg-dim: #f1f1ee;
   --theater-glow: #f1f1ee;
-  --corner-chamfer: 0px;
+  --corner-notch: 0px;
 }
 
 :root[data-design="modern"].dark {
@@ -712,15 +1057,6 @@ body {
   font-family: "Geist", "Segoe UI", -apple-system, ui-sans-serif, system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: 0.02em;
-}
-
-:root[data-design="modern"] .ticket-barcode,
-:root[data-design="modern"] .ticket-header-rule {
-  border-color: var(--ticket-rule);
-}
-
-:root[data-design="modern"] .ticket-barcode {
-  display: none;
 }
 
 :root[data-design="modern"] .ticket-serial {

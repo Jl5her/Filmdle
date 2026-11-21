@@ -23,6 +23,8 @@ export function useWinConfetti({
     if (dedupKey === null) return
     if (lastKeyRef.current === dedupKey) return
     lastKeyRef.current = dedupKey
+    // People who asked their device to reduce motion get no confetti.
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return
 
     const end = Date.now() + duration
 

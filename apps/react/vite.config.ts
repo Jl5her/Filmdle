@@ -15,9 +15,19 @@ function gitShortHash(): string {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "")
   const tmdbBearer = env.TMDB_BEARER ?? ""
+  // Link-preview images need an absolute URL. Set SITE_URL for production;
+  // Cloudflare Pages sets CF_PAGES_URL on every build as a fallback.
+  const siteUrl = (env.SITE_URL || env.CF_PAGES_URL || "").replace(/\/$/, "")
 
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      {
+        name: "site-url",
+        transformIndexHtml: (html) => html.replaceAll("%SITE_URL%", siteUrl),
+      },
+    ],
     define: {
       __APP_COMMIT__: JSON.stringify(gitShortHash()),
       __APP_BUILD_DATE__: JSON.stringify(new Date().toISOString()),

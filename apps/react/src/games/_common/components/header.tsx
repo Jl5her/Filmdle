@@ -1,5 +1,8 @@
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { formatLongDate, formatSerial, formatShortDate } from "@/shared/lib/date"
+import { Icon } from "@/shared/components/icon"
+import { formatSerial } from "@/shared/lib/date"
+import { computeStatsSummary, loadStats } from "@/shared/lib/stats"
 
 interface Props {
   title: string
@@ -7,48 +10,108 @@ interface Props {
   mode?: "daily" | "arcade"
   /** Puzzle number shown as the ticket serial (zero-padded to 5 digits). */
   serial?: number
+  /** Stats key; the Row field shows this game's current daily streak. */
+  gameKey?: string
+  /** Guesses used so far, printed as the Seat field. */
+  seat?: { used: number; max: number }
 }
 
-export function GameHeader({ title, onOpenStats, mode = "daily", serial }: Props) {
+export function GameHeader({ title, onOpenStats, mode = "daily", serial, gameKey, seat }: Props) {
+  const streak = gameKey ? computeStatsSummary(loadStats(gameKey)).currentStreak : undefined
+  const [explain, setExplain] = useState(false)
+
+  // Any tap elsewhere closes the explanation.
+  useEffect(() => {
+    if (!explain) return
+    const close = () => setExplain(false)
+    window.addEventListener("click", close)
+    return () => window.removeEventListener("click", close)
+  }, [explain])
   return (
-    <header className="ticket-header-rule relative flex min-h-20 items-stretch pt-3 text-center">
+    <header className="ticket-header-rule relative z-20 flex min-h-20 items-stretch pt-3 text-center">
       <Link
         to="/"
         aria-label="Back to menu"
         title="Back"
-        className="ml-6 flex h-11 w-11 shrink-0 self-center items-center justify-center rounded-md text-[1.25rem] leading-none text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
+        className="ml-4 flex h-10 w-10 shrink-0 self-center items-center justify-center rounded-md text-[1.25rem] leading-none text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
       >
-        <i className="fa-solid fa-chevron-left" aria-hidden="true" />
+        <Icon name="chevron-left" />
       </Link>
-      <div className="flex flex-1 flex-col items-center justify-center px-2">
+      <div className="relative flex min-w-0 flex-1 flex-col items-center justify-center px-1">
         <h1 className="fa5-title text-3xl uppercase text-danger-600 dark:text-primary-50">
           {title}
         </h1>
-        <p className="mt-0.5 flex items-center justify-center gap-2 text-[11px] text-primary-600 dark:text-primary-300">
-          {mode === "arcade" ? (
-            <span className="uppercase tracking-wider text-primary-700 dark:text-primary-200">
-              Arcade
+        {/* Printed ticket fields. Tapping them explains what each one means. */}
+        <button
+          type="button"
+          className="ticket-fields mt-1 cursor-pointer"
+          aria-expanded={explain}
+          aria-controls="ticket-fields-help"
+          onClick={(e) => {
+            e.stopPropagation()
+            setExplain((v) => !v)
+          }}
+        >
+          <span className="tf tf-date">
+            <span className="tf-label">Date</span>
+            <span className="tf-value">{formatTicketDate()}</span>
+          </span>
+          {streak !== undefined && (
+            <span className="tf">
+              <span className="tf-label">Row</span>
+              <span className="tf-value">{streak}</span>
             </span>
-          ) : (
-            <>
-              <span className="sm:hidden">{formatShortDate()}</span>
-              <span className="hidden sm:inline">{formatLongDate()}</span>
-            </>
           )}
-          <span className="ticket-serial">·</span>
-          <span className="ticket-barcode" aria-hidden="true" />
-          {serial !== undefined && <span className="ticket-serial">№ {formatSerial(serial)}</span>}
-        </p>
+          {seat && (
+            <span className="tf">
+              <span className="tf-label">Seat</span>
+              <span className="tf-value">
+                {seat.used}/{seat.max}
+              </span>
+            </span>
+          )}
+          <span className="tf">
+            <span className="tf-label">{mode === "arcade" ? "Arcade" : "Daily"}</span>
+            <span className="tf-value ticket-serial">
+              {serial !== undefined ? `№ ${formatSerial(serial)}` : "Free"}
+            </span>
+          </span>
+        </button>
+        {explain && (
+          <div id="ticket-fields-help" role="note" className="ticket-fields-help">
+            {streak !== undefined && (
+              <p>
+                <b>Row</b> your daily win streak ({streak} in a row)
+              </p>
+            )}
+            {seat && (
+              <p>
+                <b>Seat</b> guesses used: {seat.used} of {seat.max}
+              </p>
+            )}
+            <p>
+              <b>{mode === "arcade" ? "Arcade" : "Daily"}</b>{" "}
+              {serial !== undefined
+                ? `puzzle number ${formatSerial(serial)}`
+                : "a free-play puzzle, not today's daily"}
+            </p>
+          </div>
+        )}
       </div>
       <button
         type="button"
         onClick={onOpenStats}
         aria-label="Stats"
         title="Stats"
-        className="mr-6 flex h-11 w-11 shrink-0 cursor-pointer self-center items-center justify-center rounded-md text-[1.25rem] text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
+        className="mr-4 flex h-10 w-10 shrink-0 cursor-pointer self-center items-center justify-center rounded-md text-[1.25rem] text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
       >
-        <i className="fa-solid fa-chart-column" aria-hidden="true" />
+        <Icon name="chart-column" />
       </button>
     </header>
   )
+}
+
+/** "Nov 21" — short enough for the ticket's date field. */
+function formatTicketDate(now = new Date()): string {
+  return now.toLocaleDateString("en-US", { month: "short", day: "numeric" })
 }

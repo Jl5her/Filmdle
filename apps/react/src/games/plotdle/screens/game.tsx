@@ -8,8 +8,11 @@ import { GuessInput } from "@/games/_common/components/guess-input"
 import { GameHeader } from "@/games/_common/components/header"
 import { ResultBanner } from "@/games/_common/components/result-banner"
 import { searchMovie } from "@/lib/tmdb"
+import { Icon, type IconName } from "@/shared/components/icon"
 import { InlinePanel } from "@/shared/components/inline-panel"
+import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
+import { TicketDecor } from "@/shared/components/ticket-decor"
 import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
 import { formatSerial, todayKey } from "@/shared/lib/date"
 import { getIncludeAnimated, setIncludeAnimated } from "@/shared/lib/plotdle-prefs"
@@ -37,10 +40,10 @@ type HintId = "character" | "year" | "genre"
  * character (the strongest hint) after the second. Players can also tap to
  * reveal one early; only those early taps count toward the 💡 in the share.
  */
-const HINTS: { id: HintId; label: string; icon: string; freeAfterMisses: number }[] = [
-  { id: "year", label: "Year", icon: "fa-calendar", freeAfterMisses: 1 },
-  { id: "genre", label: "Genre", icon: "fa-masks-theater", freeAfterMisses: 1 },
-  { id: "character", label: "Main character", icon: "fa-user", freeAfterMisses: 2 },
+const HINTS: { id: HintId; label: string; icon: IconName; freeAfterMisses: number }[] = [
+  { id: "year", label: "Year", icon: "calendar", freeAfterMisses: 1 },
+  { id: "genre", label: "Genre", icon: "masks-theater", freeAfterMisses: 1 },
+  { id: "character", label: "Main character", icon: "user", freeAfterMisses: 2 },
 ]
 
 function hintValue(plot: PlotdlePlot, id: HintId): string {
@@ -114,6 +117,66 @@ function buildShareText(
   return lines.join("\n")
 }
 
+function introKey(id: number): string {
+  return `filmdle-intro:${GAME_KEY}:${id}`
+}
+
+function introSeen(id: number): boolean {
+  try {
+    return localStorage.getItem(introKey(id)) !== null
+  } catch {
+    return false
+  }
+}
+
+function markIntroSeen(id: number): void {
+  try {
+    localStorage.setItem(introKey(id), "1")
+  } catch {
+    // ignore
+  }
+}
+
+/** Marquee title card shown before today's untouched daily plot. */
+function NowShowing({ serial, animated }: { serial: number; animated: boolean }) {
+  return (
+    <div className="now-showing flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
+      <p className="text-[11px] uppercase tracking-[0.35em] text-danger-600 dark:text-danger-500">
+        ★ Now showing ★
+      </p>
+      <div className="now-showing-marquee w-full max-w-sm px-5 py-6">
+        <p className="text-[11px] uppercase tracking-[0.25em] text-primary-500 dark:text-primary-300">
+          Tonight's feature
+        </p>
+        <p className="marquee mt-1 text-4xl uppercase text-primary-900 dark:text-primary-50">
+          Mystery movie
+        </p>
+        <p className="mt-1 text-sm text-primary-600 dark:text-primary-300">
+          Daily Plotdle № {formatSerial(serial)}
+          {animated ? " · Animated" : ""}
+        </p>
+      </div>
+      <dl className="ticket-fields">
+        <div>
+          <dt>Runtime</dt>
+          <dd>3 guesses</dd>
+        </div>
+        <div>
+          <dt>Rated</dt>
+          <dd>PE</dd>
+        </div>
+        <div>
+          <dt>Showing</dt>
+          <dd>Today only</dd>
+        </div>
+      </dl>
+      <p className="max-w-xs text-xs text-primary-500 dark:text-primary-300">
+        Rated PE: Poorly Explained. Name the movie from its plot.
+      </p>
+    </div>
+  )
+}
+
 function hasPlayed(id: number): boolean {
   try {
     return localStorage.getItem(stateKey(id)) !== null
@@ -170,6 +233,12 @@ function PlotScreen({
     loadState(answer.id),
   )
   const [statsOpen, setStatsOpen] = useState(false)
+  // A "Now Showing" title card opens an untouched daily puzzle, once.
+  const [introOpen, setIntroOpen] = useState(() => {
+    if (!isDaily || introSeen(answer.id)) return false
+    const saved = loadState(answer.id)
+    return saved.guesses.length === 0 && saved.hints.length === 0 && !saved.gaveUp
+  })
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "failed">("idle")
   // Revealing ends the game, so it takes a second tap to confirm.
   const [confirmReveal, setConfirmReveal] = useState(false)
@@ -177,6 +246,8 @@ function PlotScreen({
   // After the game, "Hide answer" redraws the screen as a fresh, unplayed
   // puzzle so it can be shown to or screenshotted for someone else.
   const [answerHidden, setAnswerHidden] = useState(false)
+  // Hints the other person has tapped open while the answer is hidden. Not saved.
+  const [maskedHints, setMaskedHints] = useState<HintId[]>([])
 
   const won = guesses.some((g) => isCorrectGuess(g, answer))
   const lost = !won && (gaveUp || guesses.length >= MAX_GUESSES)
@@ -223,6 +294,8 @@ function PlotScreen({
         tmdb = await searchMovie(query, signal)
       } catch (err) {
         if ((err as Error).name === "AbortError") throw err
+        // Nothing local to fall back on: let the guess box say search failed.
+        if (local.length === 0) throw err
       }
       for (const r of tmdb) {
         if (out.length >= 8) break
@@ -267,11 +340,23 @@ function PlotScreen({
     })
   }
 
+  function hideAnswer() {
+    setMaskedHints([])
+    setConfirmReveal(false)
+    setAnswerHidden(true)
+  }
+
   function revealAnswer() {
-    if (gameOver) return
+    if (gameOver && !answerHidden) return
     if (!confirmReveal) {
       setConfirmReveal(true)
       window.setTimeout(() => setConfirmReveal(false), 3000)
+      return
+    }
+    setConfirmReveal(false)
+    // Hidden after a finished game: just bring the results back.
+    if (gameOver) {
+      setAnswerHidden(false)
       return
     }
     setState((prev) => {
@@ -282,12 +367,14 @@ function PlotScreen({
   }
 
   async function handleShare() {
+    // While hidden, share the puzzle link the way an unfinished game does.
+    const finished = gameOver && !answerHidden
     const text = buildShareText(
       answer,
-      gameOver ? guesses : [],
-      won,
-      hints.length,
-      gameOver && gaveUp,
+      finished ? guesses : [],
+      finished && won,
+      finished ? hints.length : 0,
+      finished && gaveUp,
     )
     try {
       if (navigator.share) {
@@ -305,16 +392,20 @@ function PlotScreen({
 
   const remaining = MAX_GUESSES - guesses.length
   const masked = gameOver && answerHidden
+  // After the game the hints shrink to one-line rows so the guesses stay in view.
+  const compactHints = gameOver && !masked
 
   return (
-    <div className="app-viewport flex flex-col">
+    <div className="app-viewport flex flex-col" data-game={GAME_KEY}>
       <GameHeader
         title="Plotdle"
         mode={isDaily ? "daily" : "arcade"}
         serial={answer.id}
+        gameKey={GAME_KEY}
+        seat={{ used: masked ? 0 : guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => setStatsOpen((v) => !v)}
       />
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-3">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-[var(--ticket-pad-x)] pt-3">
         <div
           className={clsx(
             "crossfade-panel flex flex-1 flex-col overflow-hidden",
@@ -331,11 +422,11 @@ function PlotScreen({
                 action={
                   <button
                     type="button"
-                    onClick={() => setAnswerHidden(true)}
+                    onClick={hideAnswer}
                     title="Hide answer"
                     className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-[10px] uppercase tracking-wider text-primary-600 transition-colors hover:bg-primary-600/10 dark:text-primary-300 dark:hover:bg-primary-700"
                   >
-                    <i className="fa-solid fa-eye-slash" aria-hidden="true" />
+                    <Icon name="eye-slash" />
                     Hide
                   </button>
                 }
@@ -343,14 +434,28 @@ function PlotScreen({
             </div>
           )}
 
-          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overflow-x-hidden pb-2 kb:gap-2">
+          {introOpen && <NowShowing serial={answer.id} animated={answer.animated} />}
+
+          <div
+            className={clsx(
+              "scroll-fade flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overflow-x-hidden pb-4 kb:gap-2 kb:pb-2",
+              introOpen && "hidden",
+            )}
+          >
             {/* While typing, this spacer pushes the plot down to sit just above the input. */}
             <div aria-hidden="true" className="hidden kb:block kb:flex-1" />
-            <p className="kb:hidden text-center text-xs uppercase tracking-widest text-primary-500 dark:text-primary-400">
-              Name the movie from this plot
-            </p>
+            {!compactHints && (
+              <p className="kb:hidden text-center text-xs uppercase tracking-widest text-primary-500 dark:text-primary-300">
+                Name the movie from this plot
+              </p>
+            )}
 
-            <figure className="shrink-0 rounded-md border-2 border-primary-200 bg-primary-50 px-4 py-4 dark:border-primary-700 dark:bg-primary-800/60">
+            <figure
+              className={clsx(
+                "shrink-0 rounded-md border-2 border-primary-200 bg-primary-50 px-4 dark:border-primary-700 dark:bg-primary-800/60",
+                compactHints ? "py-3" : "py-4",
+              )}
+            >
               <blockquote className="text-center text-lg leading-snug text-primary-900 dark:text-primary-50">
                 “{answer.plot}”
               </blockquote>
@@ -365,7 +470,8 @@ function PlotScreen({
 
             <div
               className={clsx(
-                "grid shrink-0 grid-cols-2 gap-2",
+                "grid shrink-0 grid-cols-2",
+                compactHints ? "gap-1.5" : "gap-2",
                 !gameOver &&
                   !HINTS.some((h) => unlocked.has(h.id) || hints.includes(h.id)) &&
                   "kb:hidden",
@@ -373,17 +479,24 @@ function PlotScreen({
             >
               {HINTS.map((h) => {
                 // Masked: every hint looks untouched, as on a fresh puzzle.
-                const shown = !masked && (gameOver || unlocked.has(h.id) || hints.includes(h.id))
+                const shown = masked
+                  ? maskedHints.includes(h.id)
+                  : gameOver || unlocked.has(h.id) || hints.includes(h.id)
                 const remainingMisses = h.freeAfterMisses - (masked ? 0 : misses)
                 return (
                   <button
                     key={h.id}
                     type="button"
-                    disabled={shown || gameOver}
-                    onClick={() => revealHint(h.id)}
-                    aria-label={shown || gameOver ? undefined : `Reveal hint: ${h.label}`}
+                    disabled={shown || (gameOver && !masked)}
+                    onClick={() =>
+                      masked ? setMaskedHints((prev) => [...prev, h.id]) : revealHint(h.id)
+                    }
+                    aria-label={shown ? undefined : `Reveal hint: ${h.label}`}
                     className={clsx(
-                      "flex flex-col items-center justify-center gap-1 rounded-md border-2 px-2 py-2 text-center transition-colors kb:py-1",
+                      "flex rounded-md border-2 transition-colors",
+                      compactHints
+                        ? "min-w-0 items-baseline gap-2 px-3 py-1.5 text-left"
+                        : "flex-col items-center justify-center gap-1 px-2 py-2 text-center kb:py-1",
                       h.id === "character" && "col-span-2",
                       // Unrevealed hints just add distance between plot and keyboard.
                       !shown && "kb:hidden",
@@ -392,13 +505,14 @@ function PlotScreen({
                         : "cursor-pointer border-dashed border-primary-300 text-primary-500 hover:border-danger-500/60 hover:text-danger-600 dark:border-primary-500/70 dark:text-primary-300 dark:hover:border-primary-300 dark:hover:text-primary-100",
                     )}
                   >
-                    <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
-                      <i className={clsx("fa-solid", h.icon)} aria-hidden="true" />
-                      {h.label}
+                    <span className="flex shrink-0 items-center gap-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-300">
+                      <Icon name={h.icon} />
+                      {compactHints ? <span className="sr-only">{h.label}</span> : h.label}
                     </span>
                     <span
                       className={clsx(
                         "text-sm",
+                        compactHints && "min-w-0",
                         shown
                           ? "text-primary-900 dark:text-primary-50"
                           : "text-xs italic text-primary-500 dark:text-primary-300",
@@ -407,7 +521,7 @@ function PlotScreen({
                       {shown ? hintValue(answer, h.id) : "Tap to reveal"}
                     </span>
                     {!shown && (
-                      <span className="text-[11px] text-primary-400 dark:text-primary-400">
+                      <span className="text-[11px] text-primary-500 dark:text-primary-300">
                         Free after {remainingMisses} {remainingMisses === 1 ? "miss" : "misses"}
                       </span>
                     )}
@@ -417,19 +531,13 @@ function PlotScreen({
             </div>
 
             {(!gameOver || masked) && (
-              <div
-                className={clsx(
-                  "flex flex-wrap justify-center gap-2 kb:hidden",
-                  masked && "pointer-events-none",
-                )}
-              >
+              <div className="flex flex-wrap justify-center gap-2 kb:hidden">
                 <button
                   type="button"
-                  tabIndex={masked ? -1 : undefined}
                   onClick={handleShare}
                   className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider text-danger-600 transition-colors hover:bg-danger-600/10 dark:text-primary-100 dark:hover:bg-primary-700"
                 >
-                  <i className="fa-solid fa-share-nodes" aria-hidden="true" />
+                  <Icon name="share-nodes" />
                   {shareStatus === "copied"
                     ? "Link copied"
                     : shareStatus === "failed"
@@ -438,7 +546,6 @@ function PlotScreen({
                 </button>
                 <button
                   type="button"
-                  tabIndex={masked ? -1 : undefined}
                   onClick={revealAnswer}
                   className={clsx(
                     "flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider transition-colors",
@@ -447,7 +554,7 @@ function PlotScreen({
                       : "text-primary-600 hover:bg-primary-600/10 dark:text-primary-300 dark:hover:bg-primary-700",
                   )}
                 >
-                  <i className="fa-solid fa-eye" aria-hidden="true" />
+                  <Icon name="eye" />
                   {confirmReveal ? "Tap again to reveal" : "Reveal answer"}
                 </button>
               </div>
@@ -455,7 +562,7 @@ function PlotScreen({
 
             {guesses.length > 0 && !masked && (
               <div className="shrink-0">
-                <p className="mb-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
+                <p className="mb-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-300">
                   Guesses
                 </p>
                 <div className="flex flex-col gap-1.5">
@@ -472,15 +579,15 @@ function PlotScreen({
             )}
           </div>
 
-          <div className="flex h-[var(--tear-height)] shrink-0 flex-col justify-center">
+          <div className="ticket-stub flex h-[var(--tear-height)] shrink-0 flex-col justify-center">
             {masked ? (
               <div className="mx-3">
-                <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
+                <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-300">
                   {MAX_GUESSES} guesses remaining
                 </p>
-                {/* Looks like the guess box; its only control brings the answer back. */}
+                {/* Looks like the guess box (no typing); the eye brings the answer back. */}
                 <div className="relative mx-auto max-w-xs">
-                  <div className="w-full rounded-lg border-2 border-primary-300 bg-primary-100 px-4 py-3 text-base text-primary-500 dark:border-primary-700 dark:bg-primary-800 dark:text-primary-400">
+                  <div className="w-full rounded-lg border-2 border-primary-300 bg-primary-100 px-4 py-3 text-base text-primary-500 dark:border-primary-700 dark:bg-primary-800 dark:text-primary-300">
                     Type a movie title…
                   </div>
                   <button
@@ -488,37 +595,64 @@ function PlotScreen({
                     onClick={() => setAnswerHidden(false)}
                     aria-label="Show answer"
                     title="Show answer"
-                    className="absolute top-1/2 right-1.5 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-primary-400 transition-colors hover:bg-primary-200 hover:text-primary-700 dark:text-primary-500 dark:hover:bg-primary-700 dark:hover:text-primary-100"
+                    className="absolute top-1/2 right-1.5 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-primary-500 transition-colors hover:bg-primary-200 hover:text-primary-700 dark:text-primary-300 dark:hover:bg-primary-700 dark:hover:text-primary-100"
                   >
-                    <i className="fa-solid fa-eye" aria-hidden="true" />
+                    <Icon name="eye" />
                   </button>
                 </div>
               </div>
+            ) : introOpen ? (
+              <div className="mx-3 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    markIntroSeen(answer.id)
+                    setIntroOpen(false)
+                  }}
+                  className={clsx(
+                    "flex w-full max-w-xs cursor-pointer items-center justify-center gap-2 rounded-md px-6 py-3 uppercase tracking-wide transition-colors",
+                    "bg-danger-600 text-primary-50 hover:bg-danger-700",
+                    "dark:bg-danger-500 dark:hover:bg-danger-600",
+                  )}
+                >
+                  <Icon name="couch" />
+                  Take your seat
+                </button>
+              </div>
             ) : gameOver ? (
               <div className="mx-3 flex flex-col items-center gap-2">
-                <div className="flex w-full justify-center gap-3">
+                <div className="flex w-full justify-center gap-2 min-[400px]:gap-3">
+                  {/* Under 400px wide Share is icon-only, like the ticket button, so Play Again fits. */}
                   <button
                     type="button"
                     onClick={handleShare}
+                    aria-label={shareStatus === "copied" ? "Copied" : "Share"}
                     className={clsx(
-                      "flex flex-1 max-w-[11rem] cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border-2 px-3 py-3 uppercase tracking-wide transition-colors",
+                      "flex w-12 flex-none cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border-2 py-3 uppercase tracking-wide transition-colors min-[400px]:w-auto min-[400px]:max-w-[11rem] min-[400px]:flex-1 min-[400px]:px-3",
                       "border-danger-600 text-danger-600 hover:bg-danger-600/10",
                       "dark:border-danger-500 dark:text-primary-50 dark:hover:bg-danger-500/20",
                     )}
                   >
-                    <i
-                      className={clsx(
-                        "fa-solid",
-                        shareStatus === "copied" ? "fa-check" : "fa-share-nodes",
-                      )}
-                      aria-hidden="true"
-                    />
-                    {shareStatus === "copied"
-                      ? "Copied"
-                      : shareStatus === "failed"
-                        ? "Try again"
-                        : "Share"}
+                    <Icon name={shareStatus === "copied" ? "check" : "share-nodes"} />
+                    <span className="max-[399px]:sr-only">
+                      {shareStatus === "copied"
+                        ? "Copied"
+                        : shareStatus === "failed"
+                          ? "Try again"
+                          : "Share"}
+                    </span>
                   </button>
+                  <ShareTicketButton
+                    ticket={() => ({
+                      game: "Plotdle",
+                      mode: isDaily ? "daily" : "arcade",
+                      serial: answer.id,
+                      marks: guesses.map((g) => isCorrectGuess(g, answer)),
+                      maxGuesses: MAX_GUESSES,
+                      won,
+                      quote: answer.plot,
+                    })}
+                  />
                   <button
                     type="button"
                     onClick={onNext}
@@ -528,7 +662,7 @@ function PlotScreen({
                       "dark:bg-danger-500 dark:hover:bg-danger-600",
                     )}
                   >
-                    <i className="fa-solid fa-rotate-right" aria-hidden="true" />
+                    <Icon name="rotate-right" />
                     Play Again
                   </button>
                 </div>
@@ -547,7 +681,7 @@ function PlotScreen({
               </div>
             ) : (
               <div className="mx-3">
-                <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 kb:hidden dark:text-primary-400">
+                <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 kb:hidden dark:text-primary-300">
                   {remaining} {remaining === 1 ? "guess" : "guesses"} remaining
                 </p>
                 <GuessInput
@@ -565,11 +699,12 @@ function PlotScreen({
           open={statsOpen}
           title="Stats"
           onClose={() => setStatsOpen(false)}
-          className="px-4 pt-3"
+          className="px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
         >
           <StatsContent open={statsOpen} defaultGame="plotdle" />
         </InlinePanel>
       </div>
+      <TicketDecor code={formatSerial(answer.id)} torn={gameOver && !masked} />
     </div>
   )
 }
@@ -584,7 +719,7 @@ function GuessRow({ number, label, correct }: { number: number; label: string; c
           : "border-danger-500/40 bg-danger-500/10 dark:border-danger-500/30 dark:bg-danger-500/15",
       )}
     >
-      <span className="w-4 shrink-0 text-right text-[11px] text-primary-400 dark:text-primary-500">
+      <span className="w-4 shrink-0 text-right text-[11px] text-primary-500 dark:text-primary-300">
         {number}
       </span>
       <div

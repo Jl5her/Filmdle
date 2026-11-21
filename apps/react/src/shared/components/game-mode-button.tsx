@@ -1,10 +1,11 @@
 import clsx from "clsx"
+import { Icon, type IconName } from "@/shared/components/icon"
 
 interface Props {
   label: string
   sublabel: string
-  /** Font Awesome icon name without the `fa-` prefix, e.g. "film". */
-  icon: string
+  /** Icon shown on the button, e.g. "film". */
+  icon: IconName
   played?: boolean
   isNew?: boolean
   className?: string
@@ -44,7 +45,7 @@ export function GameModeButton({
           played ? "bg-success-600" : "bg-danger-600 dark:bg-danger-500",
         )}
       >
-        <i className={clsx("fa-solid", played ? "fa-check" : `fa-${icon}`)} />
+        <Icon name={played ? "check" : icon} />
       </span>
       <span
         aria-hidden="true"
@@ -67,9 +68,9 @@ export function GameModeButton({
       </span>
       <span
         aria-hidden="true"
-        className="flex items-center pr-3 text-sm text-primary-400 transition-transform group-hover:translate-x-0.5 group-hover:text-danger-600 dark:text-primary-500 dark:group-hover:text-primary-100"
+        className="flex items-center pr-3 text-sm text-primary-500 transition-transform group-hover:translate-x-0.5 group-hover:text-danger-600 dark:text-primary-300 dark:group-hover:text-primary-100"
       >
-        <i className="fa-solid fa-chevron-right" />
+        <Icon name="chevron-right" />
       </span>
     </button>
   )

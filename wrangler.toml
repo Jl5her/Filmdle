@@ -5,3 +5,7 @@ compatibility_date = "2024-12-30"
 # TMDB bearer token is provided as a Pages secret:
 #   pnpm wrangler pages secret put TMDB_BEARER --project-name filmdle
 # For local `wrangler pages dev`, add it to apps/react/.dev.vars (gitignored).
+#
+# Link previews need absolute image URLs. Set SITE_URL (e.g. the production
+# domain) as a build environment variable; otherwise the build falls back to
+# CF_PAGES_URL, which Cloudflare Pages sets for every deployment.
