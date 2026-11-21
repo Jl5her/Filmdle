@@ -177,6 +177,8 @@ function PlotScreen({
   // After the game, "Hide answer" redraws the screen as a fresh, unplayed
   // puzzle so it can be shown to or screenshotted for someone else.
   const [answerHidden, setAnswerHidden] = useState(false)
+  // Hints the other person has tapped open while the answer is hidden. Not saved.
+  const [maskedHints, setMaskedHints] = useState<HintId[]>([])
 
   const won = guesses.some((g) => isCorrectGuess(g, answer))
   const lost = !won && (gaveUp || guesses.length >= MAX_GUESSES)
@@ -267,11 +269,23 @@ function PlotScreen({
     })
   }
 
+  function hideAnswer() {
+    setMaskedHints([])
+    setConfirmReveal(false)
+    setAnswerHidden(true)
+  }
+
   function revealAnswer() {
-    if (gameOver) return
+    if (gameOver && !answerHidden) return
     if (!confirmReveal) {
       setConfirmReveal(true)
       window.setTimeout(() => setConfirmReveal(false), 3000)
+      return
+    }
+    setConfirmReveal(false)
+    // Hidden after a finished game: just bring the results back.
+    if (gameOver) {
+      setAnswerHidden(false)
       return
     }
     setState((prev) => {
@@ -282,12 +296,14 @@ function PlotScreen({
   }
 
   async function handleShare() {
+    // While hidden, share the puzzle link the way an unfinished game does.
+    const finished = gameOver && !answerHidden
     const text = buildShareText(
       answer,
-      gameOver ? guesses : [],
-      won,
-      hints.length,
-      gameOver && gaveUp,
+      finished ? guesses : [],
+      finished && won,
+      finished ? hints.length : 0,
+      finished && gaveUp,
     )
     try {
       if (navigator.share) {
@@ -331,7 +347,7 @@ function PlotScreen({
                 action={
                   <button
                     type="button"
-                    onClick={() => setAnswerHidden(true)}
+                    onClick={hideAnswer}
                     title="Hide answer"
                     className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-[10px] uppercase tracking-wider text-primary-600 transition-colors hover:bg-primary-600/10 dark:text-primary-300 dark:hover:bg-primary-700"
                   >
@@ -373,15 +389,19 @@ function PlotScreen({
             >
               {HINTS.map((h) => {
                 // Masked: every hint looks untouched, as on a fresh puzzle.
-                const shown = !masked && (gameOver || unlocked.has(h.id) || hints.includes(h.id))
+                const shown = masked
+                  ? maskedHints.includes(h.id)
+                  : gameOver || unlocked.has(h.id) || hints.includes(h.id)
                 const remainingMisses = h.freeAfterMisses - (masked ? 0 : misses)
                 return (
                   <button
                     key={h.id}
                     type="button"
-                    disabled={shown || gameOver}
-                    onClick={() => revealHint(h.id)}
-                    aria-label={shown || gameOver ? undefined : `Reveal hint: ${h.label}`}
+                    disabled={shown || (gameOver && !masked)}
+                    onClick={() =>
+                      masked ? setMaskedHints((prev) => [...prev, h.id]) : revealHint(h.id)
+                    }
+                    aria-label={shown ? undefined : `Reveal hint: ${h.label}`}
                     className={clsx(
                       "flex flex-col items-center justify-center gap-1 rounded-md border-2 px-2 py-2 text-center transition-colors kb:py-1",
                       h.id === "character" && "col-span-2",
@@ -417,15 +437,9 @@ function PlotScreen({
             </div>
 
             {(!gameOver || masked) && (
-              <div
-                className={clsx(
-                  "flex flex-wrap justify-center gap-2 kb:hidden",
-                  masked && "pointer-events-none",
-                )}
-              >
+              <div className="flex flex-wrap justify-center gap-2 kb:hidden">
                 <button
                   type="button"
-                  tabIndex={masked ? -1 : undefined}
                   onClick={handleShare}
                   className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider text-danger-600 transition-colors hover:bg-danger-600/10 dark:text-primary-100 dark:hover:bg-primary-700"
                 >
@@ -438,7 +452,6 @@ function PlotScreen({
                 </button>
                 <button
                   type="button"
-                  tabIndex={masked ? -1 : undefined}
                   onClick={revealAnswer}
                   className={clsx(
                     "flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider transition-colors",
@@ -478,7 +491,7 @@ function PlotScreen({
                 <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
                   {MAX_GUESSES} guesses remaining
                 </p>
-                {/* Looks like the guess box; its only control brings the answer back. */}
+                {/* Looks like the guess box (no typing); the eye brings the answer back. */}
                 <div className="relative mx-auto max-w-xs">
                   <div className="w-full rounded-lg border-2 border-primary-300 bg-primary-100 px-4 py-3 text-base text-primary-500 dark:border-primary-700 dark:bg-primary-800 dark:text-primary-400">
                     Type a movie title…
