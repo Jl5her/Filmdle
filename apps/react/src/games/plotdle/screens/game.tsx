@@ -10,6 +10,7 @@ import { ResultBanner } from "@/games/_common/components/result-banner"
 import { searchMovie } from "@/lib/tmdb"
 import { InlinePanel } from "@/shared/components/inline-panel"
 import { StatsContent } from "@/shared/components/stats-overlay"
+import { TicketDecor } from "@/shared/components/ticket-decor"
 import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
 import { formatSerial, todayKey } from "@/shared/lib/date"
 import { getIncludeAnimated, setIncludeAnimated } from "@/shared/lib/plotdle-prefs"
@@ -323,11 +324,13 @@ function PlotScreen({
   const masked = gameOver && answerHidden
 
   return (
-    <div className="app-viewport flex flex-col">
+    <div className="app-viewport flex flex-col" data-game={GAME_KEY}>
       <GameHeader
         title="Plotdle"
         mode={isDaily ? "daily" : "arcade"}
         serial={answer.id}
+        gameKey={GAME_KEY}
+        seat={{ used: masked ? 0 : guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => setStatsOpen((v) => !v)}
       />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-3">
@@ -583,6 +586,7 @@ function PlotScreen({
           <StatsContent open={statsOpen} defaultGame="plotdle" />
         </InlinePanel>
       </div>
+      <TicketDecor code={formatSerial(answer.id)} torn={gameOver && !masked} />
     </div>
   )
 }

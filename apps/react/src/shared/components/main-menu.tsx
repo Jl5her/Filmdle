@@ -10,6 +10,7 @@ import { GameModeButton } from "./game-mode-button"
 import { HowToPlayContent } from "./how-to-play-overlay"
 import { InlinePanel } from "./inline-panel"
 import { SettingsContent } from "./settings-overlay"
+import { TicketDecor } from "./ticket-decor"
 
 type Panel = "settings" | "about" | "how-to-play" | null
 
@@ -125,6 +126,7 @@ export function MainMenu() {
         </div>
         <p className="text-xs text-primary-700 dark:text-primary-300">{formatLongDate()}</p>
       </div>
+      <TicketDecor code={today.replaceAll("-", "").slice(2)} />
     </>
   )
 }

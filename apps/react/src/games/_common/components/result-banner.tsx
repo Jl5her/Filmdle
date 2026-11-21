@@ -34,6 +34,9 @@ export function ResultBanner({
       )}
     >
       {action && <div className="absolute top-1 right-1">{action}</div>}
+      <span className="ticket-stamp" data-result={won ? "win" : "loss"} aria-hidden="true">
+        {won ? "Admitted" : "No entry"}
+      </span>
       <div className={clsx("text-[11px] uppercase tracking-[0.2em]", statusColor)}>
         {won ? "Correct" : "Game Over"}
       </div>

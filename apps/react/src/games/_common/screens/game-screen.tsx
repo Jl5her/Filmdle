@@ -2,7 +2,8 @@ import clsx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { InlinePanel } from "@/shared/components/inline-panel"
 import { StatsContent } from "@/shared/components/stats-overlay"
-import { puzzleNumber, todayKey } from "@/shared/lib/date"
+import { TicketDecor } from "@/shared/components/ticket-decor"
+import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
 import { loadGuesses, saveGuesses } from "@/shared/lib/game-state"
 import { minHashPick } from "@/shared/lib/hash"
 import { appendResult } from "@/shared/lib/stats"
@@ -135,13 +136,16 @@ export function GameScreen<T>({
   }
 
   const nextPuzzleLabel = mode === "daily" ? "Play Again" : "Next Puzzle"
+  const serial = mode === "daily" ? puzzleNumber(gameKey, dateKey) : undefined
 
   return (
-    <div className="app-viewport flex flex-col">
+    <div className="app-viewport flex flex-col" data-game={gameKey}>
       <GameHeader
         title={title}
         mode={mode}
-        serial={mode === "daily" ? puzzleNumber(gameKey, dateKey) : undefined}
+        serial={serial}
+        gameKey={gameKey}
+        seat={{ used: guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => setStatsOpen((v) => !v)}
       />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-3">
@@ -201,6 +205,7 @@ export function GameScreen<T>({
           <StatsContent open={statsOpen} />
         </InlinePanel>
       </div>
+      <TicketDecor code={formatSerial(serial ?? 0)} torn={gameOver} />
     </div>
   )
 }

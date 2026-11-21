@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
 import { formatSerial } from "@/shared/lib/date"
+import { computeStatsSummary, loadStats } from "@/shared/lib/stats"
 
 interface Props {
   title: string
@@ -7,9 +8,14 @@ interface Props {
   mode?: "daily" | "arcade"
   /** Puzzle number shown as the ticket serial (zero-padded to 5 digits). */
   serial?: number
+  /** Stats key; the Row field shows this game's current daily streak. */
+  gameKey?: string
+  /** Guesses used so far, printed as the Seat field. */
+  seat?: { used: number; max: number }
 }
 
-export function GameHeader({ title, onOpenStats, mode = "daily", serial }: Props) {
+export function GameHeader({ title, onOpenStats, mode = "daily", serial, gameKey, seat }: Props) {
+  const streak = gameKey ? computeStatsSummary(loadStats(gameKey)).currentStreak : undefined
   return (
     <header className="ticket-header-rule relative flex min-h-20 items-stretch pt-3 text-center">
       <Link
@@ -30,16 +36,26 @@ export function GameHeader({ title, onOpenStats, mode = "daily", serial }: Props
             <dt>Date</dt>
             <dd>{formatTicketDate()}</dd>
           </div>
-          <div>
-            <dt>Show</dt>
-            <dd>{mode === "arcade" ? "Arcade" : "Daily"}</dd>
-          </div>
-          {serial !== undefined && (
-            <div>
-              <dt>Ticket</dt>
-              <dd className="ticket-serial">№ {formatSerial(serial)}</dd>
+          {streak !== undefined && (
+            <div title="Current daily streak">
+              <dt>Row</dt>
+              <dd>{streak}</dd>
             </div>
           )}
+          {seat && (
+            <div title="Guesses used">
+              <dt>Seat</dt>
+              <dd>
+                {seat.used}/{seat.max}
+              </dd>
+            </div>
+          )}
+          <div>
+            <dt>{mode === "arcade" ? "Arcade" : "Daily"}</dt>
+            <dd className="ticket-serial">
+              {serial !== undefined ? `№ ${formatSerial(serial)}` : "Free"}
+            </dd>
+          </div>
         </dl>
       </div>
       <button

@@ -77,8 +77,13 @@
      the barcode runs. */
   --stub-side: 26px;
   --stub-mark: 64px;
-  /* The stub is printed on a slightly darker tint of the paper. */
-  --ticket-stub: #f1e3bd;
+  /* What the stub's tint is mixed toward. */
+  --ticket-stub-mix: #b08a4a;
+  /* Paper finish: grain, a fold crease and edge wear. */
+  --ticket-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0 0.12 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  --ticket-crease-light: rgb(255 255 255 / 0.22);
+  --ticket-crease-dark: rgb(90 60 20 / 0.06);
+  --ticket-wear: rgb(120 85 30 / 0.1);
   /* Space between the ticket's outer edge and the screen. */
   --app-viewport-gutter: 8px;
 }
@@ -92,7 +97,10 @@
   /* Bolder ticket-red against the dark paper. */
   --ticket-red: #d44434;
   --ticket-red-dark: #a32a1f;
-  --ticket-stub: #3a2918;
+  --ticket-stub-mix: #000000;
+  --ticket-crease-light: rgb(255 240 210 / 0.07);
+  --ticket-crease-dark: rgb(0 0 0 / 0.22);
+  --ticket-wear: rgb(0 0 0 / 0.32);
 
   /* Theater backdrop with a redder, more saturated stage glow. */
   --theater-bg: #1c0d07;
@@ -278,18 +286,18 @@ body {
       var(--theater-bg) var(--perf-hole),
       transparent calc(var(--perf-hole) + 0.5px)
     ),
-    /* stub barcode, printed sideways up the stub's right edge */
-    repeating-linear-gradient(
-      to bottom,
-      var(--ticket-ink) 0 2px,
-      transparent 2px 3px,
-      var(--ticket-ink) 3px 4px,
-      transparent 4px 6px,
-      var(--ticket-ink) 6px 9px,
-      transparent 9px 10px,
-      var(--ticket-ink) 10px 11px,
-      transparent 11px 13px
+    /* a fold crease across the ticket */
+    linear-gradient(
+      104deg,
+      transparent 47%,
+      var(--ticket-crease-light) 49.6%,
+      var(--ticket-crease-dark) 50.4%,
+      transparent 53%
     ),
+    /* edge wear: darker toward the edges (stronger in dark mode) */
+    radial-gradient(ellipse 85% 80% at 50% 45%, transparent 55%, var(--ticket-wear) 100%),
+    /* paper grain */
+    var(--ticket-grain),
     /* the stub's darker print tint */
     linear-gradient(var(--ticket-stub), var(--ticket-stub));
   background-position:
@@ -300,7 +308,9 @@ body {
     0 0,
     0 0,
     0 calc(100% - var(--tear-height) + var(--perf-step) / 2),
-    calc(100% - var(--stub-side) + 2px) calc(100% - (var(--tear-height) - var(--stub-mark)) / 2),
+    0 0,
+    0 0,
+    0 0,
     0 100%;
   background-size:
     100% 100%,
@@ -310,7 +320,9 @@ body {
     100% 100%,
     100% 100%,
     var(--perf-step) var(--perf-step),
-    0 0,
+    100% 100%,
+    100% 100%,
+    180px 180px,
     100% var(--tear-height);
   background-repeat:
     no-repeat,
@@ -321,7 +333,11 @@ body {
     no-repeat,
     space no-repeat,
     no-repeat,
+    no-repeat,
+    repeat,
     no-repeat;
+  /* The stub prints on a slightly darker tint of this ticket's paper. */
+  --ticket-stub: color-mix(in srgb, var(--ticket-paper) 90%, var(--ticket-stub-mix));
 }
 
 /* Printed double-rule border around the main body, stopping just above
@@ -370,18 +386,6 @@ body {
   .app-viewport::after {
     display: flex;
   }
-  .app-viewport {
-    background-size:
-      100% 100%,
-      100% 100%,
-      100% 100%,
-      100% 100%,
-      100% 100%,
-      100% 100%,
-      var(--perf-step) var(--perf-step),
-      calc(var(--stub-side) - 12px) var(--stub-mark),
-      100% var(--tear-height);
-  }
 }
 
 @media (max-width: 480px) {
@@ -401,6 +405,156 @@ body {
   :root[data-design="modern"] .ticket-stub {
     padding-inline: 0;
   }
+}
+
+/* Stub barcode (TicketDecor): Code 39 of the puzzle number, printed up
+   the stub's right edge. Shown once the screen has room for it. */
+.ticket-stub-barcode {
+  display: none;
+  position: absolute;
+  right: 9px;
+  bottom: calc((var(--tear-height) - var(--stub-mark)) / 2);
+  width: 11px;
+  height: var(--stub-mark);
+  color: var(--ticket-ink);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+@media (min-width: 370px) {
+  .ticket-stub-barcode {
+    display: block;
+  }
+}
+
+/* The stub tears off when the game ends: a ragged gap rips across the
+   perforation and the stub's contents drop a little. */
+.ticket-rip {
+  position: absolute;
+  left: var(--tear-inlay);
+  right: var(--tear-inlay);
+  bottom: calc(var(--tear-height) - 5px);
+  height: 10px;
+  background: var(--theater-bg);
+  -webkit-mask: var(--rip-edge) repeat-x center / 14px 10px;
+  mask: var(--rip-edge) repeat-x center / 14px 10px;
+  pointer-events: none;
+  animation: ticket-rip 520ms cubic-bezier(0.5, 0, 0.2, 1) both;
+  --rip-edge: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10'%3E%3Cpath d='M0 3 L4 0 L8 4 L14 1 L14 8 L10 10 L5 6 L0 9 Z'/%3E%3C/svg%3E");
+}
+
+.app-viewport:has(.ticket-rip) .ticket-stub {
+  transform: translateY(3px) rotate(-0.35deg);
+  animation: ticket-stub-drop 520ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+@keyframes ticket-rip {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes ticket-stub-drop {
+  0%,
+  55% {
+    transform: none;
+  }
+  100% {
+    transform: translateY(3px) rotate(-0.35deg);
+  }
+}
+
+:root[data-design="cinema"] .ticket-rip,
+:root[data-design="modern"] .ticket-rip,
+:root[data-design="cinema"] .ticket-stub-barcode,
+:root[data-design="modern"] .ticket-stub-barcode {
+  display: none;
+}
+
+:root[data-design="cinema"] .app-viewport .ticket-stub,
+:root[data-design="modern"] .app-viewport .ticket-stub {
+  transform: none;
+  animation: none;
+}
+
+/* Result stamp on the banner: ADMITTED in red ink on a win, NO ENTRY in
+   grey on a loss. Lands with a quick thump. */
+.ticket-stamp {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  padding: 1px 6px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  font-family: "Anton", "Oswald", sans-serif;
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transform: rotate(-11deg);
+  opacity: 0.8;
+  pointer-events: none;
+  animation: ticket-stamp 380ms cubic-bezier(0.2, 1.6, 0.4, 1) 120ms both;
+}
+
+.ticket-stamp[data-result="win"] {
+  color: var(--ticket-red);
+}
+
+.ticket-stamp[data-result="loss"] {
+  color: color-mix(in srgb, var(--ticket-ink) 55%, transparent);
+}
+
+@keyframes ticket-stamp {
+  from {
+    transform: rotate(-11deg) scale(2.2);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(-11deg) scale(1);
+    opacity: 0.8;
+  }
+}
+
+:root[data-design="modern"] .ticket-stamp {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticket-rip,
+  .ticket-stamp,
+  .app-viewport:has(.ticket-rip) .ticket-stub {
+    animation: none;
+  }
+}
+
+/* Each game prints on its own colour of ticket paper (Ticket design). */
+:root[data-design="ticket"] .app-viewport[data-game="actordle"] {
+  --ticket-paper: #f8eccb;
+}
+:root[data-design="ticket"] .app-viewport[data-game="creditdle"] {
+  --ticket-paper: #ecf1dc;
+}
+:root[data-design="ticket"] .app-viewport[data-game="showdle"] {
+  --ticket-paper: #e5eef0;
+}
+:root[data-design="ticket"] .app-viewport[data-game="plotdle"] {
+  --ticket-paper: #f9e7e0;
+}
+:root[data-design="ticket"].dark .app-viewport[data-game="actordle"] {
+  --ticket-paper: #463720;
+}
+:root[data-design="ticket"].dark .app-viewport[data-game="creditdle"] {
+  --ticket-paper: #34381f;
+}
+:root[data-design="ticket"].dark .app-viewport[data-game="showdle"] {
+  --ticket-paper: #27353a;
+}
+:root[data-design="ticket"].dark .app-viewport[data-game="plotdle"] {
+  --ticket-paper: #4a2a26;
 }
 
 /* Header bar inside the ticket — a thin red rule beneath, like the
