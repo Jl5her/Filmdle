@@ -9,6 +9,7 @@ import { GameHeader } from "@/games/_common/components/header"
 import { ResultBanner } from "@/games/_common/components/result-banner"
 import { searchMovie } from "@/lib/tmdb"
 import { InlinePanel } from "@/shared/components/inline-panel"
+import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { TicketDecor } from "@/shared/components/ticket-decor"
 import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
@@ -535,6 +536,17 @@ function PlotScreen({
                         ? "Try again"
                         : "Share"}
                   </button>
+                  <ShareTicketButton
+                    ticket={() => ({
+                      game: "Plotdle",
+                      mode: isDaily ? "daily" : "arcade",
+                      serial: answer.id,
+                      marks: guesses.map((g) => isCorrectGuess(g, answer)),
+                      maxGuesses: MAX_GUESSES,
+                      won,
+                      quote: answer.plot,
+                    })}
+                  />
                   <button
                     type="button"
                     onClick={onNext}

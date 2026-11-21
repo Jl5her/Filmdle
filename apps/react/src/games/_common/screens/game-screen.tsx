@@ -1,6 +1,7 @@
 import clsx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { InlinePanel } from "@/shared/components/inline-panel"
+import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { TicketDecor } from "@/shared/components/ticket-decor"
 import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
@@ -172,12 +173,22 @@ export function GameScreen<T>({
           </div>
           <div className="ticket-stub shrink-0 flex flex-col justify-center h-[var(--tear-height)]">
             {gameOver ? (
-              <div className="mx-3 flex justify-center">
+              <div className="mx-3 flex justify-center gap-3">
+                <ShareTicketButton
+                  ticket={() => ({
+                    game: title,
+                    mode,
+                    serial,
+                    marks: guesses.map((g) => idOf(g) === idOf(answer)),
+                    maxGuesses: MAX_GUESSES,
+                    won,
+                  })}
+                />
                 <button
                   type="button"
                   onClick={startNextPuzzle}
                   className={clsx(
-                    "w-full max-w-xs px-6 py-3 rounded-md uppercase tracking-wide transition-colors cursor-pointer",
+                    "flex-1 max-w-xs px-6 py-3 rounded-md uppercase tracking-wide transition-colors cursor-pointer",
                     "bg-danger-600 text-primary-50 hover:bg-danger-700",
                     "dark:bg-danger-500 dark:hover:bg-danger-600",
                   )}
