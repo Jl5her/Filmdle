@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { formatLongDate, formatSerial, formatShortDate } from "@/shared/lib/date"
+import { formatSerial } from "@/shared/lib/date"
 
 interface Props {
   title: string
@@ -24,21 +24,23 @@ export function GameHeader({ title, onOpenStats, mode = "daily", serial }: Props
         <h1 className="fa5-title text-3xl uppercase text-danger-600 dark:text-primary-50">
           {title}
         </h1>
-        <p className="mt-0.5 flex items-center justify-center gap-2 text-[11px] text-primary-600 dark:text-primary-300">
-          {mode === "arcade" ? (
-            <span className="uppercase tracking-wider text-primary-700 dark:text-primary-200">
-              Arcade
-            </span>
-          ) : (
-            <>
-              <span className="sm:hidden">{formatShortDate()}</span>
-              <span className="hidden sm:inline">{formatLongDate()}</span>
-            </>
+        {/* Printed ticket fields: date, showing and ticket number. */}
+        <dl className="ticket-fields mt-1">
+          <div>
+            <dt>Date</dt>
+            <dd>{formatTicketDate()}</dd>
+          </div>
+          <div>
+            <dt>Show</dt>
+            <dd>{mode === "arcade" ? "Arcade" : "Daily"}</dd>
+          </div>
+          {serial !== undefined && (
+            <div>
+              <dt>Ticket</dt>
+              <dd className="ticket-serial">№ {formatSerial(serial)}</dd>
+            </div>
           )}
-          <span className="ticket-serial">·</span>
-          <span className="ticket-barcode" aria-hidden="true" />
-          {serial !== undefined && <span className="ticket-serial">№ {formatSerial(serial)}</span>}
-        </p>
+        </dl>
       </div>
       <button
         type="button"
@@ -51,4 +53,9 @@ export function GameHeader({ title, onOpenStats, mode = "daily", serial }: Props
       </button>
     </header>
   )
+}
+
+/** "Nov 21" — short enough for the ticket's date field. */
+function formatTicketDate(now = new Date()): string {
+  return now.toLocaleDateString("en-US", { month: "short", day: "numeric" })
 }

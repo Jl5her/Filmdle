@@ -166,7 +166,7 @@ export function GameScreen<T>({
               nameOf={nameOf}
             />
           </div>
-          <div className="shrink-0 flex flex-col justify-center h-[var(--tear-height)]">
+          <div className="ticket-stub shrink-0 flex flex-col justify-center h-[var(--tear-height)]">
             {gameOver ? (
               <div className="mx-3 flex justify-center">
                 <button

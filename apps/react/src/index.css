@@ -68,13 +68,18 @@
   /* Radius of the large circle inlays that bite into the left + right
      edges at the perforation line. */
   --tear-inlay: 16px;
-  /* Radius of the small scallop notches along the outer edges. */
-  --scallop: 6px;
-  --scallop-step: 24px;
-  /* Diagonal cut at each ticket corner — gives the ticket the
-     chamfered/octagonal corner profile of a printed admission stub. */
-  --corner-chamfer: 14px;
-  /* Space between the ticket's outer scalloped edge and the screen. */
+  /* Quarter-circle notch cut from each ticket corner. */
+  --corner-notch: 12px;
+  /* Punched perforation holes along the tear line. */
+  --perf-hole: 2.5px;
+  --perf-step: 11px;
+  /* Width of the stub's side print ("ADMIT ONE", barcode) and how tall
+     the barcode runs. */
+  --stub-side: 26px;
+  --stub-mark: 64px;
+  /* The stub is printed on a slightly darker tint of the paper. */
+  --ticket-stub: #f1e3bd;
+  /* Space between the ticket's outer edge and the screen. */
   --app-viewport-gutter: 8px;
 }
 
@@ -87,6 +92,7 @@
   /* Bolder ticket-red against the dark paper. */
   --ticket-red: #d44434;
   --ticket-red-dark: #a32a1f;
+  --ticket-stub: #3a2918;
 
   /* Theater backdrop with a redder, more saturated stage glow. */
   --theater-bg: #1c0d07;
@@ -215,11 +221,12 @@ body {
 
 /* --- The ticket --- */
 
-/* Two-section layout: the top ~80% is the main body (header + grid),
-   the bottom strip is the tear-away (the guess input lives here). A
-   horizontal perforation separates them, with two large circle inlays
-   biting into the left + right edges where the rip would start. Small
-   scallop notches run along all four outer edges. */
+/* A cinema admission ticket: a paper card with notched corners, a
+   printed double-rule border around the main body, and a tear-off stub
+   at the bottom (the guess input lives there) separated by a row of
+   punched perforation holes, with half-moon notches where the tear
+   starts. The stub is printed on a slightly darker tint and carries
+   "ADMIT ONE" up one side and a barcode up the other. */
 .app-viewport {
   display: flex;
   flex-direction: column;
@@ -233,82 +240,78 @@ body {
 
   background-color: var(--ticket-paper);
   background-image:
-    /* 45° corner chamfer — top-left. Paints the triangular wedge
-       between the corner and the chamfer cut line with the theater
-       background so the corner reads as a clean diagonal cut. */
-    linear-gradient(135deg, var(--theater-bg) 0 50%, transparent 50%),
-    /* 45° corner chamfer — top-right */
-    linear-gradient(225deg, var(--theater-bg) 0 50%, transparent 50%),
-    /* 45° corner chamfer — bottom-right */
-    linear-gradient(315deg, var(--theater-bg) 0 50%, transparent 50%),
-    /* 45° corner chamfer — bottom-left */
-    linear-gradient(45deg, var(--theater-bg) 0 50%, transparent 50%),
-    /* large circle inlay — left side of the perforation */
+    /* notched corners: a quarter circle bitten out of each corner */
+    radial-gradient(
+      circle var(--corner-notch) at 0 0,
+      var(--theater-bg) var(--corner-notch),
+      transparent calc(var(--corner-notch) + 0.5px)
+    ),
+    radial-gradient(
+      circle var(--corner-notch) at 100% 0,
+      var(--theater-bg) var(--corner-notch),
+      transparent calc(var(--corner-notch) + 0.5px)
+    ),
+    radial-gradient(
+      circle var(--corner-notch) at 100% 100%,
+      var(--theater-bg) var(--corner-notch),
+      transparent calc(var(--corner-notch) + 0.5px)
+    ),
+    radial-gradient(
+      circle var(--corner-notch) at 0 100%,
+      var(--theater-bg) var(--corner-notch),
+      transparent calc(var(--corner-notch) + 0.5px)
+    ),
+    /* half-moon notches where the stub tears off */
     radial-gradient(
       circle var(--tear-inlay) at 0 calc(100% - var(--tear-height)),
       var(--theater-bg) var(--tear-inlay),
       transparent calc(var(--tear-inlay) + 0.5px)
     ),
-    /* large circle inlay — right side of the perforation */
     radial-gradient(
       circle var(--tear-inlay) at 100% calc(100% - var(--tear-height)),
       var(--theater-bg) var(--tear-inlay),
       transparent calc(var(--tear-inlay) + 0.5px)
     ),
-    /* horizontal dashed perforation between main body + tear-away */
-    linear-gradient(
-      to right,
-      var(--ticket-paper-edge) 0 6px,
-      transparent 6px 12px
-    ),
-    /* small scallop notches along the top outer edge */
+    /* punched perforation holes along the tear line */
     radial-gradient(
-      circle var(--scallop) at calc(var(--scallop-step) / 2) 0,
-      var(--theater-bg) var(--scallop),
-      transparent calc(var(--scallop) + 0.5px)
+      circle var(--perf-hole) at 50% 50%,
+      var(--theater-bg) var(--perf-hole),
+      transparent calc(var(--perf-hole) + 0.5px)
     ),
-    /* small scallop notches along the bottom outer edge */
-    radial-gradient(
-      circle var(--scallop) at calc(var(--scallop-step) / 2) 100%,
-      var(--theater-bg) var(--scallop),
-      transparent calc(var(--scallop) + 0.5px)
+    /* stub barcode, printed sideways up the stub's right edge */
+    repeating-linear-gradient(
+      to bottom,
+      var(--ticket-ink) 0 2px,
+      transparent 2px 3px,
+      var(--ticket-ink) 3px 4px,
+      transparent 4px 6px,
+      var(--ticket-ink) 6px 9px,
+      transparent 9px 10px,
+      var(--ticket-ink) 10px 11px,
+      transparent 11px 13px
     ),
-    /* small scallop notches along the left outer edge */
-    radial-gradient(
-      circle var(--scallop) at 0 calc(var(--scallop-step) / 2),
-      var(--theater-bg) var(--scallop),
-      transparent calc(var(--scallop) + 0.5px)
-    ),
-    /* small scallop notches along the right outer edge */
-    radial-gradient(
-      circle var(--scallop) at 100% calc(var(--scallop-step) / 2),
-      var(--theater-bg) var(--scallop),
-      transparent calc(var(--scallop) + 0.5px)
-    );
+    /* the stub's darker print tint */
+    linear-gradient(var(--ticket-stub), var(--ticket-stub));
   background-position:
     0 0,
-    100% 0,
-    100% 100%,
-    0 100%,
     0 0,
     0 0,
-    0 calc(100% - var(--tear-height)),
     0 0,
-    0 100%,
     0 0,
-    100% 0;
+    0 0,
+    0 calc(100% - var(--tear-height) + var(--perf-step) / 2),
+    calc(100% - var(--stub-side) + 2px) calc(100% - (var(--tear-height) - var(--stub-mark)) / 2),
+    0 100%;
   background-size:
-    var(--corner-chamfer) var(--corner-chamfer),
-    var(--corner-chamfer) var(--corner-chamfer),
-    var(--corner-chamfer) var(--corner-chamfer),
-    var(--corner-chamfer) var(--corner-chamfer),
     100% 100%,
     100% 100%,
-    12px 2px,
-    var(--scallop-step) calc(var(--scallop) * 2),
-    var(--scallop-step) calc(var(--scallop) * 2),
-    calc(var(--scallop) * 2) var(--scallop-step),
-    calc(var(--scallop) * 2) var(--scallop-step);
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    var(--perf-step) var(--perf-step),
+    0 0,
+    100% var(--tear-height);
   background-repeat:
     no-repeat,
     no-repeat,
@@ -316,108 +319,146 @@ body {
     no-repeat,
     no-repeat,
     no-repeat,
-    repeat-x,
-    repeat-x,
-    repeat-x,
-    repeat-y,
-    repeat-y;
+    space no-repeat,
+    no-repeat,
+    no-repeat;
 }
 
-/* Inset red rule traced around the main body section only. Its bottom
-   edge sits just above the tear-away perforation, framing the rip-off
-   stub with chamfered corners that mirror the ticket's outer 45° cuts.
-   Drawn as two stacked layers: ::before paints a solid octagon in the
-   rule color, ::after paints a 1px-smaller octagon in the paper color,
-   leaving a 1px ring of red tracing the octagonal outline. */
-.app-viewport::before,
-.app-viewport::after {
+/* Printed double-rule border around the main body, stopping just above
+   the perforation. */
+.app-viewport::before {
   content: "";
   position: absolute;
   pointer-events: none;
   z-index: 0;
-  clip-path: polygon(
-    var(--corner-chamfer) 0,
-    calc(100% - var(--corner-chamfer)) 0,
-    100% var(--corner-chamfer),
-    100% calc(100% - var(--corner-chamfer)),
-    calc(100% - var(--corner-chamfer)) 100%,
-    var(--corner-chamfer) 100%,
-    0 calc(100% - var(--corner-chamfer)),
-    0 var(--corner-chamfer)
-  );
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: calc(var(--tear-height) + 8px);
+  border: 3px double var(--ticket-rule);
+  border-radius: 4px;
 }
 
-.app-viewport::before {
-  top: 12px;
-  left: 12px;
-  right: 12px;
-  bottom: calc(var(--tear-height) + 10px);
-  background: var(--ticket-rule);
-}
-
+/* "ADMIT ONE" printed up the left edge of the stub. */
 .app-viewport::after {
-  top: 13px;
-  left: 13px;
-  right: 13px;
-  bottom: calc(var(--tear-height) + 11px);
-  background: var(--ticket-paper);
+  content: "ADMIT ONE";
+  display: none;
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--stub-side);
+  height: var(--tear-height);
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: "Anton", "Oswald", sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--ticket-red-dark);
 }
 
-/* Children render above the ::before/::after inset rule without needing
-   their own z-index. Layered so utilities like `absolute` can still
-   override `position`. */
-@layer base {
-  .app-viewport > * {
-    position: relative;
-    z-index: 1;
+.dark .app-viewport::after {
+  color: var(--ticket-red);
+}
+
+/* The stub's side print only fits once the screen leaves room either
+   side of the guess box. */
+@media (min-width: 370px) {
+  .app-viewport::after {
+    display: flex;
+  }
+  .app-viewport {
+    background-size:
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      var(--perf-step) var(--perf-step),
+      calc(var(--stub-side) - 12px) var(--stub-mark),
+      100% var(--tear-height);
   }
 }
 
-/* On very narrow screens, draw the inset rule closer to the scallops
-   so the tile grid has more breathing room. */
 @media (max-width: 480px) {
   .app-viewport::before {
-    left: 8px;
-    right: 8px;
+    left: 7px;
+    right: 7px;
   }
-  .app-viewport::after {
-    left: 9px;
-    right: 9px;
+}
+
+/* Keep the stub's own content (guess box, buttons) clear of its side
+   print. */
+@media (min-width: 370px) {
+  .ticket-stub {
+    padding-inline: calc(var(--stub-side) - 4px);
+  }
+  :root[data-design="cinema"] .ticket-stub,
+  :root[data-design="modern"] .ticket-stub {
+    padding-inline: 0;
   }
 }
 
 /* Header bar inside the ticket — a thin red rule beneath, like the
    horizontal lines that segment a printed ticket. */
 .ticket-header-rule {
-  border-bottom: 1px solid var(--ticket-rule);
+  /* Stops at the printed border instead of running off the ticket edge. */
+  background: linear-gradient(var(--ticket-rule), var(--ticket-rule)) bottom center / calc(100% - 26px)
+    1px no-repeat;
 }
 
-/* Small barcode/serial decoration in the header, rendered with CSS
-   alone (no extra assets). */
+/* Printed fields under the game title (Date | Show | Ticket), split by
+   thin rules like the boxes on a real admission ticket. */
+.ticket-fields {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0;
+}
+
+.ticket-fields > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 12px;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.ticket-fields > div + div {
+  border-left: 1px solid var(--ticket-rule);
+}
+
+.ticket-fields dt {
+  font-size: 8.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ticket-ink) 55%, transparent);
+}
+
+.ticket-fields dd {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ticket-ink);
+  font-variant-numeric: tabular-nums;
+}
+
 .ticket-serial {
   font-family: "Anton", sans-serif;
-  letter-spacing: 0.15em;
+  font-weight: 400;
+  letter-spacing: 0.12em;
   color: var(--ticket-red-dark);
 }
 
+.dark .ticket-fields .ticket-serial,
 .dark .ticket-serial {
   color: var(--ticket-red);
-}
-
-.ticket-barcode {
-  display: inline-block;
-  width: 28px;
-  height: 14px;
-  background-image: repeating-linear-gradient(
-    to right,
-    var(--ticket-ink) 0 1px,
-    transparent 1px 2px,
-    var(--ticket-ink) 2px 4px,
-    transparent 4px 5px,
-    var(--ticket-ink) 5px 7px,
-    transparent 7px 8px
-  );
-  opacity: 0.75;
 }
 
 .grid-cell-size {
@@ -540,7 +581,7 @@ body {
   --theater-bg-dim: #14020a;
   --theater-glow: #9a1426;
   --bulb: #f2a516;
-  --corner-chamfer: 0px;
+  --corner-notch: 0px;
 }
 
 :root[data-design="cinema"].dark {
@@ -614,10 +655,6 @@ body {
   text-shadow: 0 0 18px color-mix(in srgb, var(--bulb) 45%, transparent);
 }
 
-:root[data-design="cinema"] .ticket-barcode {
-  display: none;
-}
-
 /* --- Modern: clean, neutral, app-like ---------------------------------- */
 :root[data-design="modern"] {
   --color-primary-50: #fafaf9;
@@ -652,7 +689,7 @@ body {
   --theater-bg: #f1f1ee;
   --theater-bg-dim: #f1f1ee;
   --theater-glow: #f1f1ee;
-  --corner-chamfer: 0px;
+  --corner-notch: 0px;
 }
 
 :root[data-design="modern"].dark {
@@ -712,15 +749,6 @@ body {
   font-family: "Geist", "Segoe UI", -apple-system, ui-sans-serif, system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: 0.02em;
-}
-
-:root[data-design="modern"] .ticket-barcode,
-:root[data-design="modern"] .ticket-header-rule {
-  border-color: var(--ticket-rule);
-}
-
-:root[data-design="modern"] .ticket-barcode {
-  display: none;
 }
 
 :root[data-design="modern"] .ticket-serial {

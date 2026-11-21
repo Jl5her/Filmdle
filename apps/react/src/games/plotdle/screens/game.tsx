@@ -472,7 +472,7 @@ function PlotScreen({
             )}
           </div>
 
-          <div className="flex h-[var(--tear-height)] shrink-0 flex-col justify-center">
+          <div className="ticket-stub flex h-[var(--tear-height)] shrink-0 flex-col justify-center">
             {masked ? (
               <div className="mx-3">
                 <p className="mb-1 text-center text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-400">
