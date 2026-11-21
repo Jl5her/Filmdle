@@ -160,20 +160,29 @@ function PlotCard({ plot, playable }: { plot: PlotdlePlot; playable: boolean }) 
             Daily #{daily} · {dailyDate(daily)}
           </Chip>
         ) : (
-          <Chip>Arcade</Chip>
+          <Chip>{plot.pool === "library" ? "Library" : "Arcade"}</Chip>
         )}
         <Chip strong={!excluded}>
           {excluded ? `Play Again: no (${excluded})` : "Play Again: yes"}
         </Chip>
         {plot.franchise && <Chip>{plot.franchise}</Chip>}
-        {playable && (
+        <span className="ml-auto flex gap-3">
+          {/* Preview opens any plot fresh (even a future daily) without saving. */}
           <Link
-            to={`/plotdle/${plot.id}`}
-            className="ml-auto text-xs uppercase tracking-wider text-danger-600 underline-offset-2 hover:underline dark:text-danger-500"
+            to={`/plotdle/${plot.id}?preview=1`}
+            className="text-xs uppercase tracking-wider text-danger-600 underline-offset-2 hover:underline dark:text-danger-500"
           >
-            Play
+            Preview
           </Link>
-        )}
+          {playable && (
+            <Link
+              to={`/plotdle/${plot.id}`}
+              className="text-xs uppercase tracking-wider text-danger-600 underline-offset-2 hover:underline dark:text-danger-500"
+            >
+              Play
+            </Link>
+          )}
+        </span>
       </div>
     </li>
   )
