@@ -35,6 +35,8 @@ export default function ActordleGame() {
         tmdbResults = (await searchPerson(query, signal)).slice(0, 8)
       } catch (err) {
         if ((err as Error).name === "AbortError") throw err
+        // Nothing local to fall back on: let the guess box say search failed.
+        if (localMatches.length === 0) throw err
       }
       const tmdbSuggestions: Suggestion[] = []
       for (const r of tmdbResults) {

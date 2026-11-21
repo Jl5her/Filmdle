@@ -1,5 +1,6 @@
 import clsx from "clsx"
 import { useState } from "react"
+import { Icon } from "@/shared/components/icon"
 import { shareTicketImage, type TicketImageData } from "@/shared/lib/ticket-image"
 
 /** Square button that shares the finished game as a ticket-stub image. */
@@ -37,18 +38,17 @@ export function ShareTicketButton({ ticket }: { ticket: () => TicketImageData })
         "dark:border-danger-500 dark:text-primary-50 dark:hover:bg-danger-500/20",
       )}
     >
-      <i
-        className={clsx(
-          "fa-solid",
+      <Icon
+        name={
           status === "working"
-            ? "fa-spinner fa-spin"
+            ? "spinner"
             : status === "saved"
-              ? "fa-check"
+              ? "check"
               : status === "failed"
-                ? "fa-triangle-exclamation"
-                : "fa-ticket",
-        )}
-        aria-hidden="true"
+                ? "triangle-exclamation"
+                : "ticket"
+        }
+        className={status === "working" ? "animate-spin" : undefined}
       />
     </button>
   )

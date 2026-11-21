@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
+import { Icon } from "@/shared/components/icon"
 import { formatSerial } from "@/shared/lib/date"
 import { computeStatsSummary, loadStats } from "@/shared/lib/stats"
 
@@ -34,7 +35,7 @@ export function GameHeader({ title, onOpenStats, mode = "daily", serial, gameKey
         title="Back"
         className="ml-4 flex h-10 w-10 shrink-0 self-center items-center justify-center rounded-md text-[1.25rem] leading-none text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
       >
-        <i className="fa-solid fa-chevron-left" aria-hidden="true" />
+        <Icon name="chevron-left" />
       </Link>
       <div className="relative flex min-w-0 flex-1 flex-col items-center justify-center px-1">
         <h1 className="fa5-title text-3xl uppercase text-danger-600 dark:text-primary-50">
@@ -104,7 +105,7 @@ export function GameHeader({ title, onOpenStats, mode = "daily", serial, gameKey
         title="Stats"
         className="mr-4 flex h-10 w-10 shrink-0 cursor-pointer self-center items-center justify-center rounded-md text-[1.25rem] text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
       >
-        <i className="fa-solid fa-chart-column" aria-hidden="true" />
+        <Icon name="chart-column" />
       </button>
     </header>
   )

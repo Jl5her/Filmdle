@@ -8,6 +8,7 @@ import { GuessInput } from "@/games/_common/components/guess-input"
 import { GameHeader } from "@/games/_common/components/header"
 import { ResultBanner } from "@/games/_common/components/result-banner"
 import { searchMovie } from "@/lib/tmdb"
+import { Icon, type IconName } from "@/shared/components/icon"
 import { InlinePanel } from "@/shared/components/inline-panel"
 import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
@@ -39,10 +40,10 @@ type HintId = "character" | "year" | "genre"
  * character (the strongest hint) after the second. Players can also tap to
  * reveal one early; only those early taps count toward the 💡 in the share.
  */
-const HINTS: { id: HintId; label: string; icon: string; freeAfterMisses: number }[] = [
-  { id: "year", label: "Year", icon: "fa-calendar", freeAfterMisses: 1 },
-  { id: "genre", label: "Genre", icon: "fa-masks-theater", freeAfterMisses: 1 },
-  { id: "character", label: "Main character", icon: "fa-user", freeAfterMisses: 2 },
+const HINTS: { id: HintId; label: string; icon: IconName; freeAfterMisses: number }[] = [
+  { id: "year", label: "Year", icon: "calendar", freeAfterMisses: 1 },
+  { id: "genre", label: "Genre", icon: "masks-theater", freeAfterMisses: 1 },
+  { id: "character", label: "Main character", icon: "user", freeAfterMisses: 2 },
 ]
 
 function hintValue(plot: PlotdlePlot, id: HintId): string {
@@ -293,6 +294,8 @@ function PlotScreen({
         tmdb = await searchMovie(query, signal)
       } catch (err) {
         if ((err as Error).name === "AbortError") throw err
+        // Nothing local to fall back on: let the guess box say search failed.
+        if (local.length === 0) throw err
       }
       for (const r of tmdb) {
         if (out.length >= 8) break
@@ -423,7 +426,7 @@ function PlotScreen({
                     title="Hide answer"
                     className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-[10px] uppercase tracking-wider text-primary-600 transition-colors hover:bg-primary-600/10 dark:text-primary-300 dark:hover:bg-primary-700"
                   >
-                    <i className="fa-solid fa-eye-slash" aria-hidden="true" />
+                    <Icon name="eye-slash" />
                     Hide
                   </button>
                 }
@@ -503,7 +506,7 @@ function PlotScreen({
                     )}
                   >
                     <span className="flex shrink-0 items-center gap-1.5 text-[11px] uppercase tracking-widest text-primary-500 dark:text-primary-300">
-                      <i className={clsx("fa-solid", h.icon)} aria-hidden="true" />
+                      <Icon name={h.icon} />
                       {compactHints ? <span className="sr-only">{h.label}</span> : h.label}
                     </span>
                     <span
@@ -534,7 +537,7 @@ function PlotScreen({
                   onClick={handleShare}
                   className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider text-danger-600 transition-colors hover:bg-danger-600/10 dark:text-primary-100 dark:hover:bg-primary-700"
                 >
-                  <i className="fa-solid fa-share-nodes" aria-hidden="true" />
+                  <Icon name="share-nodes" />
                   {shareStatus === "copied"
                     ? "Link copied"
                     : shareStatus === "failed"
@@ -551,7 +554,7 @@ function PlotScreen({
                       : "text-primary-600 hover:bg-primary-600/10 dark:text-primary-300 dark:hover:bg-primary-700",
                   )}
                 >
-                  <i className="fa-solid fa-eye" aria-hidden="true" />
+                  <Icon name="eye" />
                   {confirmReveal ? "Tap again to reveal" : "Reveal answer"}
                 </button>
               </div>
@@ -594,7 +597,7 @@ function PlotScreen({
                     title="Show answer"
                     className="absolute top-1/2 right-1.5 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-primary-500 transition-colors hover:bg-primary-200 hover:text-primary-700 dark:text-primary-300 dark:hover:bg-primary-700 dark:hover:text-primary-100"
                   >
-                    <i className="fa-solid fa-eye" aria-hidden="true" />
+                    <Icon name="eye" />
                   </button>
                 </div>
               </div>
@@ -612,7 +615,7 @@ function PlotScreen({
                     "dark:bg-danger-500 dark:hover:bg-danger-600",
                   )}
                 >
-                  <i className="fa-solid fa-couch" aria-hidden="true" />
+                  <Icon name="couch" />
                   Take your seat
                 </button>
               </div>
@@ -630,13 +633,7 @@ function PlotScreen({
                       "dark:border-danger-500 dark:text-primary-50 dark:hover:bg-danger-500/20",
                     )}
                   >
-                    <i
-                      className={clsx(
-                        "fa-solid",
-                        shareStatus === "copied" ? "fa-check" : "fa-share-nodes",
-                      )}
-                      aria-hidden="true"
-                    />
+                    <Icon name={shareStatus === "copied" ? "check" : "share-nodes"} />
                     <span className="max-[399px]:sr-only">
                       {shareStatus === "copied"
                         ? "Copied"
@@ -665,7 +662,7 @@ function PlotScreen({
                       "dark:bg-danger-500 dark:hover:bg-danger-600",
                     )}
                   >
-                    <i className="fa-solid fa-rotate-right" aria-hidden="true" />
+                    <Icon name="rotate-right" />
                     Play Again
                   </button>
                 </div>

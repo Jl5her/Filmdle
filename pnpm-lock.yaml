@@ -26,9 +26,6 @@ importers:
 
   apps/react:
     dependencies:
-      '@fortawesome/fontawesome-free':
-        specifier: 6.5.2
-        version: 6.5.2
       '@stardle/data':
         specifier: workspace:*
         version: link:../../packages/data
@@ -599,10 +596,6 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
-
-  '@fortawesome/fontawesome-free@6.5.2':
-    resolution: {integrity: sha512-hRILoInAx8GNT5IMkrtIt9blOdrqHOnPBH+k70aWUAqPZPgopb9G5EQJFpaBx/S8zp2fC+mPW349Bziuk1o28Q==}
-    engines: {node: '>=6'}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -1860,8 +1853,6 @@ snapshots:
 
   '@esbuild/win32-x64@0.27.3':
     optional: true
-
-  '@fortawesome/fontawesome-free@6.5.2': {}
 
   '@img/colour@1.1.0': {}
 
