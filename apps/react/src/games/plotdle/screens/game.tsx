@@ -6,6 +6,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom"
 import type { Suggestion } from "@/games/_common/components/guess-input"
 import { GuessInput } from "@/games/_common/components/guess-input"
 import { GameHeader } from "@/games/_common/components/header"
+import { NextPuzzleCountdown } from "@/games/_common/components/next-puzzle-countdown"
 import { ResultBanner } from "@/games/_common/components/result-banner"
 import { searchMovie } from "@/lib/tmdb"
 import { Icon, type IconName } from "@/shared/components/icon"
@@ -419,6 +420,7 @@ function PlotScreen({
                 answer={`${answer.title} (${answer.year})`}
                 guessCount={guesses.length}
                 lossMessage={gaveUp ? "Answer revealed" : undefined}
+                footer={isDaily ? <NextPuzzleCountdown game="Plotdle" /> : undefined}
                 action={
                   <button
                     type="button"
@@ -557,6 +559,16 @@ function PlotScreen({
                   <Icon name="eye" />
                   {confirmReveal ? "Tap again to reveal" : "Reveal answer"}
                 </button>
+                {!isDaily && !masked && (
+                  <button
+                    type="button"
+                    onClick={onNext}
+                    className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider text-danger-600 transition-colors hover:bg-danger-600/10 dark:text-danger-400 dark:hover:bg-danger-500/20"
+                  >
+                    Next plot
+                    <Icon name="chevron-right" />
+                  </button>
+                )}
               </div>
             )}
 

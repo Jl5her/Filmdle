@@ -1,12 +1,14 @@
 import clsx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { ArcadeNextButton } from "@/games/_common/components/arcade-next-button"
+import { NextPuzzleCountdown } from "@/games/_common/components/next-puzzle-countdown"
 import { InlinePanel } from "@/shared/components/inline-panel"
 import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { TicketDecor } from "@/shared/components/ticket-decor"
+import { pickDaily } from "@/shared/lib/daily-schedule"
 import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
 import { loadGuesses, saveGuesses } from "@/shared/lib/game-state"
-import { minHashPick } from "@/shared/lib/hash"
 import { appendResult } from "@/shared/lib/stats"
 import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
 import type { GameColumn } from "../columns"
@@ -60,7 +62,7 @@ export function GameScreen<T>({
 
   const baseAnswer = useMemo(() => {
     if (mode === "daily") {
-      return minHashPick(candidates, idOf, `${gameKey}:${dateKey}`)
+      return pickDaily(gameKey, candidates, idOf, dateKey)
     }
     const idx = Math.floor(Math.random() * candidates.length)
     return candidates[idx] as T
@@ -158,7 +160,12 @@ export function GameScreen<T>({
         >
           {gameOver && (
             <div className="mb-3">
-              <ResultBanner won={won} answer={nameOf(answer)} guessCount={guesses.length} />
+              <ResultBanner
+                won={won}
+                answer={nameOf(answer)}
+                guessCount={guesses.length}
+                footer={mode === "daily" ? <NextPuzzleCountdown game={title} /> : undefined}
+              />
             </div>
           )}
           <div className="scroll-fade min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-4">
@@ -197,13 +204,22 @@ export function GameScreen<T>({
                 </button>
               </div>
             ) : (
-              <GuessInput
-                disabled={resolving}
-                guessedKeys={guessedKeys}
-                placeholder={searchPlaceholder}
-                fetchSuggestions={fetchSuggestions}
-                onPick={handlePick}
-              />
+              <>
+                {mode === "arcade" && (
+                  <p className="mb-0.5 flex items-center justify-center gap-2 text-[11px] uppercase tracking-widest text-primary-500 kb:hidden dark:text-primary-300">
+                    Arcade
+                    <span aria-hidden="true">·</span>
+                    <ArcadeNextButton label="Next puzzle" onClick={startNextPuzzle} />
+                  </p>
+                )}
+                <GuessInput
+                  disabled={resolving}
+                  guessedKeys={guessedKeys}
+                  placeholder={searchPlaceholder}
+                  fetchSuggestions={fetchSuggestions}
+                  onPick={handlePick}
+                />
+              </>
             )}
           </div>
         </div>

@@ -8,6 +8,8 @@ interface Props {
   lossMessage?: string
   /** Optional control pinned to the banner's top-right corner. */
   action?: ReactNode
+  /** Extra line under the result, e.g. the next-puzzle countdown. */
+  footer?: ReactNode
 }
 
 export function ResultBanner({
@@ -16,6 +18,7 @@ export function ResultBanner({
   guessCount,
   lossMessage = "Better luck next time!",
   action,
+  footer,
 }: Props) {
   const statusColor = won
     ? "text-success-700 dark:text-success-400"
@@ -48,6 +51,7 @@ export function ResultBanner({
           ? `You got it in ${guessCount} ${guessCount === 1 ? "guess" : "guesses"}`
           : lossMessage}
       </div>
+      {footer && <div className="mt-1">{footer}</div>}
     </div>
   )
 }
