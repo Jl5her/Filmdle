@@ -10,8 +10,8 @@ import { NextPuzzleCountdown } from "@/games/_common/components/next-puzzle-coun
 import { ResultBanner } from "@/games/_common/components/result-banner"
 import { searchPerson } from "@/lib/tmdb"
 import { ArchiveCalendar } from "@/shared/components/archive-calendar"
-import { GameGuide, type GuideGame, useGameGuide } from "@/shared/components/game-guide"
-import { InlinePanel } from "@/shared/components/inline-panel"
+import { GameGuidePanel, type GuideGame, useGameGuide } from "@/shared/components/game-guide"
+import { InlinePanel, StubButton } from "@/shared/components/inline-panel"
 import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { TicketDecor } from "@/shared/components/ticket-decor"
@@ -263,21 +263,26 @@ function CreditScreenBody({
         seat={{ used: guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => {
           setArchiveOpen(false)
+          if (guide.open) guide.close()
           setStatsOpen((v) => !v)
         }}
-        onOpenHelp={guide.show}
+        onOpenHelp={() => {
+          setStatsOpen(false)
+          setArchiveOpen(false)
+          guide.toggle()
+        }}
         onOpenArchive={() => {
           setStatsOpen(false)
+          if (guide.open) guide.close()
           setArchiveOpen((v) => !v)
         }}
         archiveDate={mode === "daily" && isArchive ? dateKey : undefined}
       />
-      <GameGuide game={gameKey as GuideGame} open={guide.open} onClose={guide.close} />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-[var(--ticket-pad-x)] pt-3">
         <div
           className={clsx(
             "crossfade-panel flex flex-1 flex-col overflow-hidden",
-            statsOpen || archiveOpen ? "crossfade-inactive" : "crossfade-active",
+            statsOpen || archiveOpen || guide.open ? "crossfade-inactive" : "crossfade-active",
           )}
         >
           {gameOver && (
@@ -371,19 +376,22 @@ function CreditScreenBody({
           open={statsOpen}
           title="Stats"
           onClose={() => setStatsOpen(false)}
-          className="px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
+          className="px-[var(--ticket-pad-x)] pt-3"
+          footer={
+            <>
+              {gameOver && shareButton}
+              <StubButton onClick={() => setStatsOpen(false)}>Back to game</StubButton>
+            </>
+          }
         >
-          <StatsContent
-            open={statsOpen}
-            defaultGame={gameKey as "creditdle" | "showdle"}
-            action={gameOver ? shareButton : undefined}
-          />
+          <StatsContent open={statsOpen} defaultGame={gameKey as "creditdle" | "showdle"} />
         </InlinePanel>
         <InlinePanel
           open={archiveOpen}
           title="Past puzzles"
           onClose={() => setArchiveOpen(false)}
-          className="overflow-y-auto px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
+          className="px-[var(--ticket-pad-x)] pt-3"
+          footer={<StubButton onClick={() => setArchiveOpen(false)}>Back to game</StubButton>}
         >
           {archiveOpen && (
             <ArchiveCalendar
@@ -397,6 +405,7 @@ function CreditScreenBody({
             />
           )}
         </InlinePanel>
+        <GameGuidePanel game={gameKey as GuideGame} open={guide.open} onClose={guide.close} />
       </div>
       <TicketDecor code={formatSerial(serial ?? 0)} torn={gameOver} />
     </div>

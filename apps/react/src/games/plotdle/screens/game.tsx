@@ -9,9 +9,9 @@ import { NextPuzzleCountdown } from "@/games/_common/components/next-puzzle-coun
 import { ResultBanner } from "@/games/_common/components/result-banner"
 import { searchMovie } from "@/lib/tmdb"
 import { ArchiveCalendar } from "@/shared/components/archive-calendar"
-import { GameGuide, useGameGuide } from "@/shared/components/game-guide"
+import { GameGuidePanel, useGameGuide } from "@/shared/components/game-guide"
 import { Icon, type IconName } from "@/shared/components/icon"
-import { InlinePanel } from "@/shared/components/inline-panel"
+import { InlinePanel, StubButton } from "@/shared/components/inline-panel"
 import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { TicketDecor } from "@/shared/components/ticket-decor"
@@ -442,24 +442,29 @@ function PlotScreen({
         seat={{ used: masked ? 0 : guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => {
           setArchiveOpen(false)
+          if (guide.open) guide.close()
           setStatsOpen((v) => !v)
         }}
-        onOpenHelp={guide.show}
+        onOpenHelp={() => {
+          setStatsOpen(false)
+          setArchiveOpen(false)
+          guide.toggle()
+        }}
         onOpenArchive={
           preview
             ? undefined
             : () => {
                 setStatsOpen(false)
+                if (guide.open) guide.close()
                 setArchiveOpen((v) => !v)
               }
         }
       />
-      <GameGuide game="plotdle" open={guide.open} onClose={guide.close} />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-[var(--ticket-pad-x)] pt-3">
         <div
           className={clsx(
             "crossfade-panel flex flex-1 flex-col overflow-hidden",
-            statsOpen || archiveOpen ? "crossfade-inactive" : "crossfade-active",
+            statsOpen || archiveOpen || guide.open ? "crossfade-inactive" : "crossfade-active",
           )}
         >
           {gameOver && !masked && (
@@ -740,19 +745,22 @@ function PlotScreen({
           open={statsOpen}
           title="Stats"
           onClose={() => setStatsOpen(false)}
-          className="px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
+          className="px-[var(--ticket-pad-x)] pt-3"
+          footer={
+            <>
+              {gameOver && !masked && shareButton}
+              <StubButton onClick={() => setStatsOpen(false)}>Back to game</StubButton>
+            </>
+          }
         >
-          <StatsContent
-            open={statsOpen}
-            defaultGame="plotdle"
-            action={gameOver && !masked ? shareButton : undefined}
-          />
+          <StatsContent open={statsOpen} defaultGame="plotdle" />
         </InlinePanel>
         <InlinePanel
           open={archiveOpen}
           title="Past puzzles"
           onClose={() => setArchiveOpen(false)}
-          className="overflow-y-auto px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
+          className="px-[var(--ticket-pad-x)] pt-3"
+          footer={<StubButton onClick={() => setArchiveOpen(false)}>Back to game</StubButton>}
         >
           {archiveOpen && (
             <ArchiveCalendar
@@ -766,6 +774,7 @@ function PlotScreen({
             />
           )}
         </InlinePanel>
+        <GameGuidePanel game={"plotdle"} open={guide.open} onClose={guide.close} />
       </div>
       <TicketDecor code={formatSerial(answer.id)} torn={gameOver && !masked} />
     </div>

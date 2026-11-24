@@ -6,9 +6,10 @@ import { prefetchGames } from "@/shared/lib/game-loaders"
 import { hasPlayedToday } from "@/shared/lib/stats"
 import { AboutContent } from "./about-overlay"
 import { FilmIcon } from "./film-icon"
+import type { GuideGame } from "./game-guide"
 import { GameModeButton } from "./game-mode-button"
 import { HowToPlayContent } from "./how-to-play-overlay"
-import { InlinePanel } from "./inline-panel"
+import { InlinePanel, StubButton } from "./inline-panel"
 import { SettingsContent } from "./settings-overlay"
 import { TicketDecor } from "./ticket-decor"
 
@@ -55,7 +56,13 @@ const GAMES = [
 export function MainMenu() {
   const navigate = useNavigate()
   const [panel, setPanel] = useState<Panel>(null)
-  const close = () => setPanel(null)
+  const [guide, setGuide] = useState<GuideGame | null>(null)
+  const close = () => {
+    setPanel(null)
+    setGuide(null)
+  }
+  // Back from a game's guide returns to the How to Play list first.
+  const back = () => (guide ? setGuide(null) : close())
 
   const today = useMemo(() => todayKey(), [])
   useEffect(prefetchGames, [])
@@ -100,13 +107,13 @@ export function MainMenu() {
             </div>
           </div>
 
-          <InlinePanel open={panel === "how-to-play"} title="How to Play" onClose={close}>
-            <HowToPlayContent />
+          <InlinePanel open={panel === "how-to-play"} title="How to Play" onClose={back} hideClose>
+            <HowToPlayContent guide={guide} onGuide={setGuide} />
           </InlinePanel>
-          <InlinePanel open={panel === "about"} title="About" onClose={close}>
+          <InlinePanel open={panel === "about"} title="About" onClose={close} hideClose>
             <AboutContent />
           </InlinePanel>
-          <InlinePanel open={panel === "settings"} title="Settings" onClose={close}>
+          <InlinePanel open={panel === "settings"} title="Settings" onClose={close} hideClose>
             <SettingsContent />
           </InlinePanel>
         </div>
@@ -115,15 +122,21 @@ export function MainMenu() {
       {/* Tear-away footer: icons + date are vertically centered inside
           the bottom stub of the ticket. */}
       <div className="ticket-stub absolute inset-x-0 bottom-0 h-[var(--tear-height)] flex flex-col items-center justify-center gap-2 px-4">
-        <div className="flex items-center justify-center gap-3">
-          <CircleIcon
-            label="How to play"
-            onClick={() => setPanel("how-to-play")}
-            svg={<QuestionSvg />}
-          />
-          <CircleIcon label="About" onClick={() => setPanel("about")} svg={<InfoSvg />} />
-          <CircleIcon label="Settings" onClick={() => setPanel("settings")} svg={<GearSvg />} />
-        </div>
+        {panel !== null ? (
+          <div className="flex w-full max-w-sm justify-center px-4">
+            <StubButton onClick={back}>{guide ? "All guides" : "Back"}</StubButton>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center gap-3">
+            <CircleIcon
+              label="How to play"
+              onClick={() => setPanel("how-to-play")}
+              svg={<QuestionSvg />}
+            />
+            <CircleIcon label="About" onClick={() => setPanel("about")} svg={<InfoSvg />} />
+            <CircleIcon label="Settings" onClick={() => setPanel("settings")} svg={<GearSvg />} />
+          </div>
+        )}
         <p className="text-xs text-primary-700 dark:text-primary-300">{formatLongDate()}</p>
       </div>
       <TicketDecor code={today.replaceAll("-", "").slice(2)} />

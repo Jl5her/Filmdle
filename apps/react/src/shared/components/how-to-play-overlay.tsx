@@ -1,5 +1,4 @@
-import { useState } from "react"
-import { GameGuide, type GuideGame } from "./game-guide"
+import { GameGuideContent, type GuideGame } from "./game-guide"
 
 const MODES: { name: string; games: { id: GuideGame; label: string }[]; body: string }[] = [
   {
@@ -25,8 +24,28 @@ const MODES: { name: string; games: { id: GuideGame; label: string }[]; body: st
   },
 ]
 
-export function HowToPlayContent() {
-  const [guide, setGuide] = useState<GuideGame | null>(null)
+/**
+ * The menu's How to Play. Picking a game's guide shows that guide in place of
+ * the list; the menu's stub button goes back to the list.
+ */
+export function HowToPlayContent({
+  guide,
+  onGuide,
+}: {
+  guide: GuideGame | null
+  onGuide: (game: GuideGame) => void
+}) {
+  if (guide) {
+    const label = MODES.flatMap((m) => m.games).find((g) => g.id === guide)?.label
+    return (
+      <div>
+        <h3 className="fa5-title mb-3 text-xl uppercase text-danger-600 dark:text-primary-50">
+          {label}
+        </h3>
+        <GameGuideContent game={guide} />
+      </div>
+    )
+  }
   return (
     <div className="space-y-5 text-sm leading-relaxed text-primary-700 dark:text-primary-200">
       <ul className="space-y-3">
@@ -41,7 +60,7 @@ export function HowToPlayContent() {
                 <button
                   key={g.id}
                   type="button"
-                  onClick={() => setGuide(g.id)}
+                  onClick={() => onGuide(g.id)}
                   className="cursor-pointer rounded-md border border-danger-600/40 px-2.5 py-1 text-xs uppercase tracking-wider text-danger-600 transition-colors hover:bg-danger-600/10 dark:border-primary-300/30 dark:text-primary-100 dark:hover:bg-primary-700"
                 >
                   {g.label} guide
@@ -66,7 +85,6 @@ export function HowToPlayContent() {
       <p>
         In a game, tap <b>?</b> in the header or any column heading to see that game's guide again.
       </p>
-      {guide && <GameGuide game={guide} open onClose={() => setGuide(null)} />}
     </div>
   )
 }

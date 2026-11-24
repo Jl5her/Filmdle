@@ -1,6 +1,6 @@
 import type { GameResult } from "@stardle/types"
 import clsx from "clsx"
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
 import { computeStatsSummary, loadStats } from "@/shared/lib/stats"
 import { CountUp } from "./count-up"
@@ -18,11 +18,9 @@ type GameId = (typeof GAMES)[number]["id"]
 interface Props {
   open: boolean
   defaultGame?: GameId
-  /** Shown above the stats, e.g. the finished game's Share button. */
-  action?: ReactNode
 }
 
-export function StatsContent({ open, defaultGame, action }: Props) {
+export function StatsContent({ open, defaultGame }: Props) {
   const [activeGame, setActiveGame] = useState<GameId>(defaultGame ?? "actordle")
   const [version, setVersion] = useState(0)
   const activeTabRef = useRef<HTMLButtonElement>(null)
@@ -79,8 +77,6 @@ export function StatsContent({ open, defaultGame, action }: Props) {
           </button>
         ))}
       </div>
-
-      {action && <div className="mb-5 flex justify-center gap-3">{action}</div>}
 
       {summary.played === 0 ? (
         <p className="py-8 text-center text-sm text-primary-500 dark:text-primary-300">
