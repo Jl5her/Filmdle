@@ -16,6 +16,18 @@ export const ROTATION_START: Record<string, string> = {
 }
 
 /**
+ * How many answers each pool had before the rotation started. Days before
+ * ROTATION_START pick only from these, so adding answers never changes a
+ * past day's (or today's) puzzle.
+ */
+const LEGACY_POOL_SIZE: Record<string, number> = {
+  actordle: 32,
+  filmdle: 30,
+  creditdle: 32,
+  showdle: 13,
+}
+
+/**
  * Today's answer. From ROTATION_START on, day N is item N of the answer
  * pool in file order, so nothing repeats until the whole pool has been
  * used. Pools are append-only: new answers go at the end of the file and
@@ -28,7 +40,10 @@ export function pickDaily<T>(
   dateKey: string,
 ): T {
   const start = ROTATION_START[gameKey]
-  if (!start || dateKey < start) return minHashPick(items, idOf, `${gameKey}:${dateKey}`)
+  if (!start || dateKey < start) {
+    const legacy = items.slice(0, LEGACY_POOL_SIZE[gameKey] ?? items.length)
+    return minHashPick(legacy, idOf, `${gameKey}:${dateKey}`)
+  }
   const day = daysBetween(start, dateKey)
   return items[day % items.length] as T
 }

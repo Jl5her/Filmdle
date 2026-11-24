@@ -108,13 +108,7 @@ async function fetchCredits(tmdbId: number): Promise<TmdbPersonMovieCredits> {
 
 export async function resolvePerson(p: TmdbPersonSearch): Promise<ActorGuess> {
   const curated = actorsByName.get(p.name.toLowerCase())
-  if (curated) {
-    if (curated.filmIds && curated.filmIds.length > 0) {
-      return { ...curated, filmIds: curated.filmIds }
-    }
-    const credits = await fetchCredits(p.id)
-    return { ...curated, filmIds: credits.cast.map((c) => String(c.id)) }
-  }
+  if (curated) return enrichCuratedActor(curated, p.id)
   const [details, credits] = await Promise.all([getPersonDetails(p.id), fetchCredits(p.id)])
   return {
     id: `tmdb:person:${p.id}`,
@@ -130,20 +124,45 @@ export async function resolvePerson(p: TmdbPersonSearch): Promise<ActorGuess> {
   }
 }
 
-export async function enrichCuratedActor(actor: Actor): Promise<ActorGuess> {
+const curatedActorCache = new Map<string, Promise<ActorGuess>>()
+
+/**
+ * Curated actors that haven't been synced (no filmIds) were written by hand.
+ * Fill in their films and refresh birth date, birthplace and debut from TMDB,
+ * the same way TMDB guesses are built, so answers and guesses always agree.
+ * Hand-written values stay as the fallback when TMDB is unreachable.
+ */
+export function enrichCuratedActor(actor: Actor, tmdbId?: number): Promise<ActorGuess> {
   if (actor.filmIds && actor.filmIds.length > 0) {
-    return { ...actor, filmIds: actor.filmIds }
+    return Promise.resolve({ ...actor, filmIds: actor.filmIds })
   }
-  try {
-    const results = await searchPerson(actor.name)
-    const exact = results.find((p) => p.name.toLowerCase() === actor.name.toLowerCase())
-    const match = exact ?? results[0]
-    if (!match) return { ...actor, filmIds: null }
-    const credits = await fetchCredits(match.id)
-    return { ...actor, filmIds: credits.cast.map((c) => String(c.id)) }
-  } catch {
-    return { ...actor, filmIds: null }
+  let pending = curatedActorCache.get(actor.id)
+  if (!pending) {
+    pending = (async (): Promise<ActorGuess> => {
+      try {
+        let id = tmdbId ?? (actor.tmdbId || undefined)
+        if (id === undefined) {
+          const results = await searchPerson(actor.name)
+          const exact = results.find((p) => p.name.toLowerCase() === actor.name.toLowerCase())
+          id = (exact ?? results[0])?.id
+        }
+        if (id === undefined) return { ...actor, filmIds: null }
+        const [details, credits] = await Promise.all([getPersonDetails(id), fetchCredits(id)])
+        return {
+          ...actor,
+          dob: details.birthday || actor.dob,
+          nationality: nationalityFromPlaceOfBirth(details.place_of_birth) ?? actor.nationality,
+          debutYear: debutYearFromCredits(credits) ?? actor.debutYear,
+          filmIds: credits.cast.map((c) => String(c.id)),
+        }
+      } catch {
+        curatedActorCache.delete(actor.id)
+        return { ...actor, filmIds: null }
+      }
+    })()
+    curatedActorCache.set(actor.id, pending)
   }
+  return pending
 }
 
 const VALID_MPAA: ReadonlySet<MpaaRating> = new Set(["G", "PG", "PG-13", "R", "NC-17"])
@@ -159,15 +178,16 @@ function extractMpaa(releaseDates: TmdbReleaseDates | undefined): MpaaRating | n
   return null
 }
 
-const curatedGenreCache = new Map<string, Promise<FilmGuess>>()
+const curatedFilmCache = new Map<string, Promise<FilmGuess>>()
 
 /**
- * Curated films carry a hand-written genre. Re-derive it from TMDB with the
- * same pickGenre rule TMDB guesses use, so an answer and a guess are never
- * labelled by different rules. Falls back to the stored genre offline.
+ * Curated films are hand-written. Refresh genre, director, box office,
+ * runtime and rating from TMDB with the same rules TMDB guesses use, so an
+ * answer and a guess are never described differently. Hand-written values
+ * are the fallback offline or where TMDB has no figure.
  */
 export function enrichCuratedFilm(film: FilmGuess, tmdbId?: number): Promise<FilmGuess> {
-  let pending = curatedGenreCache.get(film.id)
+  let pending = curatedFilmCache.get(film.id)
   if (!pending) {
     pending = (async () => {
       try {
@@ -178,12 +198,21 @@ export function enrichCuratedFilm(film: FilmGuess, tmdbId?: number): Promise<Fil
         }
         if (id === undefined) return film
         const details = await getMovieDetails(id)
-        return details.genres.length > 0 ? { ...film, genre: pickGenre(details.genres) } : film
+        const director = details.credits.crew.find((c) => c.job === "Director")?.name
+        return {
+          ...film,
+          genre: details.genres.length > 0 ? pickGenre(details.genres) : film.genre,
+          director: director ?? film.director,
+          boxOfficeM: details.revenue ? Math.round(details.revenue / 1_000_000) : film.boxOfficeM,
+          runtime: details.runtime || film.runtime,
+          mpaaRating: extractMpaa(details.release_dates) ?? film.mpaaRating,
+        }
       } catch {
+        curatedFilmCache.delete(film.id)
         return film
       }
     })()
-    curatedGenreCache.set(film.id, pending)
+    curatedFilmCache.set(film.id, pending)
   }
   return pending
 }

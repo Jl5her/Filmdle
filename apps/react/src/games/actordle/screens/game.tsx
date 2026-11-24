@@ -68,7 +68,7 @@ export default function ActordleGame() {
     if (key.startsWith("c:")) {
       const actor = curated.get(key.slice(2))
       if (!actor) throw new Error(`Unknown curated actor: ${key}`)
-      return { ...actor, filmIds: actor.filmIds ?? null }
+      return enrichCuratedActor(actor)
     }
     const tmdbId = Number(key.startsWith("t:") ? key.slice(2) : key)
     const cached = searchCache.get(tmdbId)
