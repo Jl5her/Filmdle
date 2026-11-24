@@ -10,8 +10,8 @@ import { NextPuzzleCountdown } from "@/games/_common/components/next-puzzle-coun
 import { ResultBanner } from "@/games/_common/components/result-banner"
 import { searchPerson } from "@/lib/tmdb"
 import { ArchiveCalendar } from "@/shared/components/archive-calendar"
-import { GameGuide, type GuideGame, useGameGuide } from "@/shared/components/game-guide"
-import { InlinePanel } from "@/shared/components/inline-panel"
+import { GameGuidePanel, type GuideGame, useGameGuide } from "@/shared/components/game-guide"
+import { InlinePanel, StubButton } from "@/shared/components/inline-panel"
 import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { TicketDecor } from "@/shared/components/ticket-decor"
@@ -21,6 +21,7 @@ import { pickDaily } from "@/shared/lib/daily-schedule"
 import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
 import { fnv1a } from "@/shared/lib/hash"
 import { appendResult } from "@/shared/lib/stats"
+import { useAutoOpenStats } from "@/shared/lib/use-auto-stats"
 import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
 
 const MAX_GUESSES = 6
@@ -230,6 +231,28 @@ function CreditScreenBody({
   const remainingGuesses = MAX_GUESSES - guesses.length
   const serial = mode === "daily" ? puzzleNumber(gameKey, dateKey) : undefined
 
+  const shareButton = (
+    <ShareTicketButton
+      ticket={() => ({
+        game: title,
+        mode,
+        serial,
+        dateKey: mode === "daily" && isArchive ? dateKey : undefined,
+        marks: guesses.map((g) => isCorrectGuess(g, answer)),
+        maxGuesses: MAX_GUESSES,
+        won,
+      })}
+    />
+  )
+  useAutoOpenStats(
+    gameOver,
+    () => {
+      setArchiveOpen(false)
+      setStatsOpen(true)
+    },
+    mode === "daily",
+  )
+
   return (
     <div className="app-viewport flex flex-col" data-game={gameKey}>
       <GameHeader
@@ -240,21 +263,26 @@ function CreditScreenBody({
         seat={{ used: guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => {
           setArchiveOpen(false)
+          if (guide.open) guide.close()
           setStatsOpen((v) => !v)
         }}
-        onOpenHelp={guide.show}
+        onOpenHelp={() => {
+          setStatsOpen(false)
+          setArchiveOpen(false)
+          guide.toggle()
+        }}
         onOpenArchive={() => {
           setStatsOpen(false)
+          if (guide.open) guide.close()
           setArchiveOpen((v) => !v)
         }}
         archiveDate={mode === "daily" && isArchive ? dateKey : undefined}
       />
-      <GameGuide game={gameKey as GuideGame} open={guide.open} onClose={guide.close} />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-[var(--ticket-pad-x)] pt-3">
         <div
           className={clsx(
             "crossfade-panel flex flex-1 flex-col overflow-hidden",
-            statsOpen || archiveOpen ? "crossfade-inactive" : "crossfade-active",
+            statsOpen || archiveOpen || guide.open ? "crossfade-inactive" : "crossfade-active",
           )}
         >
           {gameOver && (
@@ -309,17 +337,7 @@ function CreditScreenBody({
           <div className="ticket-stub shrink-0 flex flex-col justify-center h-[var(--tear-height)]">
             {gameOver ? (
               <div className="mx-3 flex justify-center gap-3">
-                <ShareTicketButton
-                  ticket={() => ({
-                    game: title,
-                    mode,
-                    serial,
-                    dateKey: mode === "daily" && isArchive ? dateKey : undefined,
-                    marks: guesses.map((g) => isCorrectGuess(g, answer)),
-                    maxGuesses: MAX_GUESSES,
-                    won,
-                  })}
-                />
+                {shareButton}
                 <button
                   type="button"
                   onClick={startNextPuzzle}
@@ -358,7 +376,13 @@ function CreditScreenBody({
           open={statsOpen}
           title="Stats"
           onClose={() => setStatsOpen(false)}
-          className="px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
+          className="px-[var(--ticket-pad-x)] pt-3"
+          footer={
+            <>
+              {gameOver && shareButton}
+              <StubButton onClick={() => setStatsOpen(false)}>Back to game</StubButton>
+            </>
+          }
         >
           <StatsContent open={statsOpen} defaultGame={gameKey as "creditdle" | "showdle"} />
         </InlinePanel>
@@ -366,7 +390,8 @@ function CreditScreenBody({
           open={archiveOpen}
           title="Past puzzles"
           onClose={() => setArchiveOpen(false)}
-          className="overflow-y-auto px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
+          className="px-[var(--ticket-pad-x)] pt-3"
+          footer={<StubButton onClick={() => setArchiveOpen(false)}>Back to game</StubButton>}
         >
           {archiveOpen && (
             <ArchiveCalendar
@@ -380,6 +405,7 @@ function CreditScreenBody({
             />
           )}
         </InlinePanel>
+        <GameGuidePanel game={gameKey as GuideGame} open={guide.open} onClose={guide.close} />
       </div>
       <TicketDecor code={formatSerial(serial ?? 0)} torn={gameOver} />
     </div>

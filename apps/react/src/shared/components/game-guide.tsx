@@ -1,8 +1,9 @@
-import { type ReactNode, useEffect, useState } from "react"
+import { type ReactNode, useState } from "react"
 import type { GameColumn } from "@/games/_common/columns"
 import { buildActordleColumns } from "@/games/actordle/columns"
 import { buildFilmdleColumns } from "@/games/filmdle/columns"
 import { useTheme } from "@/shared/lib/theme-context"
+import { InlinePanel, StubButton } from "./inline-panel"
 
 export type GuideGame = "actordle" | "filmdle" | "creditdle" | "showdle" | "plotdle"
 
@@ -38,18 +39,60 @@ export function useGameGuide(game: GuideGame) {
       markGuideSeen(game)
       setOpen(false)
     },
+    toggle: () =>
+      setOpen((v) => {
+        if (v) markGuideSeen(game)
+        return !v
+      }),
   }
 }
 
 const TITLES: Record<GuideGame, string> = {
-  actordle: "How to play Actordle",
-  filmdle: "How to play Filmdle",
-  creditdle: "How to play Creditdle",
-  showdle: "How to play Showdle",
-  plotdle: "How to play Plotdle",
+  actordle: "How to play",
+  filmdle: "How to play",
+  creditdle: "How to play",
+  showdle: "How to play",
+  plotdle: "How to play",
 }
 
-export function GameGuide({
+export function guideTitle(game: GuideGame): string {
+  return TITLES[game]
+}
+
+/** The guide's instructions, shown inside a ticket panel (see GameGuidePanel). */
+export function GameGuideContent({ game }: { game: GuideGame }) {
+  return (
+    <div className="space-y-4 text-sm leading-relaxed text-primary-700 dark:text-primary-200">
+      {game === "actordle" && (
+        <ClueGuide
+          intro="Guess today's mystery actor in 6 tries. Type any actor's name: each guess fills a row of tiles comparing them with the answer."
+          columns={buildActordleColumns()}
+        />
+      )}
+      {game === "filmdle" && (
+        <ClueGuide
+          intro="Guess today's mystery film in 6 tries. Type any film title: each guess fills a row of tiles comparing it with the answer."
+          columns={buildFilmdleColumns()}
+        />
+      )}
+      {(game === "creditdle" || game === "showdle") && (
+        <CreditGuide media={game === "creditdle" ? "film" : "TV"} />
+      )}
+      {game === "plotdle" && <PlotGuide />}
+      <p>
+        There's a new daily puzzle every day, the same for everyone. When you're done, keep going
+        with endless bonus rounds.
+      </p>
+    </div>
+  )
+}
+
+/**
+ * The guide as a ticket screen: it replaces the game (which keeps its state
+ * underneath), the instructions scroll in the main area and "Got it" sits
+ * in the stub.
+ */
+export function GameGuidePanel({
   game,
   open,
   onClose,
@@ -58,70 +101,16 @@ export function GameGuide({
   open: boolean
   onClose: () => void
 }) {
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
-    }
-    window.addEventListener("keydown", handler)
-    return () => window.removeEventListener("keydown", handler)
-  }, [open, onClose])
-
-  if (!open) return null
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/60 p-4"
-      onClick={onClose}
-      onKeyDown={undefined}
-      role="presentation"
+    <InlinePanel
+      open={open}
+      title={TITLES[game]}
+      onClose={onClose}
+      className="px-[var(--ticket-pad-x)] pt-3"
+      footer={<StubButton onClick={onClose}>Got it</StubButton>}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="game-guide-title"
-        className="flex max-h-full w-full max-w-md flex-col overflow-hidden rounded-lg border border-primary-300 bg-primary-50 shadow-xl dark:border-primary-700 dark:bg-primary-900"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={undefined}
-      >
-        <h2
-          id="game-guide-title"
-          className="fa5-title px-5 pt-5 pb-2 text-2xl uppercase text-danger-600 dark:text-primary-50"
-        >
-          {TITLES[game]}
-        </h2>
-        <div className="scroll-fade min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-4 text-sm leading-relaxed text-primary-700 dark:text-primary-200">
-          {game === "actordle" && (
-            <ClueGuide
-              intro="Guess today's mystery actor in 6 tries. Type any actor's name: each guess fills a row of tiles comparing them with the answer."
-              columns={buildActordleColumns()}
-            />
-          )}
-          {game === "filmdle" && (
-            <ClueGuide
-              intro="Guess today's mystery film in 6 tries. Type any film title: each guess fills a row of tiles comparing it with the answer."
-              columns={buildFilmdleColumns()}
-            />
-          )}
-          {(game === "creditdle" || game === "showdle") && (
-            <CreditGuide media={game === "creditdle" ? "film" : "TV"} />
-          )}
-          {game === "plotdle" && <PlotGuide />}
-          <p>
-            There's a new daily puzzle every day, the same for everyone. When you're done, keep
-            going with endless bonus rounds.
-          </p>
-        </div>
-        <div className="border-t border-primary-200 px-5 py-3 dark:border-primary-700">
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full cursor-pointer rounded-md bg-danger-600 px-6 py-2.5 uppercase tracking-wide text-primary-50 transition-colors hover:bg-danger-700 dark:bg-danger-500 dark:hover:bg-danger-600"
-          >
-            Got it
-          </button>
-        </div>
-      </div>
-    </div>
+      {open && <GameGuideContent game={game} />}
+    </InlinePanel>
   )
 }
 
@@ -142,6 +131,28 @@ function ColorRow({ className, children }: { className: string; children: ReactN
     <li className="flex items-start gap-2">
       <span className={`mt-0.5 inline-block h-4 w-4 shrink-0 rounded ${className}`} aria-hidden />
       <span>{children}</span>
+    </li>
+  )
+}
+
+function RuleRow({
+  className,
+  label,
+  children,
+}: {
+  className: string
+  label: string
+  children: ReactNode
+}) {
+  return (
+    <li className="flex items-start gap-2">
+      <span
+        className={`mt-0.5 inline-block h-3.5 w-3.5 shrink-0 rounded-sm ${className}`}
+        aria-hidden
+      />
+      <span>
+        <b>{label}:</b> {children}
+      </span>
     </li>
   )
 }
@@ -172,7 +183,7 @@ function ClueGuide<T>({ intro, columns }: { intro: string; columns: GameColumn<T
             <b>{names.hit}</b>: matches the answer exactly.
           </ColorRow>
           <ColorRow className="bg-warning-600">
-            <b>{names.near}</b>: close, but not exact.
+            <b>{names.near}</b>: close. Each column below says how close counts.
           </ColorRow>
           <ColorRow className="bg-danger-600 tile-miss">
             <b>{names.miss}</b>: not a match.
@@ -188,16 +199,32 @@ function ClueGuide<T>({ intro, columns }: { intro: string; columns: GameColumn<T
       </div>
       <div>
         <Heading>The columns</Heading>
-        <dl className="space-y-1.5">
+        <ul className="space-y-2.5">
           {columns.map((c) => (
-            <div key={c.id}>
-              <dt className="inline font-semibold text-primary-900 dark:text-primary-50">
-                {c.label}:{" "}
-              </dt>
-              <dd className="inline">{recolor(c.description)}</dd>
-            </div>
+            <li
+              key={c.id}
+              className="rounded-md border border-primary-200 px-3 py-2 dark:border-primary-700"
+            >
+              <p>
+                <b className="text-primary-900 dark:text-primary-50">{c.label}</b>
+                {c.guide ? ` · ${c.guide.about}` : ` · ${recolor(c.description)}`}
+              </p>
+              {c.guide && (
+                <ul className="mt-1.5 space-y-1 text-[13px]">
+                  <RuleRow className="bg-success-600" label={names.hit}>
+                    {c.guide.green}
+                  </RuleRow>
+                  {c.guide.yellow && (
+                    <RuleRow className="bg-warning-600" label={names.near}>
+                      {c.guide.yellow}
+                    </RuleRow>
+                  )}
+                </ul>
+              )}
+            </li>
           ))}
-        </dl>
+        </ul>
+        <p className="mt-2">Tap any column heading during a game to open this guide again.</p>
       </div>
     </>
   )

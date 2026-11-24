@@ -9,6 +9,8 @@ interface Props<T> {
   latestIndex: number
   columns: GameColumn<T>[]
   nameOf: (item: T) => string
+  /** Tapping a column heading opens the how-to-play guide. */
+  onColumnHelp?: () => void
 }
 
 export function GuessGrid<T>({
@@ -18,6 +20,7 @@ export function GuessGrid<T>({
   latestIndex,
   columns,
   nameOf,
+  onColumnHelp,
 }: Props<T>) {
   const rowRefs = useRef<(HTMLDivElement | null)[]>([])
 
@@ -31,15 +34,21 @@ export function GuessGrid<T>({
     <div className="flex flex-col items-center gap-1 px-2 pt-1 pb-1">
       <div className="sticky top-0 z-20 flex gap-1 justify-center py-1 bg-[var(--ticket-paper)]">
         {columns.map((column) => (
-          <div
+          <button
+            type="button"
             key={column.id}
             title={column.description}
+            onClick={onColumnHelp}
+            disabled={!onColumnHelp}
+            aria-label={`${column.label}: how this column works`}
             className={`column-header grid-cell-width text-center uppercase leading-tight [overflow-wrap:normal] [hyphens:none] text-primary-700 dark:text-primary-50${
-              column.description ? " cursor-help" : ""
+              onColumnHelp
+                ? " cursor-help underline decoration-dotted decoration-primary-400 underline-offset-2"
+                : ""
             }`}
           >
             {column.label}
-          </div>
+          </button>
         ))}
       </div>
       {Array.from({ length: maxGuesses }).map((_, i) => {

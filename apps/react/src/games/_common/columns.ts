@@ -24,6 +24,8 @@ export interface GameColumn<T> {
   id: string
   label: string
   description?: string
+  /** For the how-to-play guide: what the column shows and what earns each color. */
+  guide?: { about: string; green: string; yellow?: string }
   evaluator: ColumnEvaluator<T>
 }
 
