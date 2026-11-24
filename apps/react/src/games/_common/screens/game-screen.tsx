@@ -14,6 +14,7 @@ import { pickDaily } from "@/shared/lib/daily-schedule"
 import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
 import { loadGuesses, saveGuesses } from "@/shared/lib/game-state"
 import { appendResult } from "@/shared/lib/stats"
+import { useAutoOpenStats } from "@/shared/lib/use-auto-stats"
 import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
 import type { GameColumn } from "../columns"
 import { GuessGrid } from "../components/guess-grid"
@@ -156,6 +157,28 @@ function GameScreenBody<T>({
   const nextPuzzleLabel = mode === "daily" ? "Play Again" : "Next Puzzle"
   const serial = mode === "daily" ? puzzleNumber(gameKey, dateKey) : undefined
 
+  const shareButton = (
+    <ShareTicketButton
+      ticket={() => ({
+        game: title,
+        mode,
+        serial,
+        dateKey: mode === "daily" && isArchive ? dateKey : undefined,
+        marks: guesses.map((g) => idOf(g) === idOf(answer)),
+        maxGuesses: MAX_GUESSES,
+        won,
+      })}
+    />
+  )
+  useAutoOpenStats(
+    gameOver,
+    () => {
+      setArchiveOpen(false)
+      setStatsOpen(true)
+    },
+    mode === "daily",
+  )
+
   return (
     <div className="app-viewport flex flex-col" data-game={gameKey}>
       <GameHeader
@@ -209,17 +232,7 @@ function GameScreenBody<T>({
           <div className="ticket-stub shrink-0 flex flex-col justify-center h-[var(--tear-height)]">
             {gameOver ? (
               <div className="mx-3 flex justify-center gap-3">
-                <ShareTicketButton
-                  ticket={() => ({
-                    game: title,
-                    mode,
-                    serial,
-                    dateKey: mode === "daily" && isArchive ? dateKey : undefined,
-                    marks: guesses.map((g) => idOf(g) === idOf(answer)),
-                    maxGuesses: MAX_GUESSES,
-                    won,
-                  })}
-                />
+                {shareButton}
                 <button
                   type="button"
                   onClick={startNextPuzzle}
@@ -258,7 +271,11 @@ function GameScreenBody<T>({
           onClose={() => setStatsOpen(false)}
           className="px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
         >
-          <StatsContent open={statsOpen} />
+          <StatsContent
+            open={statsOpen}
+            defaultGame={gameKey as GuideGame}
+            action={gameOver ? shareButton : undefined}
+          />
         </InlinePanel>
         <InlinePanel
           open={archiveOpen}

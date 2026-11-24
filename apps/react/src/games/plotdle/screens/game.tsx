@@ -21,6 +21,7 @@ import { formatSerial, todayKey } from "@/shared/lib/date"
 import { useKeyboardOpen } from "@/shared/lib/keyboard-viewport"
 import { getIncludeAnimated, setIncludeAnimated } from "@/shared/lib/plotdle-prefs"
 import { appendResult } from "@/shared/lib/stats"
+import { useAutoOpenStats } from "@/shared/lib/use-auto-stats"
 import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
 import { byId, canOpen, dailyPlot, nextArcadePlot, pastDailyDate } from "../schedule"
 
@@ -405,6 +406,29 @@ function PlotScreen({
     return () => observer.disconnect()
   }, [typing, fitLevel, hints.length, misses])
 
+  const shareButton = (
+    <ShareTicketButton
+      ticket={() => ({
+        game: "Plotdle",
+        mode: isDaily || archiveDate ? "daily" : "arcade",
+        dateKey: archiveDate,
+        serial: answer.id,
+        marks: guesses.map((g) => isCorrectGuess(g, answer)),
+        maxGuesses: MAX_GUESSES,
+        won,
+        quote: answer.plot,
+      })}
+    />
+  )
+  useAutoOpenStats(
+    gameOver,
+    () => {
+      setArchiveOpen(false)
+      setStatsOpen(true)
+    },
+    !preview && (isDaily || archiveDate !== undefined),
+  )
+
   return (
     <div className="app-viewport flex flex-col" data-game={GAME_KEY}>
       <GameHeader
@@ -669,18 +693,7 @@ function PlotScreen({
                           : "Share"}
                     </span>
                   </button>
-                  <ShareTicketButton
-                    ticket={() => ({
-                      game: "Plotdle",
-                      mode: isDaily || archiveDate ? "daily" : "arcade",
-                      dateKey: archiveDate,
-                      serial: answer.id,
-                      marks: guesses.map((g) => isCorrectGuess(g, answer)),
-                      maxGuesses: MAX_GUESSES,
-                      won,
-                      quote: answer.plot,
-                    })}
-                  />
+                  {shareButton}
                   <button
                     type="button"
                     onClick={onNext}
@@ -729,7 +742,11 @@ function PlotScreen({
           onClose={() => setStatsOpen(false)}
           className="px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
         >
-          <StatsContent open={statsOpen} defaultGame="plotdle" />
+          <StatsContent
+            open={statsOpen}
+            defaultGame="plotdle"
+            action={gameOver && !masked ? shareButton : undefined}
+          />
         </InlinePanel>
         <InlinePanel
           open={archiveOpen}

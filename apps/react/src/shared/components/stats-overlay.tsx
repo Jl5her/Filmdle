@@ -1,8 +1,9 @@
 import type { GameResult } from "@stardle/types"
 import clsx from "clsx"
-import { useEffect, useMemo, useRef, useState } from "react"
-import { formatSerial, puzzleNumber } from "@/shared/lib/date"
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
 import { computeStatsSummary, loadStats } from "@/shared/lib/stats"
+import { CountUp } from "./count-up"
 
 const GAMES = [
   { id: "actordle", label: "Actordle", maxGuesses: 6 },
@@ -17,9 +18,11 @@ type GameId = (typeof GAMES)[number]["id"]
 interface Props {
   open: boolean
   defaultGame?: GameId
+  /** Shown above the stats, e.g. the finished game's Share button. */
+  action?: ReactNode
 }
 
-export function StatsContent({ open, defaultGame }: Props) {
+export function StatsContent({ open, defaultGame, action }: Props) {
   const [activeGame, setActiveGame] = useState<GameId>(defaultGame ?? "actordle")
   const [version, setVersion] = useState(0)
   const activeTabRef = useRef<HTMLButtonElement>(null)
@@ -47,6 +50,9 @@ export function StatsContent({ open, defaultGame }: Props) {
   if (!summary) return null
 
   const maxBar = Math.max(1, ...summary.distribution)
+  // Today's daily win gets its bar highlighted in the distribution.
+  const today = results.find((r) => r.dateKey === todayKey() && !r.archive)
+  const todayGuesses = today?.outcome === "win" ? today.guessCount : undefined
 
   return (
     <>
@@ -74,6 +80,8 @@ export function StatsContent({ open, defaultGame }: Props) {
         ))}
       </div>
 
+      {action && <div className="mb-5 flex justify-center gap-3">{action}</div>}
+
       {summary.played === 0 ? (
         <p className="py-8 text-center text-sm text-primary-500 dark:text-primary-300">
           No games played yet. Play today's daily to start tracking stats.
@@ -81,10 +89,10 @@ export function StatsContent({ open, defaultGame }: Props) {
       ) : (
         <>
           <section className="mb-5 grid grid-cols-4 gap-2 text-center">
-            <Stat value={summary.played} label="Played" />
-            <Stat value={`${summary.winRate}%`} label="Win %" />
-            <Stat value={summary.currentStreak} label="Streak" />
-            <Stat value={summary.maxStreak} label="Max" />
+            <Stat key={`${activeGame}-p`} value={summary.played} label="Played" />
+            <Stat key={`${activeGame}-w`} value={summary.winRate} suffix="%" label="Win %" />
+            <Stat key={`${activeGame}-s`} value={summary.currentStreak} label="Streak" />
+            <Stat key={`${activeGame}-m`} value={summary.maxStreak} label="Max" />
           </section>
 
           <section>
@@ -93,7 +101,13 @@ export function StatsContent({ open, defaultGame }: Props) {
             </h3>
             <div className="flex flex-col gap-1.5">
               {summary.distribution.map((count, i) => (
-                <DistributionBar key={i} guess={i + 1} count={count} max={maxBar} />
+                <DistributionBar
+                  key={`${activeGame}-${i}`}
+                  guess={i + 1}
+                  count={count}
+                  max={maxBar}
+                  highlight={todayGuesses === i + 1}
+                />
               ))}
             </div>
           </section>
@@ -109,10 +123,12 @@ export function StatsContent({ open, defaultGame }: Props) {
   )
 }
 
-function Stat({ value, label }: { value: number | string; label: string }) {
+function Stat({ value, suffix, label }: { value: number; suffix?: string; label: string }) {
   return (
     <div>
-      <div className="text-2xl leading-none text-primary-900 dark:text-primary-50">{value}</div>
+      <div className="text-2xl leading-none text-primary-900 dark:text-primary-50">
+        <CountUp value={value} suffix={suffix} />
+      </div>
       <div className="mt-1 text-[11px] uppercase tracking-wider text-primary-500 dark:text-primary-300">
         {label}
       </div>
@@ -120,17 +136,37 @@ function Stat({ value, label }: { value: number | string; label: string }) {
   )
 }
 
-function DistributionBar({ guess, count, max }: { guess: number; count: number; max: number }) {
+function DistributionBar({
+  guess,
+  count,
+  max,
+  highlight,
+}: {
+  guess: number
+  count: number
+  max: number
+  highlight: boolean
+}) {
   const widthPct = count > 0 ? Math.max(8, (count / max) * 100) : 8
+  // Bars grow in from the left when the panel shows.
+  const [grown, setGrown] = useState(false)
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setGrown(true))
+    return () => cancelAnimationFrame(raf)
+  }, [])
   return (
     <div className="flex items-center gap-2">
       <span className="w-3 text-xs text-primary-600 dark:text-primary-300">{guess}</span>
       <div className="flex-1 overflow-hidden rounded bg-primary-100 dark:bg-primary-900">
         <div
-          style={{ width: `${widthPct}%` }}
+          style={{ width: grown ? `${widthPct}%` : "8%" }}
           className={clsx(
-            "flex h-5 items-center justify-end px-2 text-xs text-primary-50",
-            count > 0 ? "bg-success-500 dark:bg-success-600" : "bg-primary-200 dark:bg-primary-700",
+            "flex h-5 items-center justify-end px-2 text-xs text-primary-50 transition-[width] duration-700 ease-out motion-reduce:transition-none",
+            count > 0
+              ? highlight
+                ? "bg-success-700 font-bold ring-2 ring-success-400 ring-inset"
+                : "bg-success-500 dark:bg-success-600"
+              : "bg-primary-200 dark:bg-primary-700",
           )}
         >
           {count}
