@@ -59,6 +59,37 @@ export function installKeyboardViewport(): void {
     if (!frame) frame = requestAnimationFrame(update)
   }
 
+  // While the keyboard is open, iOS lets any drag pan the page behind the
+  // pinned app; following that pan a frame late is what glitches. Only let
+  // touches scroll an inner area that can actually scroll that way (the guess
+  // grid, the suggestions list, a panel on a small phone); block the rest.
+  let startX = 0
+  let startY = 0
+  document.addEventListener(
+    "touchstart",
+    (e) => {
+      const t = e.touches[0]
+      if (t) {
+        startX = t.clientX
+        startY = t.clientY
+      }
+    },
+    { passive: true },
+  )
+  document.addEventListener(
+    "touchmove",
+    (e) => {
+      if (!open || e.touches.length !== 1) return
+      const t = e.touches[0]
+      if (!t) return
+      const target = e.target instanceof Element ? e.target : null
+      // Dragging inside the text box moves the caret; leave it alone.
+      if (target && target === document.activeElement && isEditable(target)) return
+      if (!canScroll(target, t.clientX - startX, t.clientY - startY)) e.preventDefault()
+    },
+    { passive: false },
+  )
+
   vv.addEventListener("resize", schedule)
   vv.addEventListener("scroll", schedule)
   window.addEventListener("focusin", schedule)
@@ -67,6 +98,32 @@ export function installKeyboardViewport(): void {
     fullHeight = 0
     setTimeout(schedule, 300)
   })
+}
+
+/**
+ * Whether a drag of (dx, dy) would scroll some element between `el` and the
+ * page, rather than run past its end (which iOS hands on to the page).
+ */
+function canScroll(el: Element | null, dx: number, dy: number): boolean {
+  const vertical = Math.abs(dy) >= Math.abs(dx)
+  for (let node = el; node && node !== document.body; node = node.parentElement) {
+    if (!(node instanceof HTMLElement)) continue
+    const style = getComputedStyle(node)
+    if (vertical) {
+      const scrolls = /(auto|scroll)/.test(style.overflowY)
+      if (!scrolls || node.scrollHeight <= node.clientHeight + 1) continue
+      const atTop = node.scrollTop <= 0
+      const atBottom = node.scrollTop + node.clientHeight >= node.scrollHeight - 1
+      // Dragging down scrolls toward the top, and vice versa.
+      return dy > 0 ? !atTop : !atBottom
+    }
+    const scrolls = /(auto|scroll)/.test(style.overflowX)
+    if (!scrolls || node.scrollWidth <= node.clientWidth + 1) continue
+    const atStart = node.scrollLeft <= 0
+    const atEnd = node.scrollLeft + node.clientWidth >= node.scrollWidth - 1
+    return dx > 0 ? !atStart : !atEnd
+  }
+  return false
 }
 
 function isEditable(el: Element | null): boolean {
