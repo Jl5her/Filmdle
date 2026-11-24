@@ -45,7 +45,7 @@ export interface StatsSummary {
 
 export function computeStatsSummary(
   stats: GameResult[],
-  maxGuesses = 5,
+  maxGuesses = 6,
   today: string = todayKey(),
 ): StatsSummary {
   const played = stats.length

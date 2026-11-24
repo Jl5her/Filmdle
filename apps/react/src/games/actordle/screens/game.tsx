@@ -41,6 +41,7 @@ export default function ActordleGame() {
       const tmdbSuggestions: Suggestion[] = []
       for (const r of tmdbResults) {
         if (seen.has(normaliseName(r.name))) continue
+        seen.add(normaliseName(r.name))
         if (!searchCache.has(r.id)) searchCache.set(r.id, { tmdb: r })
         tmdbSuggestions.push({
           key: `t:${r.id}`,
