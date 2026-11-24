@@ -1,6 +1,6 @@
 import { filmAnswerPool, films } from "@stardle/data"
 import { useCallback, useMemo } from "react"
-import type { Suggestion } from "@/games/_common/components/guess-input"
+import { posterUrl, type Suggestion } from "@/games/_common/components/guess-input"
 import { GameScreen } from "@/games/_common/screens/game-screen"
 import { searchMovie } from "@/lib/tmdb"
 import { resolveFilm } from "@/lib/tmdb-adapters"
@@ -21,10 +21,6 @@ export default function FilmdleGame() {
   const fetchSuggestions = useCallback(
     async (query: string, signal: AbortSignal): Promise<Suggestion[]> => {
       const localMatches = curated.search(query, 4)
-      const localSuggestions: Suggestion[] = localMatches.map((film) => ({
-        key: `c:${film.id}`,
-        label: film.title,
-      }))
       const seen = new Set(localMatches.map((film) => normaliseName(film.title)))
 
       // TMDB failures shouldn't kill the dropdown — keep the local
@@ -37,6 +33,21 @@ export default function FilmdleGame() {
         // Nothing local to fall back on: let the guess box say search failed.
         if (localMatches.length === 0) throw err
       }
+      // Curated films carry no poster: borrow it from the matching TMDB hit
+      // (same title, preferring the same release year).
+      const localSuggestions: Suggestion[] = localMatches.map((film) => {
+        const sameTitle = tmdbResults.filter(
+          (r) => normaliseName(r.title) === normaliseName(film.title),
+        )
+        const match =
+          sameTitle.find((r) => r.release_date?.startsWith(String(film.releaseYear))) ??
+          sameTitle[0]
+        return {
+          key: `c:${film.id}`,
+          label: film.title,
+          imageUrl: posterUrl(match?.poster_path),
+        }
+      })
       const tmdbSuggestions: Suggestion[] = []
       for (const r of tmdbResults) {
         if (seen.has(normaliseName(r.title))) continue
@@ -44,7 +55,7 @@ export default function FilmdleGame() {
         tmdbSuggestions.push({
           key: `t:${r.id}`,
           label: r.title,
-          imageUrl: r.poster_path ? `https://image.tmdb.org/t/p/w92${r.poster_path}` : "",
+          imageUrl: posterUrl(r.poster_path),
         })
         if (localSuggestions.length + tmdbSuggestions.length >= 8) break
       }

@@ -1,11 +1,56 @@
 import clsx from "clsx"
 import { useEffect, useId, useMemo, useRef, useState } from "react"
+import { FilmIcon } from "@/shared/components/film-icon"
 
 export interface Suggestion {
   key: string
   label: string
   sublabel?: string
+  /** Thumbnail URL. "" shows a placeholder; undefined hides the slot. */
   imageUrl?: string
+  /** Which placeholder to show when there's no image. Defaults to "poster". */
+  imageKind?: "poster" | "person"
+}
+
+const TMDB_IMG = "https://image.tmdb.org/t/p"
+
+export function posterUrl(path: string | null | undefined): string {
+  return path ? `${TMDB_IMG}/w92${path}` : ""
+}
+
+export function profileUrl(path: string | null | undefined): string {
+  return path ? `${TMDB_IMG}/w185${path}` : ""
+}
+
+function PersonIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z" />
+    </svg>
+  )
+}
+
+function SuggestionThumb({ url, kind }: { url: string; kind: "poster" | "person" }) {
+  const [failed, setFailed] = useState(false)
+  useEffect(() => setFailed(false), [url])
+  return (
+    <div className="w-8 h-12 shrink-0 rounded overflow-hidden bg-primary-50 dark:bg-primary-900 border border-primary-300 dark:border-primary-700 flex items-center justify-center text-primary-400 dark:text-primary-500">
+      {url && !failed ? (
+        <img
+          src={url}
+          alt=""
+          loading="lazy"
+          onError={() => setFailed(true)}
+          className="w-full h-full object-cover"
+        />
+      ) : kind === "person" ? (
+        <PersonIcon className="w-6 h-6 mt-auto" />
+      ) : (
+        <FilmIcon className="w-6 h-6" />
+      )}
+    </div>
+  )
 }
 
 interface Props {
@@ -211,16 +256,7 @@ export function GuessInput({
                 onMouseEnter={() => setHighlight(i)}
               >
                 {s.imageUrl !== undefined && (
-                  <div className="w-8 h-12 shrink-0 rounded overflow-hidden bg-primary-50 dark:bg-primary-900 border border-primary-300 dark:border-primary-700">
-                    {s.imageUrl ? (
-                      <img
-                        src={s.imageUrl}
-                        alt=""
-                        loading="lazy"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : null}
-                  </div>
+                  <SuggestionThumb url={s.imageUrl} kind={s.imageKind ?? "poster"} />
                 )}
                 <div className="flex flex-col min-w-0 flex-1">
                   <span className="text-sm truncate">{s.label}</span>
