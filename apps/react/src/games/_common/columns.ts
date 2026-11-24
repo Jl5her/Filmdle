@@ -9,6 +9,12 @@ export type ColumnEvaluator<T> =
       format?: (value: number) => string
     }
   | {
+      /** Exact match on the main value is green; sharing any tag is yellow. */
+      type: "tags"
+      get: (item: T) => string | null
+      getTags: (item: T) => string[]
+    }
+  | {
       type: "shared"
       getIds: (item: T) => string[] | null
       format?: (count: number) => string
@@ -41,6 +47,16 @@ export function evaluateColumn<T>(guess: T, answer: T, column: GameColumn<T>): E
     const arrow = diff > 0 ? "↓" : "↑"
     const status = Math.abs(diff) <= ev.closeWithin ? "close" : "incorrect"
     return { value: display, status, arrow }
+  }
+
+  if (ev.type === "tags") {
+    const g = ev.get(guess)
+    const a = ev.get(answer)
+    if (g === null) return { value: "?", status: "unknown" }
+    if (g === a) return { value: g, status: "correct" }
+    const answerTags = new Set(ev.getTags(answer))
+    const shared = ev.getTags(guess).some((t) => answerTags.has(t))
+    return { value: g, status: shared ? "close" : "incorrect" }
   }
 
   const gIds = ev.getIds(guess)

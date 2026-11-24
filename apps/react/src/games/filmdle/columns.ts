@@ -6,6 +6,15 @@ function formatBoxOffice(m: number): string {
   return `$${m}M`
 }
 
+/**
+ * Genres that count toward partial credit. Drama is on most films, so
+ * sharing only Drama doesn't earn a yellow.
+ */
+function genreTags(f: FilmGuess): string[] {
+  const all = f.genres && f.genres.length > 0 ? f.genres : [f.genre]
+  return all.filter((g) => g !== "Drama" && g !== "Unknown")
+}
+
 export function buildFilmdleColumns(): GameColumn<FilmGuess>[] {
   return [
     {
@@ -29,8 +38,12 @@ export function buildFilmdleColumns(): GameColumn<FilmGuess>[] {
       id: "genre",
       label: "Genre",
       description:
-        "Main genre: the most specific one the film has, so an action comedy counts as Comedy and Drama only when nothing else fits. Green for an exact match.",
-      evaluator: { type: "match", get: (f) => (f.genre === "Unknown" ? null : f.genre) },
+        "Main genre: the most specific one the film has, so an action comedy counts as Comedy and Drama only when nothing else fits. Green for the same main genre, yellow if the films share any other genre (sharing only Drama doesn't count).",
+      evaluator: {
+        type: "tags",
+        get: (f) => (f.genre === "Unknown" ? null : f.genre),
+        getTags: genreTags,
+      },
     },
     {
       id: "runtime",

@@ -63,6 +63,11 @@ const GENRE_SPECIFICITY = [
   "Drama",
 ]
 
+/** All of a film's genres, renamed the way the game shows them. */
+export function genreNames(genres: { name: string }[]): string[] {
+  return genres.map((g) => GENRE_REWRITE[g.name] ?? g.name)
+}
+
 export function pickGenre(genres: { name: string }[]): string {
   for (const name of GENRE_SPECIFICITY) {
     if (genres.some((g) => g.name === name)) return GENRE_REWRITE[name] ?? name
@@ -202,6 +207,7 @@ export function enrichCuratedFilm(film: FilmGuess, tmdbId?: number): Promise<Fil
         return {
           ...film,
           genre: details.genres.length > 0 ? pickGenre(details.genres) : film.genre,
+          genres: details.genres.length > 0 ? genreNames(details.genres) : film.genres,
           director: director ?? film.director,
           boxOfficeM: details.revenue ? Math.round(details.revenue / 1_000_000) : film.boxOfficeM,
           runtime: details.runtime || film.runtime,
@@ -228,6 +234,7 @@ export async function resolveFilm(m: TmdbMovieSearch): Promise<FilmGuess> {
     title: m.title,
     releaseYear,
     genre: pickGenre(details.genres),
+    genres: genreNames(details.genres),
     director,
     boxOfficeM: details.revenue ? Math.round(details.revenue / 1_000_000) : 0,
     bestPicture: null,
