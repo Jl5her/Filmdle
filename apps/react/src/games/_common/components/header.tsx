@@ -51,12 +51,12 @@ export function GameHeader({
     <header className="ticket-header-rule relative z-20 flex min-h-20 items-stretch pt-3 text-center kb:min-h-0 kb:py-0.5">
       {/* Equal-width sides keep the title centred: back + help on the left,
           past puzzles + stats on the right. */}
-      <div className="ml-3 flex w-[4.75rem] shrink-0 items-center justify-start gap-0.5 self-center">
+      <div className="ml-3 flex w-[4.25rem] shrink-0 items-center justify-start gap-1.5 self-center">
         <Link
           to="/"
           aria-label="Back to menu"
           title="Back"
-          className="flex h-10 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25 text-[1.25rem] leading-none"
+          className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-full border border-danger-600/45 bg-primary-50 text-danger-600 transition-colors hover:bg-danger-600/10 dark:border-primary-300/30 dark:bg-primary-800/60 dark:text-primary-50 dark:hover:bg-primary-700 text-[13px] leading-none"
         >
           <Icon name="chevron-left" />
         </Link>
@@ -66,9 +66,9 @@ export function GameHeader({
             onClick={onOpenHelp}
             aria-label="How to play"
             title="How to play"
-            className="flex h-10 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
+            className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-full border border-danger-600/45 bg-primary-50 text-danger-600 transition-colors hover:bg-danger-600/10 dark:border-primary-300/30 dark:bg-primary-800/60 dark:text-primary-50 dark:hover:bg-primary-700"
           >
-            <span aria-hidden="true" className="fa5-title text-2xl leading-none">
+            <span aria-hidden="true" className="fa5-title text-[17px] leading-none">
               ?
             </span>
           </button>
@@ -139,14 +139,14 @@ export function GameHeader({
           </div>
         )}
       </div>
-      <div className="mr-3 flex w-[4.75rem] shrink-0 items-center justify-end gap-0.5 self-center">
+      <div className="mr-3 flex w-[4.25rem] shrink-0 items-center justify-end gap-1.5 self-center">
         {onOpenArchive && (
           <button
             type="button"
             onClick={onOpenArchive}
             aria-label="Past puzzles"
             title="Past puzzles"
-            className="flex h-10 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25 text-[1.1rem]"
+            className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-full border border-danger-600/45 bg-primary-50 text-danger-600 transition-colors hover:bg-danger-600/10 dark:border-primary-300/30 dark:bg-primary-800/60 dark:text-primary-50 dark:hover:bg-primary-700 text-[12px]"
           >
             <Icon name="calendar" />
           </button>
@@ -156,7 +156,7 @@ export function GameHeader({
           onClick={onOpenStats}
           aria-label="Stats"
           title="Stats"
-          className="flex h-10 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25 text-[1.25rem]"
+          className="flex h-[30px] w-[30px] shrink-0 cursor-pointer items-center justify-center rounded-full border border-danger-600/45 bg-primary-50 text-danger-600 transition-colors hover:bg-danger-600/10 dark:border-primary-300/30 dark:bg-primary-800/60 dark:text-primary-50 dark:hover:bg-primary-700 text-[13px]"
         >
           <Icon name="chart-column" />
         </button>
