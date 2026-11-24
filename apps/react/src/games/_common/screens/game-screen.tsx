@@ -203,6 +203,7 @@ function GameScreenBody<T>({
               latestIndex={latestIndex}
               columns={columns}
               nameOf={nameOf}
+              onColumnHelp={guide.show}
             />
           </div>
           <div className="ticket-stub shrink-0 flex flex-col justify-center h-[var(--tear-height)]">

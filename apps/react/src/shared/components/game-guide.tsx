@@ -146,6 +146,28 @@ function ColorRow({ className, children }: { className: string; children: ReactN
   )
 }
 
+function RuleRow({
+  className,
+  label,
+  children,
+}: {
+  className: string
+  label: string
+  children: ReactNode
+}) {
+  return (
+    <li className="flex items-start gap-2">
+      <span
+        className={`mt-0.5 inline-block h-3.5 w-3.5 shrink-0 rounded-sm ${className}`}
+        aria-hidden
+      />
+      <span>
+        <b>{label}:</b> {children}
+      </span>
+    </li>
+  )
+}
+
 /** Color names as the player sees them (color-blind mode swaps the palette). */
 function useColorNames() {
   const { colorblind } = useTheme()
@@ -172,7 +194,7 @@ function ClueGuide<T>({ intro, columns }: { intro: string; columns: GameColumn<T
             <b>{names.hit}</b>: matches the answer exactly.
           </ColorRow>
           <ColorRow className="bg-warning-600">
-            <b>{names.near}</b>: close, but not exact.
+            <b>{names.near}</b>: close. Each column below says how close counts.
           </ColorRow>
           <ColorRow className="bg-danger-600 tile-miss">
             <b>{names.miss}</b>: not a match.
@@ -188,16 +210,32 @@ function ClueGuide<T>({ intro, columns }: { intro: string; columns: GameColumn<T
       </div>
       <div>
         <Heading>The columns</Heading>
-        <dl className="space-y-1.5">
+        <ul className="space-y-2.5">
           {columns.map((c) => (
-            <div key={c.id}>
-              <dt className="inline font-semibold text-primary-900 dark:text-primary-50">
-                {c.label}:{" "}
-              </dt>
-              <dd className="inline">{recolor(c.description)}</dd>
-            </div>
+            <li
+              key={c.id}
+              className="rounded-md border border-primary-200 px-3 py-2 dark:border-primary-700"
+            >
+              <p>
+                <b className="text-primary-900 dark:text-primary-50">{c.label}</b>
+                {c.guide ? ` · ${c.guide.about}` : ` · ${recolor(c.description)}`}
+              </p>
+              {c.guide && (
+                <ul className="mt-1.5 space-y-1 text-[13px]">
+                  <RuleRow className="bg-success-600" label={names.hit}>
+                    {c.guide.green}
+                  </RuleRow>
+                  {c.guide.yellow && (
+                    <RuleRow className="bg-warning-600" label={names.near}>
+                      {c.guide.yellow}
+                    </RuleRow>
+                  )}
+                </ul>
+              )}
+            </li>
           ))}
-        </dl>
+        </ul>
+        <p className="mt-2">Tap any column heading during a game to open this guide again.</p>
       </div>
     </>
   )
