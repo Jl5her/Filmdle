@@ -49,14 +49,31 @@ export function GameHeader({
   if (collapsed) return null
   return (
     <header className="ticket-header-rule relative z-20 flex min-h-20 items-stretch pt-3 text-center kb:min-h-0 kb:py-0.5">
-      <Link
-        to="/"
-        aria-label="Back to menu"
-        title="Back"
-        className="ml-4 flex h-10 w-10 shrink-0 self-center items-center justify-center rounded-md text-[1.25rem] leading-none text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
-      >
-        <Icon name="chevron-left" />
-      </Link>
+      {/* Equal-width sides keep the title centred: back + help on the left,
+          past puzzles + stats on the right. */}
+      <div className="ml-3 flex w-[4.75rem] shrink-0 items-center justify-start gap-0.5 self-center">
+        <Link
+          to="/"
+          aria-label="Back to menu"
+          title="Back"
+          className="flex h-10 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25 text-[1.25rem] leading-none"
+        >
+          <Icon name="chevron-left" />
+        </Link>
+        {onOpenHelp && (
+          <button
+            type="button"
+            onClick={onOpenHelp}
+            aria-label="How to play"
+            title="How to play"
+            className="flex h-10 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
+          >
+            <span aria-hidden="true" className="fa5-title text-2xl leading-none">
+              ?
+            </span>
+          </button>
+        )}
+      </div>
       <div className="relative flex min-w-0 flex-1 flex-col items-center justify-center px-1">
         <h1 className="fa5-title text-3xl uppercase text-danger-600 kb:text-xl dark:text-primary-50">
           {title}
@@ -122,39 +139,28 @@ export function GameHeader({
           </div>
         )}
       </div>
-      {onOpenArchive && (
+      <div className="mr-3 flex w-[4.75rem] shrink-0 items-center justify-end gap-0.5 self-center">
+        {onOpenArchive && (
+          <button
+            type="button"
+            onClick={onOpenArchive}
+            aria-label="Past puzzles"
+            title="Past puzzles"
+            className="flex h-10 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25 text-[1.1rem]"
+          >
+            <Icon name="calendar" />
+          </button>
+        )}
         <button
           type="button"
-          onClick={onOpenArchive}
-          aria-label="Past puzzles"
-          title="Past puzzles"
-          className="flex h-10 w-8 shrink-0 cursor-pointer self-center items-center justify-center rounded-md text-[1.1rem] text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
+          onClick={onOpenStats}
+          aria-label="Stats"
+          title="Stats"
+          className="flex h-10 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25 text-[1.25rem]"
         >
-          <Icon name="calendar" />
+          <Icon name="chart-column" />
         </button>
-      )}
-      {onOpenHelp && (
-        <button
-          type="button"
-          onClick={onOpenHelp}
-          aria-label="How to play"
-          title="How to play"
-          className="flex h-10 w-8 shrink-0 cursor-pointer self-center items-center justify-center rounded-md text-[1.25rem] text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
-        >
-          <span aria-hidden="true" className="fa5-title text-2xl leading-none">
-            ?
-          </span>
-        </button>
-      )}
-      <button
-        type="button"
-        onClick={onOpenStats}
-        aria-label="Stats"
-        title="Stats"
-        className="mr-4 flex h-10 w-10 shrink-0 cursor-pointer self-center items-center justify-center rounded-md text-[1.25rem] text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
-      >
-        <Icon name="chart-column" />
-      </button>
+      </div>
     </header>
   )
 }
