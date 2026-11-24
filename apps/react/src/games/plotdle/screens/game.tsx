@@ -2,7 +2,7 @@ import { plots } from "@stardle/data/plotdle"
 import type { PlotdlePlot } from "@stardle/types"
 import clsx from "clsx"
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
-import { Navigate, useNavigate, useParams } from "react-router-dom"
+import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import type { Suggestion } from "@/games/_common/components/guess-input"
 import { GuessInput } from "@/games/_common/components/guess-input"
 import { GameHeader } from "@/games/_common/components/header"
@@ -205,16 +205,22 @@ export default function PlotdleGame() {
   const today = useMemo(() => todayKey(), [])
   const daily = useMemo(() => dailyPlot(today), [today])
 
+  // ?preview=1 opens any plot (even a future daily) fresh, for trying it out
+  // or taking a screenshot. Nothing is saved and it never counts in stats.
+  const [searchParams] = useSearchParams()
+  const preview = idParam !== undefined && searchParams.get("preview") === "1"
+
   const answer = idParam === undefined ? daily : byId.get(Number(idParam))
   // Unknown ids and not-yet-released dailies fall back to today's puzzle.
-  if (!answer || !canOpen(answer, today)) return <Navigate to="/plotdle" replace />
+  if (!answer || (!preview && !canOpen(answer, today))) return <Navigate to="/plotdle" replace />
 
   // Remount per puzzle so guess state resets cleanly when navigating between plots.
   return (
     <PlotScreen
-      key={answer.id}
+      key={`${answer.id}:${preview}`}
       answer={answer}
-      isDaily={answer.id === daily.id}
+      isDaily={!preview && answer.id === daily.id}
+      preview={preview}
       today={today}
       onNext={() => {
         const next = nextArcadePlot(answer.id, today, getIncludeAnimated(), hasPlayed)
@@ -227,11 +233,14 @@ export default function PlotdleGame() {
 function PlotScreen({
   answer,
   isDaily,
+  preview,
   today,
   onNext,
 }: {
   answer: PlotdlePlot
   isDaily: boolean
+  /** Fresh, unsaved run of any plot (see PlotdleGame). */
+  preview: boolean
   today: string
   onNext: () => void
 }) {
@@ -244,8 +253,12 @@ function PlotScreen({
     [],
   )
   const [{ guesses, hints, gaveUp = false }, setState] = useState<PersistedState>(() =>
-    loadState(answer.id),
+    preview ? { guesses: [], hints: [] } : loadState(answer.id),
   )
+  // Previews never touch the player's saved games.
+  const persist = (id: number, state: PersistedState) => {
+    if (!preview) saveState(id, state)
+  }
   const [statsOpen, setStatsOpen] = useState(false)
   // A "Now Showing" title card opens an untouched daily puzzle, once.
   const [introOpen, setIntroOpen] = useState(() => {
@@ -343,7 +356,7 @@ function PlotScreen({
         ...prev,
         guesses: [...prev.guesses, { key, label: meta.label, year: meta.year }],
       }
-      saveState(answer.id, next)
+      persist(answer.id, next)
       return next
     })
   }
@@ -353,7 +366,7 @@ function PlotScreen({
     setState((prev) => {
       if (prev.hints.includes(id)) return prev
       const next = { ...prev, hints: [...prev.hints, id] }
-      saveState(answer.id, next)
+      persist(answer.id, next)
       return next
     })
   }
@@ -379,7 +392,7 @@ function PlotScreen({
     }
     setState((prev) => {
       const next = { ...prev, gaveUp: true }
-      saveState(answer.id, next)
+      persist(answer.id, next)
       return next
     })
   }
@@ -440,7 +453,8 @@ function PlotScreen({
     <div className="app-viewport flex flex-col" data-game={GAME_KEY}>
       <GameHeader
         title="Plotdle"
-        mode={isDaily ? "daily" : "arcade"}
+        // A preview prints the plot's real ticket type, so screenshots match the game.
+        mode={isDaily || (preview && answer.pool === "daily") ? "daily" : "arcade"}
         serial={answer.id}
         gameKey={GAME_KEY}
         collapsed={typing && !FIT_STEPS[fitLevel]?.header}
@@ -611,7 +625,7 @@ function PlotScreen({
                   <Icon name="eye" />
                   {confirmReveal ? "Tap again to reveal" : "Reveal answer"}
                 </button>
-                {!isDaily && !masked && (
+                {!isDaily && !preview && !masked && (
                   <button
                     type="button"
                     onClick={onNext}

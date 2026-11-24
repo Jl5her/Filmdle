@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Appends newly generated plots to the Plotdle pool.
 //
-//   node scripts/plotdle/add-plots.mjs new-plots.json [--shuffle] [--arcade]
+//   node scripts/plotdle/add-plots.mjs new-plots.json [--shuffle] [--arcade | --library]
 //
 // Input is a JSON array in the shape generation-prompt.md asks for:
 //   { plot, character, genre, title, year, animated, difficulty }
@@ -10,7 +10,8 @@
 // shared /plotdle/<id> links stay valid. --shuffle mixes the new batch so
 // eras and difficulties don't come in runs. New plots join the daily queue
 // (released one per day after the existing dailies) unless --arcade is
-// passed, which makes them playable right away from Play Again.
+// passed, which makes them playable right away from Play Again, or --library,
+// which keeps them out of both: they can only be looked up and played by link.
 // Afterwards run sync-tmdb.mjs.
 
 import { readFileSync, writeFileSync } from "node:fs"
@@ -49,7 +50,9 @@ function fnv1a(input) {
 
 const [input, ...flags] = process.argv.slice(2)
 if (!input) {
-  console.error("usage: node scripts/plotdle/add-plots.mjs <new-plots.json> [--shuffle] [--arcade]")
+  console.error(
+    "usage: node scripts/plotdle/add-plots.mjs <new-plots.json> [--shuffle] [--arcade | --library]",
+  )
   process.exit(1)
 }
 
@@ -106,7 +109,7 @@ for (const p of incoming) {
     difficulty: DIFFICULTIES.has(p.difficulty) ? p.difficulty : "medium",
     character: p.character.trim().replace(/\.$/, ""),
     genre: p.genre,
-    pool: flags.includes("--arcade") ? "arcade" : "daily",
+    pool: flags.includes("--library") ? "library" : flags.includes("--arcade") ? "arcade" : "daily",
     tmdbId: Number.isInteger(p.tmdbId) ? p.tmdbId : 0,
   })
 }
