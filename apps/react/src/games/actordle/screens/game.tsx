@@ -1,7 +1,7 @@
 import { actorAnswerPool, actors } from "@stardle/data"
 import type { Actor } from "@stardle/types"
 import { useCallback, useMemo } from "react"
-import type { Suggestion } from "@/games/_common/components/guess-input"
+import { profileUrl, type Suggestion } from "@/games/_common/components/guess-input"
 import { GameScreen } from "@/games/_common/screens/game-screen"
 import { searchPerson } from "@/lib/tmdb"
 import { enrichCuratedActor, resolvePerson } from "@/lib/tmdb-adapters"
@@ -22,10 +22,6 @@ export default function ActordleGame() {
   const fetchSuggestions = useCallback(
     async (query: string, signal: AbortSignal): Promise<Suggestion[]> => {
       const localMatches = curated.search(query, 4)
-      const localSuggestions: Suggestion[] = localMatches.map((actor) => ({
-        key: `c:${actor.id}`,
-        label: actor.name,
-      }))
       const seen = new Set(localMatches.map((a) => normaliseName(a.name)))
 
       // TMDB failures shouldn't kill the dropdown — keep the local
@@ -38,6 +34,18 @@ export default function ActordleGame() {
         // Nothing local to fall back on: let the guess box say search failed.
         if (localMatches.length === 0) throw err
       }
+      // Curated actors carry no photo: borrow it from the matching TMDB hit.
+      const localSuggestions: Suggestion[] = localMatches.map((actor) => {
+        const match =
+          tmdbResults.find((r) => actor.tmdbId !== undefined && r.id === actor.tmdbId) ??
+          tmdbResults.find((r) => normaliseName(r.name) === normaliseName(actor.name))
+        return {
+          key: `c:${actor.id}`,
+          label: actor.name,
+          imageUrl: profileUrl(match?.profile_path),
+          imageKind: "person",
+        }
+      })
       const tmdbSuggestions: Suggestion[] = []
       for (const r of tmdbResults) {
         if (seen.has(normaliseName(r.name))) continue
@@ -46,6 +54,8 @@ export default function ActordleGame() {
         tmdbSuggestions.push({
           key: `t:${r.id}`,
           label: r.name,
+          imageUrl: profileUrl(r.profile_path),
+          imageKind: "person",
         })
         if (localSuggestions.length + tmdbSuggestions.length >= 8) break
       }

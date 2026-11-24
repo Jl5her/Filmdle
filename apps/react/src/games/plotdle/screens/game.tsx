@@ -3,8 +3,7 @@ import type { PlotdlePlot } from "@stardle/types"
 import clsx from "clsx"
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom"
-import type { Suggestion } from "@/games/_common/components/guess-input"
-import { GuessInput } from "@/games/_common/components/guess-input"
+import { GuessInput, posterUrl, type Suggestion } from "@/games/_common/components/guess-input"
 import { GameHeader } from "@/games/_common/components/header"
 import { NextPuzzleCountdown } from "@/games/_common/components/next-puzzle-countdown"
 import { ResultBanner } from "@/games/_common/components/result-banner"
@@ -328,6 +327,18 @@ function PlotScreen({
         // Nothing local to fall back on: let the guess box say search failed.
         if (local.length === 0) throw err
       }
+      // Curated plots carry no poster: borrow it from the matching TMDB hit.
+      for (const [i, p] of local.entries()) {
+        const match =
+          tmdb.find((r) => p.tmdbId && r.id === p.tmdbId) ??
+          tmdb.find(
+            (r) =>
+              normaliseName(r.title) === normaliseName(p.title) &&
+              r.release_date?.startsWith(String(p.year)),
+          )
+        const row = out[i]
+        if (row) row.imageUrl = posterUrl(match?.poster_path)
+      }
       for (const r of tmdb) {
         if (out.length >= 8) break
         const year = r.release_date ? Number(r.release_date.slice(0, 4)) : null
@@ -340,7 +351,7 @@ function PlotScreen({
           key,
           label: r.title,
           sublabel: year ? String(year) : undefined,
-          imageUrl: r.poster_path ? `https://image.tmdb.org/t/p/w92${r.poster_path}` : "",
+          imageUrl: posterUrl(r.poster_path),
         })
       }
       return out
