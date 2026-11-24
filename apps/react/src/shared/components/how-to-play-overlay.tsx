@@ -1,7 +1,7 @@
 const MODES = [
   {
     name: "Actordle & Filmdle",
-    body: "Guess any actor or film. Each guess fills a row of clue tiles. Solve it in 5 tries.",
+    body: "Guess any actor or film. Each guess fills a row of clue tiles. Solve it in 6 tries.",
   },
   {
     name: "Creditdle & Showdle",

@@ -17,7 +17,7 @@ import { GuessInput, type Suggestion } from "../components/guess-input"
 import { GameHeader } from "../components/header"
 import { ResultBanner } from "../components/result-banner"
 
-const MAX_GUESSES = 5
+const MAX_GUESSES = 6
 
 type Mode = "daily" | "arcade"
 

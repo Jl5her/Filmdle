@@ -147,9 +147,23 @@ export async function searchPerson(
     `/search/person?query=${encodeURIComponent(query)}&include_adult=false&page=1`,
     signal,
   )
+  // TMDB often holds several person records with the same name (obscure
+  // namesakes or duplicate entries). Sorting first puts the most relevant /
+  // popular one ahead, so keeping only the first of each name drops the rest.
+  const seenNames = new Set<string>()
   return data.results
     .filter((p) => p.known_for_department === "Acting")
     .sort((a, b) => rankScore(query, b.name, b.popularity) - rankScore(query, a.name, a.popularity))
+    .filter((p) => {
+      const key = p.name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim()
+      if (seenNames.has(key)) return false
+      seenNames.add(key)
+      return true
+    })
     .slice(0, 8)
 }
 

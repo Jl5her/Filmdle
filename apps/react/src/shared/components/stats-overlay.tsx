@@ -5,8 +5,8 @@ import { formatSerial, puzzleNumber } from "@/shared/lib/date"
 import { computeStatsSummary, loadStats } from "@/shared/lib/stats"
 
 const GAMES = [
-  { id: "actordle", label: "Actordle", maxGuesses: 5 },
-  { id: "filmdle", label: "Filmdle", maxGuesses: 5 },
+  { id: "actordle", label: "Actordle", maxGuesses: 6 },
+  { id: "filmdle", label: "Filmdle", maxGuesses: 6 },
   { id: "creditdle", label: "Creditdle", maxGuesses: 6 },
   { id: "showdle", label: "Showdle", maxGuesses: 6 },
   { id: "plotdle", label: "Plotdle", maxGuesses: 3 },
