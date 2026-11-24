@@ -540,28 +540,6 @@ body {
   }
 }
 
-/* Plotdle's "Now Showing" card: a marquee board ringed with bulbs. */
-.now-showing-marquee {
-  border: 6px dotted var(--ticket-red);
-  border-radius: 10px;
-  outline: 2px solid var(--ticket-rule);
-  outline-offset: 4px;
-  background: color-mix(in srgb, var(--ticket-paper) 85%, var(--ticket-ink));
-  animation: marquee-bulbs 1.6s steps(2) infinite;
-}
-
-@keyframes marquee-bulbs {
-  50% {
-    border-color: color-mix(in srgb, var(--ticket-red) 55%, var(--ticket-paper));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .now-showing-marquee {
-    animation: none;
-  }
-}
-
 /* Saved ticket stubs in Stats: small torn stubs with side notches and a
    perforated top edge. */
 .mini-stub {
@@ -1074,4 +1052,22 @@ button.ticket-fields:focus-visible {
   font-family: "Geist", sans-serif;
   letter-spacing: 0;
   color: var(--color-primary-500);
+}
+
+/* Color-blind mode (Settings): blue = correct, orange = close, gray = wrong.
+   Overrides every design's success/warning ramps, so tiles, guides, stats
+   and result banners all follow. Doubled attribute beats the design blocks. */
+:root[data-colorblind][data-colorblind] {
+  --color-success-300: #a9cdf2;
+  --color-success-400: #6eaae6;
+  --color-success-500: #3b8ad8;
+  --color-success-600: #1f6fbf;
+  --color-success-700: #164f8a;
+  --color-warning-500: #f39a3d;
+  --color-warning-600: #e07b12;
+  --color-warning-700: #a85a0a;
+}
+
+:root[data-colorblind] .tile-miss {
+  background-color: #5f5a55;
 }

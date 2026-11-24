@@ -28,7 +28,8 @@ export function buildFilmdleColumns(): GameColumn<FilmGuess>[] {
     {
       id: "genre",
       label: "Genre",
-      description: "Primary genre. Green for an exact match.",
+      description:
+        "Main genre: the most specific one the film has, so an action comedy counts as Comedy and Drama only when nothing else fits. Green for an exact match.",
       evaluator: { type: "match", get: (f) => (f.genre === "Unknown" ? null : f.genre) },
     },
     {

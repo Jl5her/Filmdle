@@ -8,7 +8,13 @@ import type {
   TmdbPersonSearch,
   TmdbReleaseDates,
 } from "./tmdb"
-import { getMovieDetails, getPersonDetails, getPersonMovieCredits, searchPerson } from "./tmdb"
+import {
+  getMovieDetails,
+  getPersonDetails,
+  getPersonMovieCredits,
+  searchMovie,
+  searchPerson,
+} from "./tmdb"
 
 const actorsByName = new Map(actors.map((a) => [a.name.toLowerCase(), a]))
 const filmsByTitleYear = new Map(films.map((f) => [`${f.title.toLowerCase()}|${f.releaseYear}`, f]))
@@ -29,33 +35,40 @@ const GENRE_REWRITE: Record<string, string> = {
   Music: "Musical",
 }
 
-function pickGenre(genres: { name: string }[]): string {
-  const preferred = [
-    "Crime",
-    "Drama",
-    "Action",
-    "Science Fiction",
-    "Romance",
-    "Adventure",
-    "War",
-    "Fantasy",
-    "Musical",
-    "Music",
-    "Thriller",
-    "Animation",
-    "Horror",
-    "Comedy",
-    "Mystery",
-    "Documentary",
-    "Family",
-    "Western",
-    "History",
-  ]
-  for (const name of preferred) {
-    const hit = genres.find((g) => g.name === name)
-    if (hit) return GENRE_REWRITE[hit.name] ?? hit.name
+/**
+ * Primary genre = the most specific genre a film carries, not TMDB's first
+ * tag. Distinctive genres that define how a film feels come first; broad
+ * ones that get attached to almost everything come last. Drama is the
+ * catch-all, so it only wins when a film has nothing else.
+ * An action comedy is a Comedy; an animated fantasy is Animation.
+ */
+const GENRE_SPECIFICITY = [
+  "Animation",
+  "Documentary",
+  "Horror",
+  "Western",
+  "Music",
+  "War",
+  "Science Fiction",
+  "Fantasy",
+  "Comedy",
+  "Action",
+  "Crime",
+  "Thriller",
+  "Romance",
+  "Mystery",
+  "History",
+  "Adventure",
+  "Family",
+  "Drama",
+]
+
+export function pickGenre(genres: { name: string }[]): string {
+  for (const name of GENRE_SPECIFICITY) {
+    if (genres.some((g) => g.name === name)) return GENRE_REWRITE[name] ?? name
   }
-  return genres[0]?.name ?? "Unknown"
+  const first = genres[0]?.name
+  return first ? (GENRE_REWRITE[first] ?? first) : "Unknown"
 }
 
 const COUNTRY_ALIASES: Record<string, string> = {
@@ -146,10 +159,39 @@ function extractMpaa(releaseDates: TmdbReleaseDates | undefined): MpaaRating | n
   return null
 }
 
+const curatedGenreCache = new Map<string, Promise<FilmGuess>>()
+
+/**
+ * Curated films carry a hand-written genre. Re-derive it from TMDB with the
+ * same pickGenre rule TMDB guesses use, so an answer and a guess are never
+ * labelled by different rules. Falls back to the stored genre offline.
+ */
+export function enrichCuratedFilm(film: FilmGuess, tmdbId?: number): Promise<FilmGuess> {
+  let pending = curatedGenreCache.get(film.id)
+  if (!pending) {
+    pending = (async () => {
+      try {
+        let id = tmdbId
+        if (id === undefined) {
+          const results = await searchMovie(film.title)
+          id = results.find((r) => r.release_date?.startsWith(String(film.releaseYear)))?.id
+        }
+        if (id === undefined) return film
+        const details = await getMovieDetails(id)
+        return details.genres.length > 0 ? { ...film, genre: pickGenre(details.genres) } : film
+      } catch {
+        return film
+      }
+    })()
+    curatedGenreCache.set(film.id, pending)
+  }
+  return pending
+}
+
 export async function resolveFilm(m: TmdbMovieSearch): Promise<FilmGuess> {
   const releaseYear = m.release_date ? Number(m.release_date.slice(0, 4)) : 0
   const curated = filmsByTitleYear.get(`${m.title.toLowerCase()}|${releaseYear}`)
-  if (curated) return curated
+  if (curated) return enrichCuratedFilm(curated, m.id)
   const details = await getMovieDetails(m.id)
   const director = details.credits.crew.find((c) => c.job === "Director")?.name ?? "Unknown"
   return {

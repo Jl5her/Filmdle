@@ -3,7 +3,7 @@ import { useCallback, useMemo } from "react"
 import { posterUrl, type Suggestion } from "@/games/_common/components/guess-input"
 import { GameScreen } from "@/games/_common/screens/game-screen"
 import { searchMovie } from "@/lib/tmdb"
-import { resolveFilm } from "@/lib/tmdb-adapters"
+import { enrichCuratedFilm, resolveFilm } from "@/lib/tmdb-adapters"
 import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
 import { buildFilmdleColumns } from "../columns"
 import type { FilmGuess } from "../types"
@@ -68,7 +68,7 @@ export default function FilmdleGame() {
     if (key.startsWith("c:")) {
       const film = curated.get(key.slice(2))
       if (!film) throw new Error(`Unknown curated film: ${key}`)
-      return film as FilmGuess
+      return enrichCuratedFilm(film as FilmGuess)
     }
     const tmdbId = Number(key.startsWith("t:") ? key.slice(2) : key)
     const cached = searchCache.get(tmdbId)
@@ -92,6 +92,7 @@ export default function FilmdleGame() {
       searchPlaceholder="Type a film title..."
       fetchSuggestions={fetchSuggestions}
       resolveByKey={resolveByKey}
+      enrichAnswer={enrichCuratedFilm}
     />
   )
 }

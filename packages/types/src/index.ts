@@ -49,6 +49,8 @@ export interface GameResult {
   guesses: string[]
   outcome: "win" | "loss"
   guessCount: number
+  /** Played from the archive after its day: counts in stats, never in streaks. */
+  archive?: boolean
 }
 
 export interface CreditdleCredit {

@@ -1,12 +1,15 @@
 import type { ReactNode } from "react"
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import {
+  applyColorblind,
   applyDesign,
   applyResolvedTheme,
   type Design,
+  loadColorblind,
   loadDesign,
   loadTheme,
   resolveTheme,
+  saveColorblind,
   saveDesign,
   saveTheme,
   type Theme,
@@ -17,6 +20,8 @@ interface ThemeContextValue {
   setTheme: (theme: Theme) => void
   design: Design
   setDesign: (design: Design) => void
+  colorblind: boolean
+  setColorblind: (on: boolean) => void
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
@@ -24,6 +29,12 @@ const ThemeContext = createContext<ThemeContextValue | null>(null)
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => loadTheme())
   const [design, setDesignState] = useState<Design>(() => loadDesign())
+  const [colorblind, setColorblind] = useState(() => loadColorblind())
+
+  useEffect(() => {
+    applyColorblind(colorblind)
+    saveColorblind(colorblind)
+  }, [colorblind])
 
   useEffect(() => {
     applyDesign(design)
@@ -44,8 +55,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = useCallback((next: Theme) => setThemeState(next), [])
   const setDesign = useCallback((next: Design) => setDesignState(next), [])
   const value = useMemo(
-    () => ({ theme, setTheme, design, setDesign }),
-    [theme, setTheme, design, setDesign],
+    () => ({ theme, setTheme, design, setDesign, colorblind, setColorblind }),
+    [theme, setTheme, design, setDesign, colorblind],
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

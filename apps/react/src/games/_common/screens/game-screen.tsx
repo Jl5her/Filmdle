@@ -1,11 +1,15 @@
 import clsx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { ArcadeNextButton } from "@/games/_common/components/arcade-next-button"
 import { NextPuzzleCountdown } from "@/games/_common/components/next-puzzle-countdown"
+import { ArchiveCalendar } from "@/shared/components/archive-calendar"
+import { GameGuide, type GuideGame, useGameGuide } from "@/shared/components/game-guide"
 import { InlinePanel } from "@/shared/components/inline-panel"
 import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { TicketDecor } from "@/shared/components/ticket-decor"
+import { dailyStatuses, useDailyDate } from "@/shared/lib/archive"
 import { pickDaily } from "@/shared/lib/daily-schedule"
 import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
 import { loadGuesses, saveGuesses } from "@/shared/lib/game-state"
@@ -35,7 +39,13 @@ interface Props<T> {
   enrichAnswer?: (answer: T) => Promise<T>
 }
 
-export function GameScreen<T>({
+/** Reads the day (today, or a past daily via ?date=) and remounts the game when it changes. */
+export function GameScreen<T>(props: Props<T>) {
+  const { dateKey, isArchive } = useDailyDate(props.gameKey)
+  return <GameScreenBody key={dateKey} {...props} dateKey={dateKey} isArchive={isArchive} />
+}
+
+function GameScreenBody<T>({
   title,
   curatedItems,
   answerPool,
@@ -47,8 +57,11 @@ export function GameScreen<T>({
   fetchSuggestions,
   resolveByKey,
   enrichAnswer,
-}: Props<T>) {
-  const dateKey = useMemo(() => todayKey(), [])
+  dateKey,
+  isArchive,
+}: Props<T> & { dateKey: string; isArchive: boolean }) {
+  const navigate = useNavigate()
+  const [archiveOpen, setArchiveOpen] = useState(false)
   const [mode, setMode] = useState<Mode>("daily")
   const [arcadeSeed, setArcadeSeed] = useState(0)
 
@@ -85,6 +98,7 @@ export function GameScreen<T>({
   const [latestIndex, setLatestIndex] = useState(-1)
   const [resolving, setResolving] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
+  const guide = useGameGuide(gameKey as GuideGame)
 
   const guessedKeys = useMemo(() => new Set(guesses.map(idOf)), [guesses, idOf])
   const won = guesses.some((g) => idOf(g) === idOf(answer))
@@ -102,8 +116,9 @@ export function GameScreen<T>({
       guesses: guesses.map(idOf),
       outcome: won ? "win" : "loss",
       guessCount: guesses.length,
+      ...(isArchive ? { archive: true } : {}),
     })
-  }, [gameOver, gameKey, dateKey, answer, guesses, won, idOf, mode])
+  }, [gameOver, gameKey, dateKey, answer, guesses, won, idOf, mode, isArchive])
 
   useWinConfetti({
     won,
@@ -149,13 +164,23 @@ export function GameScreen<T>({
         serial={serial}
         gameKey={gameKey}
         seat={{ used: guesses.length, max: MAX_GUESSES }}
-        onOpenStats={() => setStatsOpen((v) => !v)}
+        onOpenStats={() => {
+          setArchiveOpen(false)
+          setStatsOpen((v) => !v)
+        }}
+        onOpenHelp={guide.show}
+        onOpenArchive={() => {
+          setStatsOpen(false)
+          setArchiveOpen((v) => !v)
+        }}
+        archiveDate={mode === "daily" && isArchive ? dateKey : undefined}
       />
+      <GameGuide game={gameKey as GuideGame} open={guide.open} onClose={guide.close} />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-[var(--ticket-pad-x)] pt-3">
         <div
           className={clsx(
             "crossfade-panel flex flex-1 flex-col overflow-hidden",
-            statsOpen ? "crossfade-inactive" : "crossfade-active",
+            statsOpen || archiveOpen ? "crossfade-inactive" : "crossfade-active",
           )}
         >
           {gameOver && (
@@ -164,7 +189,9 @@ export function GameScreen<T>({
                 won={won}
                 answer={nameOf(answer)}
                 guessCount={guesses.length}
-                footer={mode === "daily" ? <NextPuzzleCountdown game={title} /> : undefined}
+                footer={
+                  mode === "daily" && !isArchive ? <NextPuzzleCountdown game={title} /> : undefined
+                }
               />
             </div>
           )}
@@ -186,6 +213,7 @@ export function GameScreen<T>({
                     game: title,
                     mode,
                     serial,
+                    dateKey: mode === "daily" && isArchive ? dateKey : undefined,
                     marks: guesses.map((g) => idOf(g) === idOf(answer)),
                     maxGuesses: MAX_GUESSES,
                     won,
@@ -230,6 +258,24 @@ export function GameScreen<T>({
           className="px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
         >
           <StatsContent open={statsOpen} />
+        </InlinePanel>
+        <InlinePanel
+          open={archiveOpen}
+          title="Past puzzles"
+          onClose={() => setArchiveOpen(false)}
+          className="overflow-y-auto px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
+        >
+          {archiveOpen && (
+            <ArchiveCalendar
+              gameKey={gameKey}
+              selected={dateKey}
+              statusOf={dailyStatuses(gameKey)}
+              onPick={(d) => {
+                setArchiveOpen(false)
+                navigate(d === todayKey() ? `/${gameKey}` : `/${gameKey}?date=${d}`)
+              }}
+            />
+          )}
         </InlinePanel>
       </div>
       <TicketDecor code={formatSerial(serial ?? 0)} torn={gameOver} />

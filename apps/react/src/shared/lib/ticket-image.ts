@@ -1,5 +1,6 @@
 import { code39Bars } from "./code39"
 import { formatSerial } from "./date"
+import { isColorblind } from "./theme"
 
 export interface TicketImageData {
   /** Game name printed as the ticket's title, e.g. "Plotdle". */
@@ -10,6 +11,8 @@ export interface TicketImageData {
   marks: boolean[]
   maxGuesses: number
   won: boolean
+  /** Day of the puzzle (YYYY-MM-DD); defaults to today. Set for archive plays. */
+  dateKey?: string
   /** Optional quote printed on the ticket (Plotdle's plot). Never the answer. */
   quote?: string
 }
@@ -29,7 +32,7 @@ function palette() {
     red: v("--ticket-red", "#b9281e"),
     rule: v("--ticket-rule", "#d0786f"),
     bg: v("--theater-bg", "#2e1f10"),
-    win: "#5e7a2c",
+    win: isColorblind() ? "#1f6fbf" : "#5e7a2c",
   }
 }
 
@@ -115,7 +118,8 @@ export async function renderTicketImage(t: TicketImageData): Promise<Blob> {
   ctx.letterSpacing = "4px"
   ctx.font = "600 30px Geist, system-ui, sans-serif"
   ctx.fillStyle = c.ink
-  const date = new Date().toLocaleDateString("en-US", {
+  const day = t.dateKey ? new Date(`${t.dateKey}T12:00:00`) : new Date()
+  const date = day.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",

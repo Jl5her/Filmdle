@@ -33,7 +33,7 @@ export function HowToPlayContent() {
         <div className="mt-2 flex flex-wrap gap-3">
           <Swatch className="bg-success-600" label="Correct" />
           <Swatch className="bg-warning-600" label="Close" />
-          <Swatch className="bg-danger-600" label="Wrong" />
+          <Swatch className="bg-danger-600 tile-miss" label="Wrong" />
         </div>
         <p className="mt-2">Arrows on number tiles point toward the answer (↑ higher, ↓ lower).</p>
       </div>
