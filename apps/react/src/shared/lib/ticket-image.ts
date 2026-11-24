@@ -11,6 +11,8 @@ export interface TicketImageData {
   marks: boolean[]
   maxGuesses: number
   won: boolean
+  /** Day of the puzzle (YYYY-MM-DD); defaults to today. Set for archive plays. */
+  dateKey?: string
   /** Optional quote printed on the ticket (Plotdle's plot). Never the answer. */
   quote?: string
 }
@@ -116,7 +118,8 @@ export async function renderTicketImage(t: TicketImageData): Promise<Blob> {
   ctx.letterSpacing = "4px"
   ctx.font = "600 30px Geist, system-ui, sans-serif"
   ctx.fillStyle = c.ink
-  const date = new Date().toLocaleDateString("en-US", {
+  const day = t.dateKey ? new Date(`${t.dateKey}T12:00:00`) : new Date()
+  const date = day.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",

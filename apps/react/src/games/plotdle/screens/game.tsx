@@ -8,19 +8,21 @@ import { GameHeader } from "@/games/_common/components/header"
 import { NextPuzzleCountdown } from "@/games/_common/components/next-puzzle-countdown"
 import { ResultBanner } from "@/games/_common/components/result-banner"
 import { searchMovie } from "@/lib/tmdb"
+import { ArchiveCalendar } from "@/shared/components/archive-calendar"
 import { GameGuide, useGameGuide } from "@/shared/components/game-guide"
 import { Icon, type IconName } from "@/shared/components/icon"
 import { InlinePanel } from "@/shared/components/inline-panel"
 import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { TicketDecor } from "@/shared/components/ticket-decor"
+import { dailyStatuses } from "@/shared/lib/archive"
 import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
 import { formatSerial, todayKey } from "@/shared/lib/date"
 import { useKeyboardOpen } from "@/shared/lib/keyboard-viewport"
 import { getIncludeAnimated, setIncludeAnimated } from "@/shared/lib/plotdle-prefs"
 import { appendResult } from "@/shared/lib/stats"
 import { MOVIE_THEATER_COLORS, useWinConfetti } from "@/shared/lib/use-win-confetti"
-import { byId, canOpen, dailyPlot, nextArcadePlot } from "../schedule"
+import { byId, canOpen, dailyPlot, nextArcadePlot, pastDailyDate } from "../schedule"
 
 const GAME_KEY = "plotdle"
 const MAX_GUESSES = 3
@@ -160,6 +162,7 @@ export default function PlotdleGame() {
       key={`${answer.id}:${preview}`}
       answer={answer}
       isDaily={!preview && answer.id === daily.id}
+      archiveDate={!preview && answer.id !== daily.id ? pastDailyDate(answer, today) : undefined}
       preview={preview}
       today={today}
       onNext={() => {
@@ -173,12 +176,15 @@ export default function PlotdleGame() {
 function PlotScreen({
   answer,
   isDaily,
+  archiveDate,
   preview,
   today,
   onNext,
 }: {
   answer: PlotdlePlot
   isDaily: boolean
+  /** Set when this plot was a past day's daily: played from the archive. */
+  archiveDate?: string
   /** Fresh, unsaved run of any plot (see PlotdleGame). */
   preview: boolean
   today: string
@@ -200,6 +206,8 @@ function PlotScreen({
     if (!preview) saveState(id, state)
   }
   const [statsOpen, setStatsOpen] = useState(false)
+  const [archiveOpen, setArchiveOpen] = useState(false)
+  const navigate = useNavigate()
   const guide = useGameGuide("plotdle")
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "failed">("idle")
   // Revealing ends the game, so it takes a second tap to confirm.
@@ -226,16 +234,17 @@ function PlotScreen({
 
   const recordedRef = useRef(false)
   useEffect(() => {
-    if (!isDaily || !gameOver || recordedRef.current) return
+    if (!(isDaily || archiveDate) || !gameOver || recordedRef.current) return
     recordedRef.current = true
     appendResult(GAME_KEY, {
-      dateKey: today,
+      dateKey: archiveDate ?? today,
       answerId: String(answer.id),
       guesses: guesses.map((g) => g.label),
       outcome: won ? "win" : "loss",
       guessCount: guesses.length,
+      ...(archiveDate ? { archive: true } : {}),
     })
-  }, [isDaily, gameOver, today, answer.id, guesses, won])
+  }, [isDaily, archiveDate, gameOver, today, answer.id, guesses, won])
 
   useWinConfetti({
     won,
@@ -401,20 +410,32 @@ function PlotScreen({
       <GameHeader
         title="Plotdle"
         // A preview prints the plot's real ticket type, so screenshots match the game.
-        mode={isDaily || (preview && answer.pool === "daily") ? "daily" : "arcade"}
+        mode={isDaily || archiveDate || (preview && answer.pool === "daily") ? "daily" : "arcade"}
+        archiveDate={archiveDate}
         serial={answer.id}
         gameKey={GAME_KEY}
         collapsed={typing && !FIT_STEPS[fitLevel]?.header}
         seat={{ used: masked ? 0 : guesses.length, max: MAX_GUESSES }}
-        onOpenStats={() => setStatsOpen((v) => !v)}
+        onOpenStats={() => {
+          setArchiveOpen(false)
+          setStatsOpen((v) => !v)
+        }}
         onOpenHelp={guide.show}
+        onOpenArchive={
+          preview
+            ? undefined
+            : () => {
+                setStatsOpen(false)
+                setArchiveOpen((v) => !v)
+              }
+        }
       />
       <GameGuide game="plotdle" open={guide.open} onClose={guide.close} />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-[var(--ticket-pad-x)] pt-3">
         <div
           className={clsx(
             "crossfade-panel flex flex-1 flex-col overflow-hidden",
-            statsOpen ? "crossfade-inactive" : "crossfade-active",
+            statsOpen || archiveOpen ? "crossfade-inactive" : "crossfade-active",
           )}
         >
           {gameOver && !masked && (
@@ -651,7 +672,8 @@ function PlotScreen({
                   <ShareTicketButton
                     ticket={() => ({
                       game: "Plotdle",
-                      mode: isDaily ? "daily" : "arcade",
+                      mode: isDaily || archiveDate ? "daily" : "arcade",
+                      dateKey: archiveDate,
                       serial: answer.id,
                       marks: guesses.map((g) => isCorrectGuess(g, answer)),
                       maxGuesses: MAX_GUESSES,
@@ -708,6 +730,24 @@ function PlotScreen({
           className="px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
         >
           <StatsContent open={statsOpen} defaultGame="plotdle" />
+        </InlinePanel>
+        <InlinePanel
+          open={archiveOpen}
+          title="Past puzzles"
+          onClose={() => setArchiveOpen(false)}
+          className="overflow-y-auto px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
+        >
+          {archiveOpen && (
+            <ArchiveCalendar
+              gameKey={GAME_KEY}
+              selected={archiveDate ?? today}
+              statusOf={dailyStatuses(GAME_KEY, (d) => stateKey(dailyPlot(d).id))}
+              onPick={(d) => {
+                setArchiveOpen(false)
+                navigate(d === today ? "/plotdle" : `/plotdle/${dailyPlot(d).id}`)
+              }}
+            />
+          )}
         </InlinePanel>
       </div>
       <TicketDecor code={formatSerial(answer.id)} torn={gameOver && !masked} />

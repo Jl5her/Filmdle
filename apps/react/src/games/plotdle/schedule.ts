@@ -1,6 +1,6 @@
 import { plots } from "@stardle/data/plotdle"
 import type { PlotdlePlot } from "@stardle/types"
-import { puzzleNumber } from "@/shared/lib/date"
+import { GAME_LAUNCH_DATES, puzzleNumber } from "@/shared/lib/date"
 
 /**
  * Plotdle's pool is split in two:
@@ -146,4 +146,14 @@ export function nextArcadePlot(
   )
   const fresh = pool.filter((p) => !hasPlayed(p.id))
   return weightedPick(fresh.length > 0 ? fresh : pool)
+}
+
+/** The past day (YYYY-MM-DD) a plot was the daily, or undefined if it isn't a past daily. */
+export function pastDailyDate(plot: PlotdlePlot, today: string): string | undefined {
+  const day = dayOf.get(plot.id)
+  const launch = GAME_LAUNCH_DATES[GAME_KEY]
+  if (day === undefined || !launch) return undefined
+  const [y, m, d] = launch.split("-").map(Number) as [number, number, number]
+  const date = new Date(Date.UTC(y, m - 1, d + day - 1)).toISOString().slice(0, 10)
+  return date < today ? date : undefined
 }

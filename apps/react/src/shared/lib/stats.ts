@@ -60,7 +60,8 @@ export function computeStatsSummary(
   }
 
   // A streak is wins on consecutive days: a loss or a skipped day ends it.
-  const sorted = [...stats].sort((a, b) => a.dateKey.localeCompare(b.dateKey))
+  // Archive replays never build or break a streak.
+  const sorted = stats.filter((r) => !r.archive).sort((a, b) => a.dateKey.localeCompare(b.dateKey))
   let maxStreak = 0
   let running = 0
   let prevKey: string | undefined

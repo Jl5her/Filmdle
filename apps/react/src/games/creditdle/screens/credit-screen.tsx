@@ -1,6 +1,7 @@
 import type { CreditdleActor, CreditdleCredit } from "@stardle/types"
 import clsx from "clsx"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { ArcadeNextButton } from "@/games/_common/components/arcade-next-button"
 import type { Suggestion } from "@/games/_common/components/guess-input"
 import { GuessInput } from "@/games/_common/components/guess-input"
@@ -8,11 +9,13 @@ import { GameHeader } from "@/games/_common/components/header"
 import { NextPuzzleCountdown } from "@/games/_common/components/next-puzzle-countdown"
 import { ResultBanner } from "@/games/_common/components/result-banner"
 import { searchPerson } from "@/lib/tmdb"
+import { ArchiveCalendar } from "@/shared/components/archive-calendar"
 import { GameGuide, type GuideGame, useGameGuide } from "@/shared/components/game-guide"
 import { InlinePanel } from "@/shared/components/inline-panel"
 import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
 import { TicketDecor } from "@/shared/components/ticket-decor"
+import { dailyStatuses, useDailyDate } from "@/shared/lib/archive"
 import { buildCuratedSearch, normaliseName } from "@/shared/lib/curated-search"
 import { pickDaily } from "@/shared/lib/daily-schedule"
 import { formatSerial, puzzleNumber, todayKey } from "@/shared/lib/date"
@@ -90,8 +93,23 @@ interface Props {
   mediaLabel: string
 }
 
-export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }: Props) {
-  const dateKey = useMemo(() => todayKey(), [])
+/** Reads the day (today, or a past daily via ?date=) and remounts the game when it changes. */
+export function CreditScreen(props: Props) {
+  const { dateKey, isArchive } = useDailyDate(props.gameKey)
+  return <CreditScreenBody key={dateKey} {...props} dateKey={dateKey} isArchive={isArchive} />
+}
+
+function CreditScreenBody({
+  title,
+  gameKey,
+  actors,
+  answerPool,
+  mediaLabel,
+  dateKey,
+  isArchive,
+}: Props & { dateKey: string; isArchive: boolean }) {
+  const navigate = useNavigate()
+  const [archiveOpen, setArchiveOpen] = useState(false)
   const [mode, setMode] = useState<Mode>("daily")
   const [arcadeSeed, setArcadeSeed] = useState(0)
 
@@ -150,8 +168,9 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
       guesses: guesses.map((g) => g.label),
       outcome: won ? "win" : "loss",
       guessCount: guesses.length,
+      ...(isArchive ? { archive: true } : {}),
     })
-  }, [gameOver, gameKey, dateKey, answer, guesses, won, mode])
+  }, [gameOver, gameKey, dateKey, answer, guesses, won, mode, isArchive])
 
   useWinConfetti({
     won,
@@ -219,15 +238,23 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
         serial={serial}
         gameKey={gameKey}
         seat={{ used: guesses.length, max: MAX_GUESSES }}
-        onOpenStats={() => setStatsOpen((v) => !v)}
+        onOpenStats={() => {
+          setArchiveOpen(false)
+          setStatsOpen((v) => !v)
+        }}
         onOpenHelp={guide.show}
+        onOpenArchive={() => {
+          setStatsOpen(false)
+          setArchiveOpen((v) => !v)
+        }}
+        archiveDate={mode === "daily" && isArchive ? dateKey : undefined}
       />
       <GameGuide game={gameKey as GuideGame} open={guide.open} onClose={guide.close} />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-[var(--ticket-pad-x)] pt-3">
         <div
           className={clsx(
             "crossfade-panel flex flex-1 flex-col overflow-hidden",
-            statsOpen ? "crossfade-inactive" : "crossfade-active",
+            statsOpen || archiveOpen ? "crossfade-inactive" : "crossfade-active",
           )}
         >
           {gameOver && (
@@ -236,7 +263,9 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
                 won={won}
                 answer={answer.name}
                 guessCount={guesses.length}
-                footer={mode === "daily" ? <NextPuzzleCountdown game={title} /> : undefined}
+                footer={
+                  mode === "daily" && !isArchive ? <NextPuzzleCountdown game={title} /> : undefined
+                }
               />
             </div>
           )}
@@ -285,6 +314,7 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
                     game: title,
                     mode,
                     serial,
+                    dateKey: mode === "daily" && isArchive ? dateKey : undefined,
                     marks: guesses.map((g) => isCorrectGuess(g, answer)),
                     maxGuesses: MAX_GUESSES,
                     won,
@@ -331,6 +361,24 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
           className="px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
         >
           <StatsContent open={statsOpen} defaultGame={gameKey as "creditdle" | "showdle"} />
+        </InlinePanel>
+        <InlinePanel
+          open={archiveOpen}
+          title="Past puzzles"
+          onClose={() => setArchiveOpen(false)}
+          className="overflow-y-auto px-[var(--ticket-pad-x)] pt-3 pb-[var(--ticket-safe-bottom)]"
+        >
+          {archiveOpen && (
+            <ArchiveCalendar
+              gameKey={gameKey}
+              selected={dateKey}
+              statusOf={dailyStatuses(gameKey)}
+              onPick={(d) => {
+                setArchiveOpen(false)
+                navigate(d === todayKey() ? `/${gameKey}` : `/${gameKey}?date=${d}`)
+              }}
+            />
+          )}
         </InlinePanel>
       </div>
       <TicketDecor code={formatSerial(serial ?? 0)} torn={gameOver} />
