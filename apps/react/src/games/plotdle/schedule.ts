@@ -34,7 +34,8 @@ export const byId = new Map(plots.map((p) => [p.id, p]))
  */
 const arcadeEligible: Set<number> = (() => {
   const fameOf = (p: PlotdlePlot) => p.fame ?? 2
-  const ok = plots.filter((p) => !p.mcu && fameOf(p) > 1)
+  // Library plots are lookup-only and never served.
+  const ok = plots.filter((p) => p.pool !== "library" && !p.mcu && fameOf(p) > 1)
   const kept = new Set<number>()
   const byFranchise = new Map<string, PlotdlePlot[]>()
   for (const p of ok) {
@@ -100,6 +101,7 @@ export function dailyNumberOf(plot: PlotdlePlot): number | undefined {
 /** Why Play Again never serves a plot, or undefined if it can. */
 export function playAgainExclusion(plot: PlotdlePlot): string | undefined {
   if (arcadeEligible.has(plot.id)) return undefined
+  if (plot.pool === "library") return "Library only"
   if (plot.mcu) return "MCU"
   if ((plot.fame ?? 2) === 1) return "Niche"
   return "Franchise limit"
