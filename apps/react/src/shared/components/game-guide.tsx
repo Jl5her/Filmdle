@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useState } from "react"
 import type { GameColumn } from "@/games/_common/columns"
 import { buildActordleColumns } from "@/games/actordle/columns"
 import { buildFilmdleColumns } from "@/games/filmdle/columns"
+import { useTheme } from "@/shared/lib/theme-context"
 
 export type GuideGame = "actordle" | "filmdle" | "creditdle" | "showdle" | "plotdle"
 
@@ -145,7 +146,22 @@ function ColorRow({ className, children }: { className: string; children: ReactN
   )
 }
 
+/** Color names as the player sees them (color-blind mode swaps the palette). */
+function useColorNames() {
+  const { colorblind } = useTheme()
+  return colorblind
+    ? { hit: "Blue", near: "Orange", miss: "Gray" }
+    : { hit: "Green", near: "Yellow", miss: "Red" }
+}
+
 function ClueGuide<T>({ intro, columns }: { intro: string; columns: GameColumn<T>[] }) {
+  const names = useColorNames()
+  const recolor = (text = "") =>
+    text
+      .replace(/\bGreen\b/g, names.hit)
+      .replace(/\bgreen\b/g, names.hit.toLowerCase())
+      .replace(/\byellow\b/g, names.near.toLowerCase())
+      .replace(/\bYellow\b/g, names.near)
   return (
     <>
       <p>{intro}</p>
@@ -153,13 +169,13 @@ function ClueGuide<T>({ intro, columns }: { intro: string; columns: GameColumn<T
         <Heading>Tile colors</Heading>
         <ColorKey>
           <ColorRow className="bg-success-600">
-            <b>Green</b>: matches the answer exactly.
+            <b>{names.hit}</b>: matches the answer exactly.
           </ColorRow>
           <ColorRow className="bg-warning-600">
-            <b>Yellow</b>: close, but not exact.
+            <b>{names.near}</b>: close, but not exact.
           </ColorRow>
-          <ColorRow className="bg-danger-600">
-            <b>Red</b>: not a match.
+          <ColorRow className="bg-danger-600 tile-miss">
+            <b>{names.miss}</b>: not a match.
           </ColorRow>
           <ColorRow className="bg-primary-100 border border-primary-300 dark:bg-primary-800 dark:border-primary-600">
             <b>?</b>: we don't have that detail for your guess.
@@ -178,7 +194,7 @@ function ClueGuide<T>({ intro, columns }: { intro: string; columns: GameColumn<T
               <dt className="inline font-semibold text-primary-900 dark:text-primary-50">
                 {c.label}:{" "}
               </dt>
-              <dd className="inline">{c.description}</dd>
+              <dd className="inline">{recolor(c.description)}</dd>
             </div>
           ))}
         </dl>
@@ -188,6 +204,7 @@ function ClueGuide<T>({ intro, columns }: { intro: string; columns: GameColumn<T
 }
 
 function CreditGuide({ media }: { media: "film" | "TV" }) {
+  const names = useColorNames()
   const what = media === "film" ? "films they starred in" : "TV shows they had a recurring role in"
   return (
     <>
@@ -200,7 +217,7 @@ function CreditGuide({ media }: { media: "film" | "TV" }) {
         <Heading>Your guesses</Heading>
         <ColorKey>
           <ColorRow className="bg-success-500">
-            <b>Green ✓</b>: that's the actor.
+            <b>{names.hit} ✓</b>: that's the actor.
           </ColorRow>
           <ColorRow className="bg-danger-500">
             <b>Red ✕</b>: not them. Another credit unlocks.

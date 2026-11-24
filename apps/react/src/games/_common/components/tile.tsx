@@ -36,7 +36,7 @@ export function Tile({ cell, animate, delayIndex = 0 }: Props) {
     textClass = "text-primary-500 dark:text-primary-300"
     borderClass = "border-dashed border-primary-300 dark:border-primary-700"
   } else {
-    bgClass = "bg-danger-600"
+    bgClass = "bg-danger-600 tile-miss"
     textClass = "text-primary-50"
   }
 

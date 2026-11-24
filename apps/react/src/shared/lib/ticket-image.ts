@@ -1,5 +1,6 @@
 import { code39Bars } from "./code39"
 import { formatSerial } from "./date"
+import { isColorblind } from "./theme"
 
 export interface TicketImageData {
   /** Game name printed as the ticket's title, e.g. "Plotdle". */
@@ -29,7 +30,7 @@ function palette() {
     red: v("--ticket-red", "#b9281e"),
     rule: v("--ticket-rule", "#d0786f"),
     bg: v("--theater-bg", "#2e1f10"),
-    win: "#5e7a2c",
+    win: isColorblind() ? "#1f6fbf" : "#5e7a2c",
   }
 }
 

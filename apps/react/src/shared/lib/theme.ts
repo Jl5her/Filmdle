@@ -3,6 +3,35 @@ export type ResolvedTheme = "light" | "dark"
 
 export const THEME_STORAGE_KEY = "stardle-theme"
 export const DESIGN_STORAGE_KEY = "stardle-design"
+export const COLORBLIND_STORAGE_KEY = "stardle-colorblind"
+
+/** Color-blind mode swaps green/yellow/red for blue/orange/gray (see index.css). */
+export function loadColorblind(): boolean {
+  try {
+    return localStorage.getItem(COLORBLIND_STORAGE_KEY) === "1"
+  } catch {
+    return false
+  }
+}
+
+export function saveColorblind(on: boolean): void {
+  try {
+    if (on) localStorage.setItem(COLORBLIND_STORAGE_KEY, "1")
+    else localStorage.removeItem(COLORBLIND_STORAGE_KEY)
+  } catch {
+    // ignore
+  }
+}
+
+export function applyColorblind(on: boolean): void {
+  if (typeof document === "undefined") return
+  if (on) document.documentElement.dataset.colorblind = ""
+  else delete document.documentElement.dataset.colorblind
+}
+
+export function isColorblind(): boolean {
+  return typeof document !== "undefined" && "colorblind" in document.documentElement.dataset
+}
 
 /** Visual style of the whole app. Colors, fonts and the frame come from CSS keyed on data-design. */
 export type Design = "ticket" | "cinema" | "modern"

@@ -33,7 +33,7 @@ const DESIGNS: { id: Design; label: string; description: string; swatch: string[
 ]
 
 export function SettingsContent() {
-  const { theme, setTheme, design, setDesign } = useTheme()
+  const { theme, setTheme, design, setDesign, colorblind, setColorblind } = useTheme()
   const [includeAnimated, setIncludeAnimatedState] = useState(getIncludeAnimated)
 
   return (
@@ -103,6 +103,30 @@ export function SettingsContent() {
             )
           })}
         </div>
+      </section>
+      <section className="mt-6">
+        <h3 className="mb-2 text-xs uppercase tracking-wider text-primary-500 dark:text-primary-300">
+          Accessibility
+        </h3>
+        <label className="flex cursor-pointer items-center justify-between gap-3 rounded-md border-2 border-primary-200 px-3 py-2.5 dark:border-primary-700">
+          <span className="flex flex-col">
+            <span className="text-sm text-primary-900 dark:text-primary-50">Color-blind mode</span>
+            <span className="text-[11px] text-primary-500 dark:text-primary-300">
+              Blue for correct, orange for close, gray for wrong
+            </span>
+          </span>
+          <span className="flex shrink-0 gap-1" aria-hidden="true">
+            <span className="h-4 w-4 rounded bg-success-600" />
+            <span className="h-4 w-4 rounded bg-warning-600" />
+            <span className="tile-miss h-4 w-4 rounded bg-danger-600" />
+          </span>
+          <input
+            type="checkbox"
+            checked={colorblind}
+            onChange={(e) => setColorblind(e.target.checked)}
+            className="h-5 w-5 cursor-pointer accent-danger-600"
+          />
+        </label>
       </section>
       <section className="mt-6">
         <h3 className="mb-2 text-xs uppercase tracking-wider text-primary-500 dark:text-primary-300">
