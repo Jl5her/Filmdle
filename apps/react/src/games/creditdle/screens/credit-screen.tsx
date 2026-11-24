@@ -8,6 +8,7 @@ import { GameHeader } from "@/games/_common/components/header"
 import { NextPuzzleCountdown } from "@/games/_common/components/next-puzzle-countdown"
 import { ResultBanner } from "@/games/_common/components/result-banner"
 import { searchPerson } from "@/lib/tmdb"
+import { GameGuide, type GuideGame, useGameGuide } from "@/shared/components/game-guide"
 import { InlinePanel } from "@/shared/components/inline-panel"
 import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
@@ -120,6 +121,7 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
     mode === "daily" ? loadState(gameKey, dateKey) : [],
   )
   const [statsOpen, setStatsOpen] = useState(false)
+  const guide = useGameGuide(gameKey as GuideGame)
 
   const wrongGuesses = useMemo(
     () => guesses.filter((g) => !isCorrectGuess(g, answer)),
@@ -218,7 +220,9 @@ export function CreditScreen({ title, gameKey, actors, answerPool, mediaLabel }:
         gameKey={gameKey}
         seat={{ used: guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => setStatsOpen((v) => !v)}
+        onOpenHelp={guide.show}
       />
+      <GameGuide game={gameKey as GuideGame} open={guide.open} onClose={guide.close} />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-[var(--ticket-pad-x)] pt-3">
         <div
           className={clsx(

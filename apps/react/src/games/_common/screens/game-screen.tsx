@@ -2,6 +2,7 @@ import clsx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { ArcadeNextButton } from "@/games/_common/components/arcade-next-button"
 import { NextPuzzleCountdown } from "@/games/_common/components/next-puzzle-countdown"
+import { GameGuide, type GuideGame, useGameGuide } from "@/shared/components/game-guide"
 import { InlinePanel } from "@/shared/components/inline-panel"
 import { ShareTicketButton } from "@/shared/components/share-ticket-button"
 import { StatsContent } from "@/shared/components/stats-overlay"
@@ -85,6 +86,7 @@ export function GameScreen<T>({
   const [latestIndex, setLatestIndex] = useState(-1)
   const [resolving, setResolving] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
+  const guide = useGameGuide(gameKey as GuideGame)
 
   const guessedKeys = useMemo(() => new Set(guesses.map(idOf)), [guesses, idOf])
   const won = guesses.some((g) => idOf(g) === idOf(answer))
@@ -150,7 +152,9 @@ export function GameScreen<T>({
         gameKey={gameKey}
         seat={{ used: guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => setStatsOpen((v) => !v)}
+        onOpenHelp={guide.show}
       />
+      <GameGuide game={gameKey as GuideGame} open={guide.open} onClose={guide.close} />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-[var(--ticket-pad-x)] pt-3">
         <div
           className={clsx(

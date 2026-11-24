@@ -7,6 +7,8 @@ import { computeStatsSummary, loadStats } from "@/shared/lib/stats"
 interface Props {
   title: string
   onOpenStats: () => void
+  /** Reopens this game's how-to-play guide. */
+  onOpenHelp?: () => void
   mode?: "daily" | "arcade"
   /** Puzzle number shown as the ticket serial (zero-padded to 5 digits). */
   serial?: number
@@ -21,6 +23,7 @@ interface Props {
 export function GameHeader({
   title,
   onOpenStats,
+  onOpenHelp,
   mode = "daily",
   serial,
   gameKey,
@@ -109,6 +112,19 @@ export function GameHeader({
           </div>
         )}
       </div>
+      {onOpenHelp && (
+        <button
+          type="button"
+          onClick={onOpenHelp}
+          aria-label="How to play"
+          title="How to play"
+          className="flex h-10 w-8 shrink-0 cursor-pointer self-center items-center justify-center rounded-md text-[1.25rem] text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
+        >
+          <span aria-hidden="true" className="fa5-title text-2xl leading-none">
+            ?
+          </span>
+        </button>
+      )}
       <button
         type="button"
         onClick={onOpenStats}

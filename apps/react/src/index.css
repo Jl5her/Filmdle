@@ -540,28 +540,6 @@ body {
   }
 }
 
-/* Plotdle's "Now Showing" card: a marquee board ringed with bulbs. */
-.now-showing-marquee {
-  border: 6px dotted var(--ticket-red);
-  border-radius: 10px;
-  outline: 2px solid var(--ticket-rule);
-  outline-offset: 4px;
-  background: color-mix(in srgb, var(--ticket-paper) 85%, var(--ticket-ink));
-  animation: marquee-bulbs 1.6s steps(2) infinite;
-}
-
-@keyframes marquee-bulbs {
-  50% {
-    border-color: color-mix(in srgb, var(--ticket-red) 55%, var(--ticket-paper));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .now-showing-marquee {
-    animation: none;
-  }
-}
-
 /* Saved ticket stubs in Stats: small torn stubs with side notches and a
    perforated top edge. */
 .mini-stub {
