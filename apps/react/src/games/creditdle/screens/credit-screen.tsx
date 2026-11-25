@@ -258,9 +258,6 @@ function CreditScreenBody({
       <GameHeader
         title={title}
         mode={mode}
-        serial={serial}
-        gameKey={gameKey}
-        seat={{ used: guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => {
           setArchiveOpen(false)
           if (guide.open) guide.close()

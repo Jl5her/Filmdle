@@ -31,8 +31,10 @@ export function GuessGrid<T>({
   }, [latestIndex])
 
   return (
-    <div className="flex flex-col items-center gap-1 px-2 pt-1 pb-1">
-      <div className="sticky top-0 z-20 flex gap-1 justify-center py-1 bg-[var(--ticket-paper)]">
+    // The headings sit above the scrolling rows instead of sticking over them,
+    // so they need no background of their own and show the ticket's paper.
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex shrink-0 justify-center gap-1 px-2 pt-1 pb-1">
         {columns.map((column) => (
           <button
             type="button"
@@ -51,45 +53,49 @@ export function GuessGrid<T>({
           </button>
         ))}
       </div>
-      {Array.from({ length: maxGuesses }).map((_, i) => {
-        const guess = guesses[i]
-        return guess ? (
-          <div
-            key={`g-${i}`}
-            ref={(el) => {
-              rowRefs.current[i] = el
-            }}
-          >
-            <GuessRow
-              guess={guess}
-              answer={answer}
-              columns={columns}
-              nameOf={nameOf}
-              animate={i === latestIndex}
-            />
-          </div>
-        ) : (
-          <div
-            key={`empty-${i}`}
-            ref={(el) => {
-              rowRefs.current[i] = el
-            }}
-          >
-            {/* Placeholder for the guess-name label — keeps the empty
+      <div className="scroll-fade min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-4 [scrollbar-gutter:stable_both-edges]">
+        <div className="flex flex-col items-center gap-1 px-2 pt-1 pb-1">
+          {Array.from({ length: maxGuesses }).map((_, i) => {
+            const guess = guesses[i]
+            return guess ? (
+              <div
+                key={`g-${i}`}
+                ref={(el) => {
+                  rowRefs.current[i] = el
+                }}
+              >
+                <GuessRow
+                  guess={guess}
+                  answer={answer}
+                  columns={columns}
+                  nameOf={nameOf}
+                  animate={i === latestIndex}
+                />
+              </div>
+            ) : (
+              <div
+                key={`empty-${i}`}
+                ref={(el) => {
+                  rowRefs.current[i] = el
+                }}
+              >
+                {/* Placeholder for the guess-name label — keeps the empty
                 row's vertical footprint identical to a filled row so
                 the grid doesn't reflow when a guess is added. */}
-            <div className="guess-name px-2 py-1 text-center uppercase">&nbsp;</div>
-            <div className="flex gap-1 justify-center">
-              {columns.map((column) => (
-                <div
-                  key={column.id}
-                  className="grid-cell-size rounded-md bg-primary-100 border border-primary-200 dark:bg-primary-900 dark:border-primary-700"
-                />
-              ))}
-            </div>
-          </div>
-        )
-      })}
+                <div className="guess-name px-2 py-1 text-center uppercase">&nbsp;</div>
+                <div className="flex gap-1 justify-center">
+                  {columns.map((column) => (
+                    <div
+                      key={column.id}
+                      className="grid-cell-size rounded-md bg-primary-100 border border-primary-200 dark:bg-primary-900 dark:border-primary-700"
+                    />
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }
