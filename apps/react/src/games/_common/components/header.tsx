@@ -16,9 +16,9 @@ interface Props {
   mode?: "daily" | "arcade"
   /** Puzzle number shown as the ticket serial (zero-padded to 5 digits). */
   serial?: number
-  /** Stats key; the Row field shows this game's current daily streak. */
+  /** Stats key; the Streak field shows this game's current daily streak. */
   gameKey?: string
-  /** Guesses used so far, printed as the Seat field. */
+  /** Guesses used so far, printed as the Guesses field. */
   seat?: { used: number; max: number }
   /** Hide the header entirely (a screen short of room while typing). */
   collapsed?: boolean
@@ -51,7 +51,7 @@ export function GameHeader({
     <header className="ticket-header-rule relative z-20 flex min-h-20 items-stretch pt-3 text-center kb:min-h-0 kb:py-0.5">
       {/* Equal-width sides keep the title centred: back + help on the left,
           past puzzles + stats on the right. */}
-      <div className="ml-3 flex w-[4.25rem] shrink-0 items-center justify-start gap-1.5 self-center">
+      <div className="ml-3 flex w-[4.25rem] shrink-0 items-center justify-start gap-1.5 self-start mt-[3px] kb:mt-0 kb:self-center">
         <Link
           to="/"
           aria-label="Back to menu"
@@ -95,13 +95,13 @@ export function GameHeader({
           </span>
           {streak !== undefined && (
             <span className="tf">
-              <span className="tf-label">Row</span>
+              <span className="tf-label">Streak</span>
               <span className="tf-value">{streak}</span>
             </span>
           )}
           {seat && (
             <span className="tf">
-              <span className="tf-label">Seat</span>
+              <span className="tf-label">Guesses</span>
               <span className="tf-value">
                 {seat.used}/{seat.max}
               </span>
@@ -120,12 +120,12 @@ export function GameHeader({
           <div id="ticket-fields-help" role="note" className="ticket-fields-help">
             {streak !== undefined && (
               <p>
-                <b>Row</b> your daily win streak ({streak} in a row)
+                <b>Streak</b> daily puzzles won in a row: {streak}
               </p>
             )}
             {seat && (
               <p>
-                <b>Seat</b> guesses used: {seat.used} of {seat.max}
+                <b>Guesses</b> used so far: {seat.used} of {seat.max}
               </p>
             )}
             <p>
@@ -139,7 +139,7 @@ export function GameHeader({
           </div>
         )}
       </div>
-      <div className="mr-3 flex w-[4.25rem] shrink-0 items-center justify-end gap-1.5 self-center">
+      <div className="mr-3 flex w-[4.25rem] shrink-0 items-center justify-end gap-1.5 self-start mt-[3px] kb:mt-0 kb:self-center">
         {onOpenArchive && (
           <button
             type="button"
