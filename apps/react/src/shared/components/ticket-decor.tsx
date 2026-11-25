@@ -18,6 +18,9 @@ export function TicketDecor({ code, torn = false }: Props) {
     <>
       <StubBarcode code={code} />
       {torn && <div className="ticket-rip" aria-hidden="true" />}
+      {/* Keyboard open: continues the stub's paper below the app, behind
+          Safari's floating toolbar, instead of leaving a dark gap. */}
+      <div className="kb-overhang" aria-hidden="true" />
     </>
   )
 }
