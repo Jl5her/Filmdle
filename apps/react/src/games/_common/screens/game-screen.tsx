@@ -184,9 +184,6 @@ function GameScreenBody<T>({
       <GameHeader
         title={title}
         mode={mode}
-        serial={serial}
-        gameKey={gameKey}
-        seat={{ used: guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => {
           setArchiveOpen(false)
           if (guide.open) guide.close()
@@ -223,7 +220,7 @@ function GameScreenBody<T>({
               />
             </div>
           )}
-          <div className="scroll-fade min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-4">
+          <div className="flex min-h-0 flex-1 flex-col">
             <GuessGrid
               guesses={guesses}
               answer={answer}

@@ -436,10 +436,7 @@ function PlotScreen({
         // A preview prints the plot's real ticket type, so screenshots match the game.
         mode={isDaily || archiveDate || (preview && answer.pool === "daily") ? "daily" : "arcade"}
         archiveDate={archiveDate}
-        serial={answer.id}
-        gameKey={GAME_KEY}
         collapsed={typing && !FIT_STEPS[fitLevel]?.header}
-        seat={{ used: masked ? 0 : guesses.length, max: MAX_GUESSES }}
         onOpenStats={() => {
           setArchiveOpen(false)
           if (guide.open) guide.close()

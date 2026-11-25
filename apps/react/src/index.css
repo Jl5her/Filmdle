@@ -330,6 +330,28 @@ body {
   --ticket-stub: color-mix(in srgb, var(--ticket-paper) 90%, var(--ticket-stub-mix));
 }
 
+/* With the keyboard open, iOS Safari reports a visible area that stops
+   above its floating address pill, so the app ends there and the page
+   background showed through behind the pill as a dark band. Carry the
+   stub's paper on below the ticket to fill that space. */
+.kb-overhang {
+  display: none;
+}
+
+:root[data-keyboard="open"] .kb-overhang {
+  display: block;
+  position: absolute;
+  /* Start a notch higher so it also covers the ticket's bottom corner
+     bites, and sit under the ticket's content. */
+  top: calc(100% - var(--corner-notch));
+  left: 0;
+  right: 0;
+  height: 50vh;
+  z-index: -1;
+  background: var(--ticket-stub);
+  pointer-events: none;
+}
+
 /* Printed double-rule border around the main body, stopping just above
    the perforation. */
 .app-viewport::before {
