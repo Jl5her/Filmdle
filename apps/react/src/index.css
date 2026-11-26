@@ -363,14 +363,15 @@ body {
 
 /* Keyboard closing: grow the ticket back to full height alongside the
    keyboard sliding away, instead of jumping. iOS's keyboard takes about
-   a quarter second to go; the overhang fills in below while it grows. */
+   a quarter second to go, so this finishes a little ahead of it; the
+   overhang fills in below while it grows. */
 :root[data-keyboard-closing] {
-  transition: --tear-height 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: --tear-height 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 :root[data-keyboard-closing] .app-viewport {
   transition-property: height, width, margin;
-  transition-duration: 300ms;
+  transition-duration: 180ms;
   transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 

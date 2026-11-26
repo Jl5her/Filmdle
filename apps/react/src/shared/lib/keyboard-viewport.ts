@@ -51,7 +51,7 @@ export function installKeyboardViewport(): void {
         // Flagged in the same frame the keyboard layout goes, so the ticket
         // animates back to full height (index.css) rather than jumping.
         root.dataset.keyboardClosing = ""
-        closingTimer = window.setTimeout(() => delete root.dataset.keyboardClosing, 400)
+        closingTimer = window.setTimeout(() => delete root.dataset.keyboardClosing, 280)
         delete root.dataset.keyboard
         root.style.removeProperty("--app-height")
         root.style.removeProperty("--app-top")
