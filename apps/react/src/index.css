@@ -408,8 +408,8 @@ body {
 }
 
 /* Scroll areas fade out at the bottom so a cut-off row reads as "more
-   below" rather than as clipped. Off while typing: the plot sits right
-   above the guess box then. */
+   below" rather than as clipped. Off while typing: the plot fits
+   without scrolling then. */
 /* Inner scroll areas keep a fling to themselves instead of handing the
    leftover momentum to the page (which pans it on iOS). */
 .scroll-fade,
