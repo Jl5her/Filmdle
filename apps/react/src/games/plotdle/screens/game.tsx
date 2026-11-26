@@ -596,14 +596,15 @@ function PlotScreen({
                 <button
                   type="button"
                   onClick={handleShare}
-                  className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider text-danger-600 transition-colors hover:bg-danger-600/10 dark:text-primary-100 dark:hover:bg-primary-700"
+                  aria-label="Send this plot to a friend"
+                  className={clsx(SOLID_SMALL, SOLID_INK)}
                 >
-                  <Icon name="share-nodes" />
+                  <Icon name={shareStatus === "copied" ? "check" : "share-nodes"} />
                   {shareStatus === "copied"
-                    ? "Link copied"
+                    ? "Copied"
                     : shareStatus === "failed"
-                      ? "Couldn't copy"
-                      : "Send to a friend"}
+                      ? "Try again"
+                      : "Send"}
                 </button>
                 <button
                   type="button"
@@ -616,15 +617,16 @@ function PlotScreen({
                   )}
                 >
                   <Icon name="eye" />
-                  {confirmReveal ? "Tap again to reveal" : "Reveal answer"}
+                  {confirmReveal ? "Tap again" : "Reveal"}
                 </button>
                 {!isDaily && !preview && !masked && (
                   <button
                     type="button"
                     onClick={onNext}
-                    className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-xs uppercase tracking-wider text-danger-600 transition-colors hover:bg-danger-600/10 dark:text-danger-400 dark:hover:bg-danger-500/20"
+                    aria-label="Next plot"
+                    className={clsx(SOLID_SMALL, SOLID_RED)}
                   >
-                    Next plot
+                    Next
                     <Icon name="chevron-right" />
                   </button>
                 )}
@@ -682,8 +684,8 @@ function PlotScreen({
                     aria-label={shareStatus === "copied" ? "Copied" : "Share"}
                     className={clsx(
                       "flex w-12 flex-none cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border-2 py-3 uppercase tracking-wide transition-colors min-[400px]:w-auto min-[400px]:max-w-[11rem] min-[400px]:flex-1 min-[400px]:px-3",
-                      "border-danger-600 text-danger-600 hover:bg-danger-600/10",
-                      "dark:border-danger-500 dark:text-primary-50 dark:hover:bg-danger-500/20",
+                      "border-transparent",
+                      SOLID_INK,
                     )}
                   >
                     <Icon name={shareStatus === "copied" ? "check" : "share-nodes"} />
@@ -812,3 +814,13 @@ function GuessRow({ number, label, correct }: { number: number; label: string; c
     </div>
   )
 }
+
+/** Small solid button for the row under the plot. */
+const SOLID_SMALL =
+  "flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-2 text-xs uppercase tracking-wider transition-colors"
+/** Solid red: moving on (next plot, play again). */
+const SOLID_RED =
+  "bg-danger-600 text-primary-50 hover:bg-danger-700 dark:bg-danger-500 dark:hover:bg-danger-600"
+/** Solid ink: sharing, a step below moving on. */
+const SOLID_INK =
+  "bg-primary-800 text-primary-50 hover:bg-primary-900 dark:bg-primary-100 dark:text-primary-900 dark:hover:bg-primary-50"
