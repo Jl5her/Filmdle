@@ -26,9 +26,11 @@ export function GameHeader({
 }: Props) {
   if (collapsed) return null
   return (
-    <header className="ticket-header-rule relative z-20 grid min-h-20 grid-cols-[auto_minmax(0,1fr)_auto] content-center items-center px-3 pt-3 pb-1 text-center kb:min-h-0 kb:py-0.5">
+    <header className="ticket-header-rule relative z-20 grid min-h-20 grid-cols-[auto_minmax(0,1fr)_auto] content-center items-center px-3 pt-3 pb-1 text-center kb:min-h-0 kb:pt-3 kb:pb-0">
       {/* The buttons share the title's row so they centre on it; equal-width
-          sides keep the title centred. Back + help on the left, past puzzles
+          sides keep the title centred. With the keyboard open the top padding
+          clears the printed border and the row sits midway between it and
+          the rule below. Back + help on the left, past puzzles
           + stats on the right. */}
       <div className={sideClass("justify-start")}>
         <Link to="/" aria-label="Back to menu" title="Back" className={BUTTON}>
@@ -83,7 +85,7 @@ export function GameHeader({
 
 /** Header icon button: one size, so every icon lines up and spaces evenly. */
 const BUTTON =
-  "flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-md text-[1.25rem] leading-none text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
+  "flex size-10 shrink-0 kb:size-8 cursor-pointer items-center justify-center rounded-md text-[1.25rem] leading-none text-danger-600 transition-colors hover:bg-danger-600/20 dark:text-primary-50 dark:hover:bg-danger-500/25"
 
 function sideClass(justify: string): string {
   return `flex w-[5.25rem] shrink-0 items-center gap-1 ${justify}`

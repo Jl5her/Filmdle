@@ -394,7 +394,7 @@ function PlotScreen({
     }
     const el = contentRef.current
     if (!el) return
-    // Content is bottom-aligned, so overflow spills off the top edge.
+    // Content is centred, so overflow spills off the top edge too.
     const check = () => {
       const first = el.firstElementChild
       if (first && first.getBoundingClientRect().top < el.getBoundingClientRect().top - 1)
@@ -492,7 +492,7 @@ function PlotScreen({
             className={clsx(
               "flex min-h-0 flex-1 flex-col",
               typing
-                ? "justify-end gap-2 overflow-hidden pb-2"
+                ? "justify-center gap-2 overflow-hidden py-2"
                 : "scroll-fade gap-3 overflow-y-auto overflow-x-hidden pb-4",
             )}
           >

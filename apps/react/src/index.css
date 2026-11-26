@@ -4,6 +4,14 @@
 /* Styles applied only while the on-screen keyboard is open (see keyboard-viewport.ts). */
 @custom-variant kb (&:where([data-keyboard="open"] *));
 
+/* Typed so it can animate: the stub eases back to full height when the
+   keyboard closes (see the keyboard-closing rules below). */
+@property --tear-height {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 108px;
+}
+
 @theme {
   /* Warm sepia palette — replaces the previous slate grays so the
      existing `primary-*` and `dark:primary-*` utilities cohere with
@@ -338,7 +346,8 @@ body {
   display: none;
 }
 
-:root[data-keyboard="open"] .kb-overhang {
+:root[data-keyboard="open"] .kb-overhang,
+:root[data-keyboard-closing] .kb-overhang {
   display: block;
   position: absolute;
   /* Start a notch higher so it also covers the ticket's bottom corner
@@ -350,6 +359,26 @@ body {
   z-index: -1;
   background: var(--ticket-stub);
   pointer-events: none;
+}
+
+/* Keyboard closing: grow the ticket back to full height alongside the
+   keyboard sliding away, instead of jumping. iOS's keyboard takes about
+   a quarter second to go; the overhang fills in below while it grows. */
+:root[data-keyboard-closing] {
+  transition: --tear-height 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+:root[data-keyboard-closing] .app-viewport {
+  transition-property: height, width, margin;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-keyboard-closing],
+  :root[data-keyboard-closing] .app-viewport {
+    transition: none;
+  }
 }
 
 /* Printed double-rule border around the main body, stopping just above
@@ -408,8 +437,8 @@ body {
 }
 
 /* Scroll areas fade out at the bottom so a cut-off row reads as "more
-   below" rather than as clipped. Off while typing: the plot sits right
-   above the guess box then. */
+   below" rather than as clipped. Off while typing: the plot fits
+   without scrolling then. */
 /* Inner scroll areas keep a fling to themselves instead of handing the
    leftover momentum to the page (which pans it on iOS). */
 .scroll-fade,

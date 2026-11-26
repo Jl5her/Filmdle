@@ -21,6 +21,7 @@ export function installKeyboardViewport(): void {
   let lastHeight = ""
   let lastTop = ""
   let frame = 0
+  let closingTimer = 0
 
   const update = () => {
     frame = 0
@@ -42,9 +43,15 @@ export function installKeyboardViewport(): void {
 
     if (isOpen !== open) {
       open = isOpen
+      window.clearTimeout(closingTimer)
       if (open) {
+        delete root.dataset.keyboardClosing
         root.dataset.keyboard = "open"
       } else {
+        // Flagged in the same frame the keyboard layout goes, so the ticket
+        // animates back to full height (index.css) rather than jumping.
+        root.dataset.keyboardClosing = ""
+        closingTimer = window.setTimeout(() => delete root.dataset.keyboardClosing, 400)
         delete root.dataset.keyboard
         root.style.removeProperty("--app-height")
         root.style.removeProperty("--app-top")
